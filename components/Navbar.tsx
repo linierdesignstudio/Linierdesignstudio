@@ -151,7 +151,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center gap-12 pointer-events-auto">
             
             {/* Desktop Nav Links (Hidden on Mobile & Tablet) */}
-            <div className="hidden lg:flex gap-10 mix-blend-difference text-white">
+            <div className="hidden lg:flex gap-10 text-neutral-900 dark:text-white">
                 {NAV_ITEMS.map((item) => (
                     <NavLink 
                         key={item.path} 
@@ -167,10 +167,10 @@ const Navbar: React.FC = () => {
             </div>
 
             {/* Divider (Hidden on Mobile & Tablet) */}
-            <div className="hidden lg:block w-[1px] h-6 bg-white/40 mix-blend-difference"></div>
+            <div className="hidden lg:block w-[1px] h-6 bg-neutral-900/40 dark:bg-white/40"></div>
 
             {/* Controls: Language & Theme (Desktop Only) */}
-            <div className="hidden lg:flex items-center gap-6 mix-blend-difference text-white">
+            <div className="hidden lg:flex items-center gap-6 text-neutral-900 dark:text-white">
                 <div className="flex items-center gap-3">
                     <Globe size={16} className="opacity-40" />
                     {(["ID", "EN", "CN"] as Language[]).map((l) => (
@@ -201,7 +201,7 @@ const Navbar: React.FC = () => {
             <div className="lg:hidden">
                  <button 
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`relative z-[70] flex items-center gap-2 text-base font-bold font-mono uppercase tracking-widest transition-colors duration-300 ${isOpen ? 'text-neutral-900 dark:text-white' : 'text-white mix-blend-difference'}`}
+                    className={`relative z-[70] flex items-center gap-2 text-base font-bold font-mono uppercase tracking-widest transition-colors duration-300 ${isOpen ? 'text-neutral-900 dark:text-white' : 'text-neutral-900 dark:text-white'}`}
                  >
                     <span className="hidden sm:inline">{isOpen ? 'Close' : 'Menu'}</span>
                     
