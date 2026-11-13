@@ -1,11 +1,11 @@
-import type { ApiRequest, ApiResponse } from '../../_lib/http';
-import { HttpError, readJson, requireMethod, sendError, sendJson, setSessionCookie } from '../../_lib/http';
+import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
+import { HttpError, readJson, requireMethod, sendError, sendJson, setSessionCookie } from '../../_lib/http.js';
 import {
   createSession,
   supabaseRequest,
   verifyPassword,
   type ProjectRecord,
-} from '../../_lib/portal';
+} from '../../_lib/portal.js';
 
 interface LoginProject extends ProjectRecord {
   password_salt: string;

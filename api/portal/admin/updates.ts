@@ -1,6 +1,6 @@
-import type { ApiRequest, ApiResponse } from '../../_lib/http';
-import { HttpError, readJson, requireMethod, sendError, sendJson } from '../../_lib/http';
-import { getSession, requireRole, supabaseRequest } from '../../_lib/portal';
+import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
+import { HttpError, readJson, requireMethod, sendError, sendJson } from '../../_lib/http.js';
+import { getSession, requireRole, supabaseRequest } from '../../_lib/portal.js';
 
 interface CreatedUpdate {
   id: string;

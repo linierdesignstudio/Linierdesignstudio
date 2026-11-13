@@ -4,8 +4,8 @@ import {
   scryptSync,
   timingSafeEqual,
 } from 'node:crypto';
-import type { ApiRequest } from './http';
-import { getCookie, HttpError } from './http';
+import type { ApiRequest } from './http.js';
+import { getCookie, HttpError } from './http.js';
 
 const SESSION_COOKIE = 'portal_session';
 const SESSION_TTL_SECONDS = 12 * 60 * 60;

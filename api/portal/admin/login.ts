@@ -1,6 +1,6 @@
-import type { ApiRequest, ApiResponse } from '../../_lib/http';
-import { HttpError, readJson, requireMethod, sendError, sendJson, setSessionCookie } from '../../_lib/http';
-import { createAdminSession, createSession } from '../../_lib/portal';
+import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
+import { HttpError, readJson, requireMethod, sendError, sendJson, setSessionCookie } from '../../_lib/http.js';
+import { createAdminSession, createSession } from '../../_lib/portal.js';
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {

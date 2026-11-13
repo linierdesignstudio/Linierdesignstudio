@@ -1,6 +1,6 @@
-import type { ApiRequest, ApiResponse } from '../../_lib/http';
-import { clearSessionCookie, requireMethod, sendError, sendJson } from '../../_lib/http';
-import { getProjectById, getSession, requireRole } from '../../_lib/portal';
+import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
+import { clearSessionCookie, requireMethod, sendError, sendJson } from '../../_lib/http.js';
+import { getProjectById, getSession, requireRole } from '../../_lib/portal.js';
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {
