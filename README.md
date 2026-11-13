@@ -29,7 +29,7 @@ The client portal uses Vercel Functions and Supabase. Client passwords and proje
    - `SUPABASE_SERVICE_ROLE_KEY` — the server-only service role key. Never expose it with a `VITE_` prefix or commit it.
    - `PORTAL_SESSION_SECRET` — a random secret of at least 32 characters.
    - `PORTAL_ADMIN_PASSWORD` — a unique admin password of at least 16 characters.
-3. Deploy to Vercel or run `vercel dev`. `npm run dev` alone does not run the API functions.
+3. Deploy to Vercel or run `vercel dev`. The Vercel configuration uses the Other framework preset so the `api/` functions are deployed alongside the Vite `dist` output. `npm run dev` alone does not run the API functions.
 4. Open the deployed site's URL with `#/portal/admin` appended to sign in, create project IDs and client passwords, and post daily progress updates.
 5. Share the deployed site's URL with `#/portal` appended, plus the generated project ID/password, through a separate secure channel.
 
