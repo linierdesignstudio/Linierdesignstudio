@@ -110,7 +110,7 @@ const CustomCursor: React.FC = () => {
 
   return (
     <motion.div
-      className="fixed top-0 left-0 pointer-events-none z-[10000] mix-blend-difference flex items-center justify-center"
+      className="fixed top-0 left-0 pointer-events-none z-[10000] mix-blend-difference hidden items-center justify-center md:flex"
       animate={{ opacity: isVisible ? 1 : 0 }}
       style={{
         x: cursorX,
