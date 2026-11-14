@@ -1,6 +1,6 @@
 import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from '../../_lib/http.js';
-import { createPasswordHash, getSession, requireAdminPermission, supabaseRequest, verifyPassword } from '../../_lib/portal.js';
+import { createPasswordHash, deleteStorageObjects, getSession, isStoredAttachmentPath, requireAdminPermission, supabaseRequest, verifyPassword } from '../../_lib/portal.js';
 
 interface AdminProject {
   id: string;
@@ -118,6 +118,49 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       );
       if (!updated[0]) throw new HttpError(404, 'Proyek tidak ditemukan.');
       sendJson(response, 200, { project: updated[0] });
+      return;
+    }
+
+    if (request.method === 'DELETE') {
+      requireAdminPermission(session, 'delete_projects');
+      const body = await readJson(request);
+      const projectId = typeof body.projectId === 'string' ? body.projectId : '';
+      if (!isUuid(projectId)) throw new HttpError(400, 'Pilih proyek yang valid.');
+
+      const deletedProjects = await supabaseRequest<Array<{ attachment_paths: unknown }>>(
+        'rpc/portal_delete_project',
+        {
+          method: 'POST',
+          body: JSON.stringify({ p_project_id: projectId }),
+        }
+      );
+      const deletedProject = deletedProjects[0];
+      if (!deletedProject) throw new HttpError(404, 'Proyek tidak ditemukan.');
+
+      const paths = new Set<string>();
+      let cleanupFailed = false;
+      if (!Array.isArray(deletedProject.attachment_paths)) {
+        cleanupFailed = true;
+      } else {
+        for (const path of deletedProject.attachment_paths) {
+          if (isStoredAttachmentPath(path, projectId)) {
+            paths.add(path);
+          } else {
+            cleanupFailed = true;
+          }
+        }
+      }
+
+      const safePaths = [...paths];
+      for (let index = 0; index < safePaths.length; index += 100) {
+        try {
+          await deleteStorageObjects(safePaths.slice(index, index + 100));
+        } catch {
+          cleanupFailed = true;
+        }
+      }
+
+      sendJson(response, 200, { deleted: true, cleanupFailed });
       return;
     }
 

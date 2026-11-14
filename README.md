@@ -23,7 +23,7 @@ View your app in AI Studio: https://ai.studio/apps/fc45b256-1696-4d4a-a7fa-adc6f
 
 The client portal uses Vercel Functions and Supabase. Client passwords and project updates are not stored in the browser.
 
-1. Create a Supabase project and run [`supabase/schema.sql`](./supabase/schema.sql) in its SQL Editor. This creates a private `portal-progress` Storage bucket for project photos and documents. For an existing portal, run the updated SQL again to add photo attachments, construction start dates, password-reset requests, client password changes, and separate client email-account credentials.
+1. Create a Supabase project and run [`supabase/schema.sql`](./supabase/schema.sql) in its SQL Editor. This creates a private `portal-progress` Storage bucket for project photos and documents. For an existing portal, run the updated SQL again to add photo attachments, construction start dates, password-reset requests, client password changes, separate client email-account credentials, and the project-deletion RPC.
 2. Add these environment variables to Vercel (and to `.env.local` when using `vercel dev`):
    - `SUPABASE_URL` — the Supabase project URL.
    - `SUPABASE_SERVICE_ROLE_KEY` — the server-only service role key. Never expose it with a `VITE_` prefix or commit it.

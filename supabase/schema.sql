@@ -314,6 +314,44 @@ begin
 end;
 $$;
 
+create or replace function public.portal_delete_project(
+  p_project_id uuid
+)
+returns table (
+  project_id uuid,
+  attachment_paths jsonb
+)
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  perform 1
+    from public.client_projects
+    where id = p_project_id
+    for update;
+
+  if not found then
+    return;
+  end if;
+
+  return query
+    select p_project_id,
+      coalesce(jsonb_agg(attachment.value ->> 'path'), '[]'::jsonb)
+    from public.project_updates as project_update
+    cross join lateral jsonb_array_elements(
+      case
+        when jsonb_typeof(project_update.attachments) = 'array' then project_update.attachments
+        else '[]'::jsonb
+      end
+    ) as attachment(value)
+    where project_update.project_id = p_project_id;
+
+  delete from public.client_projects
+    where id = p_project_id;
+end;
+$$;
+
 drop function if exists public.portal_resolve_password_reset(uuid, text, text);
 
 create function public.portal_resolve_password_reset(
@@ -430,6 +468,7 @@ grant execute on function public.portal_allow_login_attempt(uuid, boolean) to se
 grant execute on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) to service_role;
 grant execute on function public.portal_update_project_update(uuid, text, text, integer, date, jsonb) to service_role;
 grant execute on function public.portal_delete_project_update(uuid) to service_role;
+grant execute on function public.portal_delete_project(uuid) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
 grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
 

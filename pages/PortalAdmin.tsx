@@ -52,6 +52,13 @@ const copy = {
     deleteFailed: 'Update progress tidak dapat dihapus.',
     deleteRefreshFailed: 'Update sudah dihapus, tetapi daftar proyek gagal dimuat ulang. Muat ulang halaman.',
     deleteFileCleanupWarning: 'Update terhapus, tetapi sebagian file lampiran gagal dibersihkan dari penyimpanan.',
+    deleteProject: 'Hapus proyek',
+    deletingProject: 'Menghapus proyek...',
+    confirmDeleteProject: 'Hapus proyek ini beserta semua riwayat progress, foto, file lampiran, dan akses login klien? Tindakan ini tidak dapat dibatalkan.',
+    deletedProject: 'Proyek beserta riwayat progress dan aksesnya berhasil dihapus.',
+    deleteProjectFailed: 'Proyek tidak dapat dihapus.',
+    deleteProjectRefreshFailed: 'Proyek terhapus, tetapi daftar proyek gagal dimuat ulang. Muat ulang halaman.',
+    deleteProjectFileCleanupWarning: 'Proyek terhapus, tetapi sebagian file lampiran gagal dibersihkan dari penyimpanan.',
     editUpdate: 'Edit update',
     editingUpdate: 'Sedang mengedit',
     cancelEdit: 'Batalkan edit',
@@ -159,6 +166,13 @@ const copy = {
     deleteFailed: 'The progress update could not be deleted.',
     deleteRefreshFailed: 'The update was deleted, but project data could not be refreshed. Reload the page.',
     deleteFileCleanupWarning: 'The update was deleted, but some attachments could not be removed from storage.',
+    deleteProject: 'Delete project',
+    deletingProject: 'Deleting project...',
+    confirmDeleteProject: 'Delete this project and all progress history, photos, attachments, and client login access? This cannot be undone.',
+    deletedProject: 'Project, progress history, and access deleted.',
+    deleteProjectFailed: 'The project could not be deleted.',
+    deleteProjectRefreshFailed: 'The project was deleted, but the project list could not be refreshed. Reload the page.',
+    deleteProjectFileCleanupWarning: 'The project was deleted, but some attachments could not be removed from storage.',
     editUpdate: 'Edit update',
     editingUpdate: 'Editing',
     cancelEdit: 'Cancel edit',
@@ -266,6 +280,13 @@ const copy = {
     deleteFailed: '无法删除此进度更新。',
     deleteRefreshFailed: '更新已删除，但项目数据无法刷新。请重新加载页面。',
     deleteFileCleanupWarning: '更新已删除，但部分附件无法从存储中清理。',
+    deleteProject: '删除项目',
+    deletingProject: '正在删除项目...',
+    confirmDeleteProject: '删除此项目及其所有进度记录、照片、附件和客户登录权限？此操作无法撤销。',
+    deletedProject: '项目、进度记录和访问权限已删除。',
+    deleteProjectFailed: '无法删除此项目。',
+    deleteProjectRefreshFailed: '项目已删除，但项目列表无法刷新。请重新加载页面。',
+    deleteProjectFileCleanupWarning: '项目已删除，但部分附件无法从存储中清理。',
     editUpdate: '编辑更新',
     editingUpdate: '正在编辑',
     cancelEdit: '取消编辑',
@@ -809,6 +830,50 @@ const PortalAdmin: React.FC = () => {
       setError(deletionCompleted
         ? t.deleteRefreshFailed
         : cause instanceof Error ? cause.message : t.deleteFailed);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteProject = async (project: PortalProject) => {
+    const confirmed = window.confirm(
+      `${t.confirmDeleteProject}\n\n${project.project_name} (${project.project_code})`
+    );
+    if (!confirmed) return;
+
+    setBusy(true);
+    setError('');
+    setNotice('');
+    let deletionCompleted = false;
+    let cleanupFailed = false;
+    try {
+      const result = await portalRequest<{ deleted: boolean; cleanupFailed: boolean }>('/api/portal/admin/projects', {
+        method: 'DELETE',
+        body: JSON.stringify({ projectId: project.id }),
+      });
+      if (!result.deleted) throw new Error(t.deleteProjectFailed);
+      deletionCompleted = true;
+      cleanupFailed = result.cleanupFailed;
+
+      if (selectedProjectId === project.id) {
+        setAdminUpdates([]);
+        setEditingUpdateId('');
+        setEditingAttachments([]);
+        setSelectedFiles([]);
+        if (imageInputRef.current) imageInputRef.current.value = '';
+        if (documentInputRef.current) documentInputRef.current.value = '';
+      }
+
+      const { projects: refreshedProjects } = await portalRequest<{ projects: PortalProject[] }>('/api/portal/admin/projects');
+      setProjects(refreshedProjects);
+      const nextProject = refreshedProjects.find((item) => item.id === selectedProjectId) ?? refreshedProjects[0];
+      setSelectedProjectId(nextProject?.id ?? '');
+      setNotice(t.deletedProject);
+      if (cleanupFailed) setError(t.deleteProjectFileCleanupWarning);
+    } catch (cause) {
+      setError(deletionCompleted
+        ? `${t.deleteProjectRefreshFailed}${cleanupFailed ? ` ${t.deleteProjectFileCleanupWarning}` : ''}`
+        : cause instanceof Error ? cause.message : t.deleteProjectFailed);
     } finally {
       setBusy(false);
     }
@@ -1365,6 +1430,17 @@ const PortalAdmin: React.FC = () => {
                           <button disabled={busy} className="border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15">{t.saveClientAccount}</button>
                         </form>
                         <p className="mt-2 text-[10px] leading-5 text-neutral-500">{t.clientEmailEditHint}</p>
+                        <div className="mt-4 flex justify-end border-t border-neutral-100 pt-4 dark:border-white/10">
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => deleteProject(project)}
+                            className="inline-flex items-center gap-2 border border-red-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-red-600 transition-colors hover:border-red-500 hover:bg-red-50 disabled:opacity-50 dark:border-red-400/20 dark:text-red-400 dark:hover:bg-red-500/10"
+                          >
+                            <Trash2 size={13} />
+                            {busy ? t.deletingProject : t.deleteProject}
+                          </button>
+                        </div>
                           </>
                         )}
                       </li>

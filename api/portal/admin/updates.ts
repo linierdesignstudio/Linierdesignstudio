@@ -1,6 +1,6 @@
 import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from '../../_lib/http.js';
-import { createStorageDownloadUrl, deleteStorageObjects, getSession, requireAdminPermission, supabaseRequest, type PortalAttachment } from '../../_lib/portal.js';
+import { createStorageDownloadUrl, deleteStorageObjects, getSession, isStoredAttachmentPath, requireAdminPermission, supabaseRequest, type PortalAttachment } from '../../_lib/portal.js';
 
 interface ProjectUpdateRecord {
   id: string;
@@ -173,13 +173,6 @@ function text(value: unknown): string {
 
 function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
-
-function isStoredAttachmentPath(path: unknown, projectId: string): path is string {
-  const prefix = `${projectId}/`;
-  return typeof path === 'string' &&
-    path.startsWith(prefix) &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(jpg|png|webp|pdf|doc|docx|xlsx|txt|csv)$/i.test(path.slice(prefix.length));
 }
 
 function isValidDate(value: string): boolean {

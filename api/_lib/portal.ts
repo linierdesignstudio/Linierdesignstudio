@@ -21,6 +21,7 @@ export type AdminPermission =
   | 'project_read'
   | 'manage_updates'
   | 'delete_updates'
+  | 'delete_projects'
   | 'process_resets'
   | 'manage_client_access';
 
@@ -176,6 +177,13 @@ export async function deleteStorageObjects(paths: string[]): Promise<void> {
     method: 'DELETE',
     body: JSON.stringify({ prefixes: paths }),
   });
+}
+
+export function isStoredAttachmentPath(path: unknown, projectId: string): path is string {
+  const prefix = `${projectId}/`;
+  return typeof path === 'string' &&
+    path.startsWith(prefix) &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(jpg|png|webp|pdf|doc|docx|xlsx|txt|csv)$/i.test(path.slice(prefix.length));
 }
 
 export function createStorageObjectPath(projectId: string, extension: string): string {
