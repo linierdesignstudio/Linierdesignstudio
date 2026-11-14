@@ -76,6 +76,7 @@ const Footer: React.FC = () => {
     { name: 'WhatsApp', href: 'https://wa.me/6281775030638', target: '_blank', rel: 'noopener noreferrer' },
     { name: 'WeChat', href: '#', onClick: (e) => { e.preventDefault(); navigator.clipboard.writeText('Linierstudio'); const el = e.currentTarget.querySelector('span'); if(el) { const original = el.innerText; el.innerText = 'COPIED!'; setTimeout(() => el.innerText = original, 2000); } } },
     { name: 'Instagram', href: 'https://www.instagram.com/linierstudio/', target: '_blank', rel: 'noopener noreferrer' },
+    { name: 'Instagram Interior', href: 'https://www.instagram.com/linierinteriorid?utm_source=ig_web_button_share_sheet&mdxt=ZDNlZDc0MzIxNw==', target: '_blank', rel: 'noopener noreferrer' },
     { name: 'Behance', href: 'https://www.behance.net/linierstudio', target: '_blank', rel: 'noopener noreferrer' },
     { name: 'Facebook', href: 'https://www.facebook.com/linierstudio', target: '_blank', rel: 'noopener noreferrer' },
   ];
