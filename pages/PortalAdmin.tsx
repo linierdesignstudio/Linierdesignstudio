@@ -502,9 +502,9 @@ const PortalAdmin: React.FC = () => {
     ? Math.round(projects.reduce((sum, project) => sum + project.progress_percent, 0) / projects.length)
     : 0;
   const completedProjectCount = projects.filter((project) => project.progress_percent === 100).length;
-  const scrollToSection = (sectionId: string) => {
+  const openAdminPage = (sectionId: string) => {
     setActiveSection(sectionId);
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const toggleTheme = () => {
     const nextIsDark = !document.documentElement.classList.contains('dark');
@@ -518,6 +518,9 @@ const PortalAdmin: React.FC = () => {
     { id: 'admin-access', label: t.clientAccess, icon: <FolderOpen size={17} /> },
     { id: 'admin-resets', label: t.passwordRequestsNav, icon: <KeyRound size={17} /> },
   ];
+  const activePageTitle = activeSection === 'admin-dashboard'
+    ? t.adminDashboard
+    : navigation.find((item) => item.id === activeSection)?.label ?? t.adminDashboard;
 
   return (
     <div className={authenticated ? 'min-h-screen bg-[#f3f4f6] text-neutral-900 dark:bg-neutral-950 dark:text-white' : 'min-h-screen bg-[#f4f1ea] px-5 pt-20 pb-24 text-neutral-900 dark:bg-neutral-950 dark:text-white md:pt-24'}>
@@ -539,7 +542,7 @@ const PortalAdmin: React.FC = () => {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => scrollToSection(item.id)}
+                onClick={() => openAdminPage(item.id)}
                 className={`flex shrink-0 items-center gap-3 border-l-2 px-3 py-3 text-left text-xs transition-colors lg:w-full ${activeSection === item.id ? 'border-bronze-400 bg-white/10 text-white' : 'border-transparent text-white/55 hover:bg-white/5 hover:text-white'}`}
               >
                 {item.icon}<span>{item.label}</span>
@@ -558,7 +561,7 @@ const PortalAdmin: React.FC = () => {
           <header className="sticky top-0 z-30 flex min-h-[72px] items-center justify-between gap-4 border-b border-neutral-200 bg-white/95 px-4 text-neutral-900 backdrop-blur dark:border-white/10 dark:bg-neutral-900/95 dark:text-white sm:px-7 lg:px-10">
             <div className="min-w-0">
               <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{t.eyebrow}</p>
-              <h1 className="mt-1 font-display text-sm font-semibold uppercase leading-tight tracking-wide sm:text-lg">{t.adminDashboard}</h1>
+              <h1 className="mt-1 font-display text-sm font-semibold uppercase leading-tight tracking-wide sm:text-lg">{activePageTitle}</h1>
             </div>
             <div className="flex shrink-0 items-center gap-2 sm:gap-4">
               <div className="hidden items-center gap-2 border-r border-neutral-200 pr-3 dark:border-white/15 sm:flex">
@@ -569,7 +572,7 @@ const PortalAdmin: React.FC = () => {
               <button type="button" onClick={toggleTheme} aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'} className="flex h-10 w-10 items-center justify-center border border-neutral-200 text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/15 dark:text-neutral-300">
                 {isDark ? <Sun size={16} /> : <Moon size={16} />}
               </button>
-              <button type="button" onClick={() => scrollToSection('admin-resets')} aria-label={t.passwordRequestsNav} title={t.passwordRequestsNav} className="relative flex h-10 w-10 items-center justify-center border border-neutral-200 text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/15 dark:text-neutral-300">
+              <button type="button" onClick={() => openAdminPage('admin-resets')} aria-label={t.passwordRequestsNav} title={t.passwordRequestsNav} className="relative flex h-10 w-10 items-center justify-center border border-neutral-200 text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/15 dark:text-neutral-300">
                 <Bell size={17} />
                 {passwordRequests.length > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 font-mono text-[8px] text-white">{passwordRequests.length}</span>}
               </button>
@@ -581,7 +584,7 @@ const PortalAdmin: React.FC = () => {
           </header>
         )}
         <div className={`mx-auto w-full ${authenticated ? 'max-w-[1600px] px-4 py-6 sm:px-7 lg:px-10' : 'max-w-7xl px-0 sm:px-3 lg:px-0'}`}>
-        <header id="admin-dashboard" className="relative mb-8 scroll-mt-24 overflow-hidden bg-neutral-900 p-7 text-white sm:p-10 lg:p-12">
+        {(!authenticated || activeSection === 'admin-dashboard') && <header id="admin-dashboard" className="relative mb-8 scroll-mt-24 overflow-hidden bg-neutral-900 p-7 text-white sm:p-10 lg:p-12">
           <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-40" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-900/80 to-neutral-900/25" />
           <div className="pointer-events-none absolute -right-12 -top-32 h-80 w-80 rounded-full border border-white/10" />
@@ -606,7 +609,7 @@ const PortalAdmin: React.FC = () => {
             <span className="h-1.5 w-1.5 rounded-full bg-bronze-400" /> {t.workspace}
             {authenticated && selectedProject && <span className="ml-auto border border-white/15 px-3 py-1 text-white/75">{selectedProject.progress_percent === 100 ? t.completed : t.inProgress} · {selectedProject.progress_percent}%</span>}
           </div>
-        </header>
+        </header>}
 
         {error && <ErrorBanner message={error} />}
         {notice && <p role="status" className="mb-6 flex items-start gap-2 border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300"><Check size={17} className="mt-0.5 shrink-0" />{notice}</p>}
@@ -626,6 +629,8 @@ const PortalAdmin: React.FC = () => {
           </form>
         ) : (
           <>
+            {activeSection === 'admin-dashboard' && (
+              <>
             <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <Metric icon={<Layers size={17} />} label={t.projectCount} value={projects.length.toString().padStart(2, '0')} />
               <Metric icon={<Send size={17} />} label={t.activeProjects} value={projects.filter((project) => project.progress_percent < 100).length.toString().padStart(2, '0')} />
@@ -642,7 +647,7 @@ const PortalAdmin: React.FC = () => {
                       <h2 className="mt-1 font-display text-lg font-semibold">{t.timeline}</h2>
                     </div>
                   </div>
-                  <button type="button" onClick={() => scrollToSection('admin-access')} className="font-mono text-[9px] uppercase tracking-wider text-neutral-500 transition-colors hover:text-bronze-600">{t.viewAllProjects}<ArrowUpRight size={12} className="ml-1 inline" /></button>
+                  <button type="button" onClick={() => openAdminPage('admin-progress')} className="font-mono text-[9px] uppercase tracking-wider text-neutral-500 transition-colors hover:text-bronze-600">{t.viewAllProjects}<ArrowUpRight size={12} className="ml-1 inline" /></button>
                 </div>
                 {projects.length === 0 ? (
                   <p className="py-5 text-sm text-neutral-500">{t.emptyProjects}</p>
@@ -705,6 +710,10 @@ const PortalAdmin: React.FC = () => {
                 )}
               </section>
             </div>
+              </>
+            )}
+            {activeSection === 'admin-resets' && (
+              <>
             <section id="admin-resets" className="mb-5 scroll-mt-24 border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                 <KeyRound size={17} className="text-bronze-500" />
@@ -759,8 +768,10 @@ const PortalAdmin: React.FC = () => {
                 </button>
               </section>
             )}
-            <div className="grid scroll-mt-24 items-start gap-5 lg:grid-cols-[0.92fr_1.08fr]">
-            <section id="admin-access" className="scroll-mt-24 border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+              </>
+            )}
+            <div className="space-y-5">
+            {activeSection === 'admin-access' && <section id="admin-access" className="mx-auto w-full max-w-3xl scroll-mt-24 border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-8 flex items-start gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                 <Plus size={19} className="text-bronze-500" />
                 <div>
@@ -779,9 +790,9 @@ const PortalAdmin: React.FC = () => {
                   {t.create} <ArrowUpRight size={17} />
                 </button>
               </form>
-            </section>
+            </section>}
 
-            <section id="admin-progress" className="scroll-mt-24 space-y-5">
+            {activeSection === 'admin-progress' && <section id="admin-progress" className="mx-auto w-full max-w-3xl scroll-mt-24 space-y-5">
               <div className="border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-7 flex items-start gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                   <Send size={18} className="text-bronze-500" />
@@ -894,7 +905,7 @@ const PortalAdmin: React.FC = () => {
                   </ul>
                 )}
               </div>
-            </section>
+            </section>}
           </div>
           </>
         )}
