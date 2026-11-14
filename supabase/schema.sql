@@ -19,8 +19,12 @@ create table if not exists public.project_updates (
   description text not null,
   progress_percent integer not null check (progress_percent between 0 and 100),
   update_date date not null default current_date,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  attachments jsonb not null default '[]'::jsonb
 );
+
+alter table public.project_updates
+  add column if not exists attachments jsonb not null default '[]'::jsonb;
 
 create index if not exists project_updates_project_date_idx
   on public.project_updates (project_id, update_date desc, created_at desc);
@@ -81,12 +85,15 @@ begin
 end;
 $$;
 
+drop function if exists public.portal_create_project_update(uuid, text, text, integer, date);
+
 create or replace function public.portal_create_project_update(
   p_project_id uuid,
   p_title text,
   p_description text,
   p_progress_percent integer,
-  p_update_date date
+  p_update_date date,
+  p_attachments jsonb default '[]'::jsonb
 )
 returns setof public.project_updates
 language plpgsql
@@ -110,22 +117,41 @@ begin
 
   return query
     insert into public.project_updates (
-      project_id, title, description, progress_percent, update_date
+      project_id, title, description, progress_percent, update_date, attachments
     )
     values (
-      p_project_id, p_title, p_description, p_progress_percent, p_update_date
+      p_project_id, p_title, p_description, p_progress_percent, p_update_date, p_attachments
     )
     returning *;
 end;
 $$;
 
 revoke all on function public.portal_allow_login_attempt(uuid, boolean) from public, anon, authenticated;
-revoke all on function public.portal_create_project_update(uuid, text, text, integer, date) from public, anon, authenticated;
+revoke all on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) from public, anon, authenticated;
 grant execute on function public.portal_allow_login_attempt(uuid, boolean) to service_role;
-grant execute on function public.portal_create_project_update(uuid, text, text, integer, date) to service_role;
+grant execute on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) to service_role;
 
 revoke all on public.client_projects, public.project_updates, public.project_login_attempts from anon, authenticated;
 grant select, insert on public.client_projects to service_role;
 grant select, insert, update, delete on public.project_updates to service_role;
 grant select, insert, update, delete on public.project_login_attempts to service_role;
 grant update on public.client_projects to service_role;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'portal-progress',
+  'portal-progress',
+  false,
+  20971520,
+  array[
+    'image/jpeg', 'image/png', 'image/webp', 'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/plain', 'text/csv'
+  ]
+)
+on conflict (id) do update
+set public = excluded.public,
+    file_size_limit = excluded.file_size_limit,
+    allowed_mime_types = excluded.allowed_mime_types;

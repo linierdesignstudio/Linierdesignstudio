@@ -16,6 +16,15 @@ export interface PortalUpdate {
   progress_percent: number;
   update_date: string;
   created_at: string;
+  attachments: PortalAttachment[];
+}
+
+export interface PortalAttachment {
+  path: string;
+  name: string;
+  contentType: string;
+  size: number;
+  url?: string;
 }
 
 export async function portalRequest<T>(path: string, init?: RequestInit): Promise<T> {
