@@ -63,7 +63,7 @@ const RouteAppShell: React.FC<{ scrollLocked: boolean }> = ({ scrollLocked }) =>
 
   return (
     <>
-      {!isAdminPortal && <div className="hidden md:block"><CustomCursor /></div>}
+      <CustomCursor />
       {!isAdminPortal && <Navbar />}
       <div
         className={`
