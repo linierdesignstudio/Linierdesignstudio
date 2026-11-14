@@ -50,6 +50,11 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       throw new HttpError(401, 'Password saat ini tidak sesuai.');
     }
 
+    await supabaseRequest<boolean>('rpc/portal_allow_login_attempt', {
+      method: 'POST',
+      body: JSON.stringify({ p_project_id: project.id, p_success: true }),
+    });
+
     const nextPassword = createPasswordHash(newPassword);
     const changed = await supabaseRequest<boolean>('rpc/portal_change_client_password', {
       method: 'POST',
@@ -65,10 +70,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       throw new HttpError(409, 'Password akun sudah berubah. Gunakan password terbaru lalu coba kembali.');
     }
 
-    await supabaseRequest<boolean>('rpc/portal_allow_login_attempt', {
-      method: 'POST',
-      body: JSON.stringify({ p_project_id: project.id, p_success: true }),
-    });
+    clearSessionCookie(response);
     sendJson(response, 200, { changed: true });
   } catch (error) {
     sendError(response, error);

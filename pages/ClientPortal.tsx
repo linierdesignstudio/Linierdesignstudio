@@ -43,7 +43,7 @@ const copy = {
     passwordMinLength: 'Minimal 8 karakter.',
     savePassword: 'Simpan password',
     savingPassword: 'Menyimpan...',
-    passwordChanged: 'Password berhasil diubah.',
+    passwordChanged: 'Password berhasil diubah. Silakan masuk kembali menggunakan password baru.',
     passwordMismatch: 'Konfirmasi password tidak sama.',
     cancel: 'Batal',
     duration: 'Durasi pembangunan',
@@ -89,7 +89,7 @@ const copy = {
     passwordMinLength: 'Use at least 8 characters.',
     savePassword: 'Save password',
     savingPassword: 'Saving...',
-    passwordChanged: 'Password changed successfully.',
+    passwordChanged: 'Password changed. Please sign in again with your new password.',
     passwordMismatch: 'The password confirmation does not match.',
     cancel: 'Cancel',
     duration: 'Construction duration',
@@ -135,7 +135,7 @@ const copy = {
     passwordMinLength: '至少使用 8 个字符。',
     savePassword: '保存密码',
     savingPassword: '正在保存...',
-    passwordChanged: '密码已成功更改。',
+    passwordChanged: '密码已更改，请使用新密码重新登录。',
     passwordMismatch: '两次输入的密码不一致。',
     cancel: '取消',
     duration: '施工时长',
@@ -245,7 +245,13 @@ const ClientPortal: React.FC = () => {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
-      setPasswordChangeNotice(t.passwordChanged);
+      setPassword('');
+      setProject(null);
+      setUpdates([]);
+      setError('');
+      setResetMode(false);
+      closePasswordChange();
+      setResetNotice(t.passwordChanged);
     } catch (cause) {
       setPasswordChangeError(cause instanceof Error ? cause.message : 'Password tidak dapat diubah.');
     } finally {
