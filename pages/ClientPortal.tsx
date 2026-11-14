@@ -36,6 +36,16 @@ const copy = {
     sendReset: 'Kirim permintaan',
     backToSignIn: 'Kembali ke login',
     resetSent: 'Jika ID proyek terdaftar, tim studio akan memverifikasi permintaan dan menghubungi Anda lewat WhatsApp.',
+    changePassword: 'Ganti password',
+    currentPassword: 'Password saat ini',
+    newPassword: 'Password baru',
+    confirmPassword: 'Konfirmasi password baru',
+    passwordMinLength: 'Minimal 8 karakter.',
+    savePassword: 'Simpan password',
+    savingPassword: 'Menyimpan...',
+    passwordChanged: 'Password berhasil diubah.',
+    passwordMismatch: 'Konfirmasi password tidak sama.',
+    cancel: 'Batal',
     duration: 'Durasi pembangunan',
     durationNotSet: 'Tanggal mulai belum diatur oleh tim studio.',
     notStarted: 'Belum dimulai',
@@ -72,6 +82,16 @@ const copy = {
     sendReset: 'Send request',
     backToSignIn: 'Back to sign in',
     resetSent: 'If the project ID is registered, the studio will verify the request and contact you via WhatsApp.',
+    changePassword: 'Change password',
+    currentPassword: 'Current password',
+    newPassword: 'New password',
+    confirmPassword: 'Confirm new password',
+    passwordMinLength: 'Use at least 8 characters.',
+    savePassword: 'Save password',
+    savingPassword: 'Saving...',
+    passwordChanged: 'Password changed successfully.',
+    passwordMismatch: 'The password confirmation does not match.',
+    cancel: 'Cancel',
     duration: 'Construction duration',
     durationNotSet: 'The studio has not set a start date yet.',
     notStarted: 'Not started yet',
@@ -108,6 +128,16 @@ const copy = {
     sendReset: '发送申请',
     backToSignIn: '返回登录',
     resetSent: '如果项目编号已注册，工作室将核实请求并通过 WhatsApp 联系您。',
+    changePassword: '更改密码',
+    currentPassword: '当前密码',
+    newPassword: '新密码',
+    confirmPassword: '确认新密码',
+    passwordMinLength: '至少使用 8 个字符。',
+    savePassword: '保存密码',
+    savingPassword: '正在保存...',
+    passwordChanged: '密码已成功更改。',
+    passwordMismatch: '两次输入的密码不一致。',
+    cancel: '取消',
     duration: '施工时长',
     durationNotSet: '工作室尚未设置开始日期。',
     notStarted: '尚未开始',
@@ -128,6 +158,13 @@ const ClientPortal: React.FC = () => {
   const [resetMode, setResetMode] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [resetNotice, setResetNotice] = useState('');
+  const [passwordChangeOpen, setPasswordChangeOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordChanging, setPasswordChanging] = useState(false);
+  const [passwordChangeError, setPasswordChangeError] = useState('');
+  const [passwordChangeNotice, setPasswordChangeNotice] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -190,12 +227,48 @@ const ClientPortal: React.FC = () => {
     }
   };
 
+  const changePassword = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setPasswordChangeError('');
+    setPasswordChangeNotice('');
+    if (newPassword !== confirmNewPassword) {
+      setPasswordChangeError(t.passwordMismatch);
+      return;
+    }
+
+    setPasswordChanging(true);
+    try {
+      await portalRequest<{ changed: boolean }>('/api/portal/client/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setPasswordChangeNotice(t.passwordChanged);
+    } catch (cause) {
+      setPasswordChangeError(cause instanceof Error ? cause.message : 'Password tidak dapat diubah.');
+    } finally {
+      setPasswordChanging(false);
+    }
+  };
+
+  const closePasswordChange = () => {
+    setPasswordChangeOpen(false);
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setPasswordChangeError('');
+    setPasswordChangeNotice('');
+  };
+
   const signOut = async () => {
     try {
       await portalRequest('/api/portal/logout', { method: 'POST' });
       setProject(null);
       setUpdates([]);
       setError('');
+      closePasswordChange();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Tidak dapat keluar dari portal.');
     }
@@ -220,9 +293,26 @@ const ClientPortal: React.FC = () => {
                   <h1 className="max-w-3xl font-display text-4xl font-semibold uppercase leading-[0.95] tracking-tight sm:text-6xl">{project.project_name}</h1>
                   <p className="mt-5 text-sm text-white/60">{project.client_name}<span className="mx-3 text-white/25">/</span>{project.location || t.location}</p>
                 </div>
-                <button onClick={signOut} className="inline-flex items-center gap-2 self-start border border-white/20 px-4 py-3 text-[10px] font-mono uppercase tracking-widest text-white/75 transition-colors hover:border-bronze-400 hover:text-white md:self-auto">
-                  <LogOut size={14} /> {t.logout}
-                </button>
+                <div className="flex flex-wrap gap-3 self-start md:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (passwordChangeOpen) {
+                        closePasswordChange();
+                      } else {
+                        setPasswordChangeOpen(true);
+                        setPasswordChangeError('');
+                        setPasswordChangeNotice('');
+                      }
+                    }}
+                    className="inline-flex items-center gap-2 border border-white/20 px-4 py-3 text-[10px] font-mono uppercase tracking-widest text-white/75 transition-colors hover:border-bronze-400 hover:text-white"
+                  >
+                    <LockKeyhole size={14} /> {t.changePassword}
+                  </button>
+                  <button onClick={signOut} className="inline-flex items-center gap-2 border border-white/20 px-4 py-3 text-[10px] font-mono uppercase tracking-widest text-white/75 transition-colors hover:border-bronze-400 hover:text-white">
+                    <LogOut size={14} /> {t.logout}
+                  </button>
+                </div>
               </div>
               <div className="relative mt-10 flex items-center gap-2 border-t border-white/10 pt-5 text-[10px] font-mono uppercase tracking-[0.18em] text-white/50">
                 <ShieldCheck size={14} className="text-bronze-300" /> {t.secure}
@@ -230,6 +320,30 @@ const ClientPortal: React.FC = () => {
             </div>
 
             {error && <ErrorBanner message={error} />}
+
+            {passwordChangeOpen && (
+              <form onSubmit={changePassword} className="mb-5 border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                <div className="mb-6">
+                  <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-bronze-600 dark:text-bronze-400">{t.changePassword}</p>
+                  <p className="text-sm text-neutral-500">{t.passwordMinLength}</p>
+                </div>
+                <div className="grid gap-5 md:grid-cols-3">
+                  <PasswordField label={t.currentPassword} value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" />
+                  <PasswordField label={t.newPassword} value={newPassword} onChange={setNewPassword} autoComplete="new-password" minLength={8} />
+                  <PasswordField label={t.confirmPassword} value={confirmNewPassword} onChange={setConfirmNewPassword} autoComplete="new-password" minLength={8} />
+                </div>
+                {passwordChangeError && <div className="mt-5"><ErrorBanner message={passwordChangeError} /></div>}
+                {passwordChangeNotice && <p role="status" className="mt-5 border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-xs leading-5 text-emerald-700 dark:text-emerald-300">{passwordChangeNotice}</p>}
+                <div className="mt-6 flex flex-wrap justify-end gap-3">
+                  <button type="button" onClick={closePasswordChange} className="border border-neutral-300 px-5 py-3 font-mono text-[10px] uppercase tracking-widest text-neutral-600 transition-colors hover:border-neutral-500 dark:border-white/20 dark:text-neutral-300">
+                    {t.cancel}
+                  </button>
+                  <button disabled={passwordChanging} className="inline-flex items-center gap-2 bg-neutral-900 px-5 py-3 font-mono text-[10px] uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950">
+                    {passwordChanging ? t.savingPassword : t.savePassword} <ArrowUpRight size={15} />
+                  </button>
+                </div>
+              </form>
+            )}
 
             <div className="grid gap-5 py-5 md:grid-cols-[1.25fr_0.8fr_0.8fr]">
               <div className="border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
@@ -421,6 +535,36 @@ const ClientPortal: React.FC = () => {
 
 function ErrorBanner({ message }: { message: string }) {
   return <p role="alert" className="mb-4 border border-red-500/30 bg-red-500/5 px-4 py-3 text-sm text-red-600 dark:text-red-300">{message}</p>;
+}
+
+function PasswordField({
+  label,
+  value,
+  onChange,
+  autoComplete,
+  minLength,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  autoComplete: string;
+  minLength?: number;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{label}</span>
+      <input
+        type="password"
+        autoComplete={autoComplete}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        required
+        minLength={minLength}
+        maxLength={256}
+        className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none transition-colors focus:border-bronze-500 dark:border-white/20"
+      />
+    </label>
+  );
 }
 
 function formatDate(value: string, language: string): string {

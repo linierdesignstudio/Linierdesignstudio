@@ -199,12 +199,39 @@ begin
 end;
 $$;
 
+create or replace function public.portal_change_client_password(
+  p_project_id uuid,
+  p_current_password_salt text,
+  p_current_password_hash text,
+  p_new_password_salt text,
+  p_new_password_hash text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  update public.client_projects
+    set password_salt = p_new_password_salt,
+        password_hash = p_new_password_hash,
+        updated_at = now()
+    where id = p_project_id
+      and password_salt = p_current_password_salt
+      and password_hash = p_current_password_hash;
+
+  return found;
+end;
+$$;
+
 revoke all on function public.portal_allow_login_attempt(uuid, boolean) from public, anon, authenticated;
 revoke all on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) from public, anon, authenticated;
 revoke all on function public.portal_resolve_password_reset(uuid, text, text) from public, anon, authenticated;
+revoke all on function public.portal_change_client_password(uuid, text, text, text, text) from public, anon, authenticated;
 grant execute on function public.portal_allow_login_attempt(uuid, boolean) to service_role;
 grant execute on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
+grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
 
 revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests from anon, authenticated;
 grant select, insert on public.client_projects to service_role;
