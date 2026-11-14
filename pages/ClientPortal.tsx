@@ -53,6 +53,8 @@ const copy = {
     durationNotSet: 'Tanggal mulai belum diatur oleh tim studio.',
     notStarted: 'Belum dimulai',
     downloadPhoto: 'Unduh foto',
+    strapline: 'Catatan proyek, disusun dengan perhatian.',
+    journal: 'Catatan proyek',
   },
   EN: {
     eyebrow: 'LINIER STUDIO / CLIENT PORTAL',
@@ -102,6 +104,8 @@ const copy = {
     durationNotSet: 'The studio has not set a start date yet.',
     notStarted: 'Not started yet',
     downloadPhoto: 'Download photo',
+    strapline: 'Project updates, shared with care.',
+    journal: 'Project journal',
   },
   CN: {
     eyebrow: 'LINIER STUDIO / 客户门户',
@@ -151,8 +155,12 @@ const copy = {
     durationNotSet: '工作室尚未设置开始日期。',
     notStarted: '尚未开始',
     downloadPhoto: '下载照片',
+    strapline: '用心记录项目进展。',
+    journal: '项目记录',
   },
 } as const;
+
+const clientPortalImage = new URL('../1.jpeg', import.meta.url).href;
 
 const ClientPortal: React.FC = () => {
   const { language } = useLanguage();
@@ -306,9 +314,9 @@ const ClientPortal: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f1ea] pt-32 pb-24 text-neutral-900 dark:bg-neutral-950 dark:text-white md:pt-40">
+    <div className="min-h-screen bg-[#f1efe9] pt-24 pb-20 text-neutral-900 dark:bg-neutral-950 dark:text-white md:pt-32">
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
-        <Link to="/" className="mb-8 inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.18em] text-neutral-500 transition-colors hover:text-bronze-500">
+        <Link to="/" className="mb-7 inline-flex items-center gap-2 text-xs text-neutral-500 transition-colors hover:text-neutral-900 dark:hover:text-white">
           <ArrowDownLeft size={15} /> {t.back}
         </Link>
 
@@ -316,16 +324,17 @@ const ClientPortal: React.FC = () => {
           <p className="py-24 text-center font-mono text-xs uppercase tracking-[0.2em] text-neutral-500">{t.loading}</p>
         ) : project ? (
           <section>
-            <div className="relative mb-5 overflow-hidden bg-neutral-900 p-7 text-white sm:p-10 lg:p-12">
+            <div className="relative mb-6 overflow-hidden bg-[#272925] p-7 text-white sm:p-10 lg:p-12">
               <div className="pointer-events-none absolute -right-12 -top-32 h-80 w-80 rounded-full border border-white/10" />
+              <div className="pointer-events-none absolute -right-4 -top-24 h-64 w-64 rounded-full border border-white/10" />
               <div className="relative flex flex-col justify-between gap-10 md:flex-row md:items-end">
                 <div>
-                  <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.24em] text-bronze-300">{t.eyebrow} / {project.project_code}</p>
-                  <h1 className="max-w-3xl font-display text-4xl font-semibold uppercase leading-[0.95] tracking-tight sm:text-6xl">{project.project_name}</h1>
-                  <p className="mt-5 text-sm text-white/60">{project.client_name}<span className="mx-3 text-white/25">/</span>{project.location || t.location}</p>
+                  <p className="mb-5 text-xs text-white/60">{t.eyebrow} <span className="mx-2 text-white/30">/</span> {project.project_code}</p>
+                  <h1 className="max-w-3xl font-display text-4xl font-medium leading-[0.98] tracking-[-0.04em] sm:text-6xl">{project.project_name}</h1>
+                  <p className="mt-5 text-sm text-white/70">{project.client_name}<span className="mx-3 text-white/30">·</span><MapPin size={14} className="mr-1 inline" />{project.location || t.location}</p>
                   {projects.length > 1 && (
                     <label className="mt-6 block max-w-md">
-                      <span className="mb-2 block font-mono text-[9px] uppercase tracking-widest text-white/50">{t.chooseProject}</span>
+                      <span className="mb-2 block text-xs text-white/65">{t.chooseProject}</span>
                       <select
                         value={project.id}
                         onChange={(event) => {
@@ -335,7 +344,7 @@ const ClientPortal: React.FC = () => {
                             setProject(nextProject);
                           }
                         }}
-                        className="w-full border border-white/20 bg-neutral-900 px-3 py-3 text-sm text-white outline-none focus:border-bronze-400"
+                        className="w-full border border-white/20 bg-[#272925] px-3 py-3 text-sm text-white outline-none focus:border-white/60"
                       >
                         {projects.map((item) => <option key={item.id} value={item.id}>{item.project_code} — {item.project_name}</option>)}
                       </select>
@@ -354,17 +363,17 @@ const ClientPortal: React.FC = () => {
                         setPasswordChangeNotice('');
                       }
                     }}
-                    className="inline-flex items-center gap-2 border border-white/20 px-4 py-3 text-[10px] font-mono uppercase tracking-widest text-white/75 transition-colors hover:border-bronze-400 hover:text-white"
+                    className="inline-flex items-center gap-2 border border-white/25 px-4 py-3 text-xs text-white/80 transition-colors hover:border-white/70 hover:text-white"
                   >
                     <LockKeyhole size={14} /> {t.changePassword}
                   </button>
-                  <button onClick={signOut} className="inline-flex items-center gap-2 border border-white/20 px-4 py-3 text-[10px] font-mono uppercase tracking-widest text-white/75 transition-colors hover:border-bronze-400 hover:text-white">
+                  <button onClick={signOut} className="inline-flex items-center gap-2 border border-white/25 px-4 py-3 text-xs text-white/80 transition-colors hover:border-white/70 hover:text-white">
                     <LogOut size={14} /> {t.logout}
                   </button>
                 </div>
               </div>
-              <div className="relative mt-10 flex items-center gap-2 border-t border-white/10 pt-5 text-[10px] font-mono uppercase tracking-[0.18em] text-white/50">
-                <ShieldCheck size={14} className="text-bronze-300" /> {t.secure}
+              <div className="relative mt-10 flex items-center gap-2 border-t border-white/15 pt-5 text-xs text-white/60">
+                <ShieldCheck size={14} className="shrink-0 text-white/70" /> {t.secure}
               </div>
             </div>
 
@@ -394,70 +403,60 @@ const ClientPortal: React.FC = () => {
               </form>
             )}
 
-            <div className="grid gap-5 py-5 md:grid-cols-[1.25fr_0.8fr_0.8fr]">
-              <div className="border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+            <div className="grid gap-px border-y border-[#d9d4c9] bg-[#d9d4c9] md:grid-cols-[1.25fr_0.8fr]">
+              <div className="bg-[#fbfaf6] p-6 sm:p-8 dark:bg-neutral-900">
                 <div className="mb-6 flex items-end justify-between gap-4">
                   <div>
-                    <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-500">{t.latest}</p>
+                    <p className="mb-2 text-xs text-neutral-500">{t.latest}</p>
                     <span className="font-display text-5xl font-semibold tracking-tight sm:text-6xl">{project.progress_percent}<span className="text-2xl text-bronze-500">%</span></span>
                   </div>
-                  <span className="mb-2 font-mono text-[9px] uppercase tracking-widest text-neutral-400">{project.progress_percent === 100 ? t.complete : t.inProgress}</span>
+                  <span className="mb-2 text-xs text-neutral-500">{project.progress_percent === 100 ? t.complete : t.inProgress}</span>
                 </div>
-                <div className="h-2 w-full bg-neutral-100 dark:bg-white/10">
-                  <div className="h-full bg-bronze-500 transition-[width] duration-700" style={{ width: `${project.progress_percent}%` }} />
+                <div className="h-1 w-full bg-[#e7e4dc] dark:bg-white/10">
+                  <div className="h-full bg-[#8c795e] transition-[width] duration-700" style={{ width: `${project.progress_percent}%` }} />
                 </div>
                 <div className="mt-5 flex items-center gap-2 text-xs text-neutral-500">
-                  {project.progress_percent === 100 ? <CheckCircle2 size={15} className="text-bronze-500" /> : <Clock3 size={15} className="text-bronze-500" />}
+                  {project.progress_percent === 100 ? <CheckCircle2 size={15} className="text-[#8c795e]" /> : <Clock3 size={15} className="text-[#8c795e]" />}
                   <span>{t.status}: {project.progress_percent === 100 ? t.complete : t.inProgress}</span>
                 </div>
               </div>
-              <div className="order-3 flex flex-col justify-between border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+              <div className="flex min-h-[190px] flex-col justify-between bg-[#e8e4da] p-6 text-neutral-900 sm:p-8 dark:bg-neutral-800 dark:text-white">
                 <div>
-                  <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-500">{t.location}</p>
+                  <p className="mb-5 text-xs text-neutral-500 dark:text-neutral-400">{t.duration}</p>
                   <div className="flex items-start gap-3 text-lg">
-                    <MapPin size={18} className="mt-1 shrink-0 text-bronze-500" />
-                    <span>{project.location || '-'}</span>
-                  </div>
-                </div>
-                <p className="mt-8 border-t border-neutral-100 pt-4 font-mono text-[9px] uppercase tracking-[0.15em] text-neutral-400">{project.project_code}</p>
-              </div>
-              <div className="order-2 flex min-h-[190px] flex-col justify-between border border-white/10 bg-[#171819] p-6 text-white shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900 dark:text-white">
-                <div>
-                  <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 dark:text-neutral-400">{t.duration}</p>
-                  <div className="flex items-start gap-3 text-lg text-white">
-                    <CalendarDays size={18} className="mt-1 shrink-0 text-lime-400" />
+                    <CalendarDays size={18} className="mt-1 shrink-0 text-[#8c795e]" />
                     <span>{project.start_date ? formatDuration(project.start_date, language) : t.durationNotSet}</span>
                   </div>
                 </div>
-                {project.start_date && <p className="mt-8 border-t border-white/15 pt-4 font-mono text-[9px] uppercase tracking-[0.15em] text-white/50 dark:border-white/10 dark:text-neutral-400">{formatDate(project.start_date, language)}</p>}
+                {project.start_date && <p className="mt-8 border-t border-neutral-400/30 pt-4 text-xs text-neutral-500 dark:border-white/10 dark:text-neutral-400">{formatDate(project.start_date, language)}</p>}
               </div>
             </div>
 
             <div className="mt-12">
               <div className="mb-6 flex items-end justify-between border-b border-neutral-300 pb-5 dark:border-white/10">
                 <div>
-                  <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.2em] text-bronze-600 dark:text-bronze-400">PROJECT JOURNAL</p>
-                  <h2 className="font-display text-2xl font-semibold uppercase tracking-tight sm:text-3xl">{t.updated}</h2>
+                  <p className="mb-2 text-xs text-neutral-500">{t.journal}</p>
+                  <h2 className="font-display text-2xl font-medium tracking-tight sm:text-3xl">{t.updated}</h2>
                 </div>
-                <span className="font-mono text-xs text-neutral-500">{updates.length.toString().padStart(2, '0')}</span>
+                <span className="text-xs tabular-nums text-neutral-500">{updates.length.toString().padStart(2, '0')}</span>
               </div>
               {updates.length === 0 ? (
-                <div className="border border-dashed border-neutral-300 px-6 py-14 text-center dark:border-white/15">
-                  <p className="font-display text-xl font-semibold">{t.noUpdates}</p>
+                <div className="border-y border-[#d9d4c9] px-6 py-12 text-center dark:border-white/15">
+                  <p className="font-display text-xl font-medium">{t.noUpdates}</p>
                   <p className="mt-2 text-sm text-neutral-500">{t.noUpdatesHint}</p>
                 </div>
               ) : (
-                <ol className="grid gap-4">
+                <ol className="divide-y divide-[#d9d4c9] border-y border-[#d9d4c9] dark:divide-white/10 dark:border-white/10">
                   {updates.map((update) => (
-                    <li key={update.id} className="grid gap-5 border border-neutral-200 bg-white p-5 shadow-sm sm:grid-cols-[150px_1fr] sm:p-7 dark:border-white/10 dark:bg-neutral-900">
-                      <div className="flex items-center justify-between gap-3 border-b border-neutral-100 pb-4 sm:block sm:border-b-0 sm:border-r sm:pb-0 sm:pr-5 dark:border-white/10">
-                        <time className="font-mono text-[10px] uppercase leading-5 tracking-wider text-neutral-500">
+                    <li key={update.id} className="grid gap-5 py-6 sm:grid-cols-[170px_1fr] sm:gap-9 sm:py-8">
+                      <div className="flex items-center justify-between gap-3 sm:block">
+                        <time className="text-xs leading-5 text-neutral-500">
                           {formatDate(update.update_date, language)}
                         </time>
-                        <span className="font-mono text-xs text-bronze-600 dark:text-bronze-400">{update.progress_percent}%</span>
+                        <span className="text-xs tabular-nums text-[#8c795e]">{update.progress_percent}%</span>
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-display text-xl font-semibold">{update.title}</h3>
+                        <h3 className="font-display text-xl font-medium tracking-tight">{update.title}</h3>
                         <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-neutral-600 dark:text-neutral-400">{update.description}</p>
                         {update.attachments.length > 0 && (
                           <div className="mt-6 space-y-5 border-t border-neutral-100 pt-5 dark:border-white/10">
@@ -510,26 +509,35 @@ const ClientPortal: React.FC = () => {
             </div>
           </section>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8">
-            <div className="flex min-h-[440px] flex-col justify-between bg-neutral-900 p-7 text-white sm:p-10 lg:p-12">
-              <div>
-                <p className="mb-6 font-mono text-[10px] uppercase tracking-[0.22em] text-bronze-300">{t.eyebrow}</p>
-                <h1 className="max-w-2xl font-display text-5xl font-semibold uppercase leading-[0.9] tracking-tight sm:text-7xl">{t.title}</h1>
-                <p className="mt-7 max-w-lg text-base leading-7 text-white/60">{t.subtitle}</p>
+          <div className="grid overflow-hidden border border-[#d9d4c9] bg-[#fbfaf6] lg:grid-cols-[1.08fr_0.92fr] dark:border-white/10 dark:bg-neutral-900">
+            <section className="relative flex min-h-[420px] flex-col justify-between overflow-hidden bg-[#252722] p-7 text-white sm:min-h-[520px] sm:p-10 lg:p-14">
+              <img src={clientPortalImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45" />
+              <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/85 via-neutral-900/45 to-neutral-950/80" />
+              <div className="relative">
+                <p className="mb-16 font-mono text-[10px] uppercase tracking-[0.2em] text-white/70">LINIER STUDIO <span className="mx-2 text-white/35">/</span> CLIENT JOURNAL</p>
+                <p className="mb-4 text-xs text-white/65">{t.eyebrow}</p>
+                <h1 className="max-w-xl font-display text-5xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-6xl">{t.title}</h1>
+                <p className="mt-6 max-w-md text-sm leading-7 text-white/75 sm:text-base">{t.subtitle}</p>
               </div>
-              <Link to="/portal/admin" className="mt-10 inline-flex w-fit items-center gap-2 border-b border-white/25 pb-2 font-mono text-[10px] uppercase tracking-widest text-white/70 transition-colors hover:border-bronze-400 hover:text-white">
-                {t.admin} <ArrowUpRight size={14} />
-              </Link>
-            </div>
+              <div className="relative flex items-center justify-between gap-4 border-t border-white/25 pt-5">
+                <span className="text-xs text-white/65">{t.strapline}</span>
+                <Link to="/portal/admin" className="inline-flex items-center gap-2 text-xs text-white transition-colors hover:text-lime-200">
+                  {t.admin} <ArrowUpRight size={14} />
+                </Link>
+              </div>
+            </section>
 
-            <form onSubmit={resetMode ? requestPasswordReset : signIn} className="flex flex-col justify-center border border-neutral-200 bg-white p-6 shadow-sm sm:p-10 dark:border-white/10 dark:bg-neutral-900">
-              <div className="mb-8 flex h-12 w-12 items-center justify-center border border-bronze-500/40 text-bronze-500">
-                <LockKeyhole size={20} />
+            <form onSubmit={resetMode ? requestPasswordReset : signIn} className="flex flex-col justify-center px-7 py-9 sm:px-10 sm:py-12 lg:px-14">
+              <div className="mb-10 flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center border border-[#d9d4c9] text-neutral-700 dark:border-white/15 dark:text-white">
+                  <LockKeyhole size={16} strokeWidth={1.5} />
+                </span>
+                <span className="text-sm font-medium tracking-wide">Linier <span className="font-normal text-neutral-400">/ Studio</span></span>
               </div>
-              <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.2em] text-bronze-600 dark:text-bronze-400">CLIENT ACCESS</p>
-              <h2 className="mb-8 font-display text-2xl font-semibold uppercase">{resetMode ? t.resetTitle : t.signIn}</h2>
-              <label className="mb-7 block">
-                <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
+              <p className="mb-2 text-xs text-neutral-500">{resetMode ? t.resetTitle : t.eyebrow}</p>
+              <h2 className="mb-8 font-display text-3xl font-medium tracking-tight sm:text-4xl">{resetMode ? t.resetTitle : t.signIn}</h2>
+              <label className="mb-6 block">
+                <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
                 <input
                   autoComplete="username"
                   autoCapitalize="none"
@@ -537,12 +545,12 @@ const ClientPortal: React.FC = () => {
                   onChange={(event) => setProjectCode(event.target.value)}
                   required
                   maxLength={254}
-                  className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none transition-colors focus:border-bronze-500 dark:border-white/20"
+                  className="w-full border border-[#d9d4c9] bg-white px-4 py-3.5 text-sm outline-none transition focus:border-neutral-700 focus:ring-2 focus:ring-neutral-900/5 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-white/50"
                 />
               </label>
               {resetMode ? (
-                <label className="mb-8 block">
-                  <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{t.whatsapp}</span>
+                <label className="mb-6 block">
+                  <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.whatsapp}</span>
                   <input
                     type="tel"
                     autoComplete="tel"
@@ -551,13 +559,13 @@ const ClientPortal: React.FC = () => {
                     onChange={(event) => setWhatsappNumber(event.target.value)}
                     required
                     maxLength={24}
-                    className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none transition-colors focus:border-bronze-500 dark:border-white/20"
+                    className="w-full border border-[#d9d4c9] bg-white px-4 py-3.5 text-sm outline-none transition focus:border-neutral-700 focus:ring-2 focus:ring-neutral-900/5 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-white/50"
                   />
-                  <span className="mt-2 block text-[10px] text-neutral-500">{t.whatsappHint}</span>
+                  <span className="mt-2 block text-xs text-neutral-500">{t.whatsappHint}</span>
                 </label>
               ) : (
-                <label className="mb-8 block">
-                  <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{t.password}</span>
+                <label className="mb-2 block">
+                  <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.password}</span>
                   <input
                     type="password"
                     autoComplete="current-password"
@@ -565,13 +573,13 @@ const ClientPortal: React.FC = () => {
                     onChange={(event) => setPassword(event.target.value)}
                     required
                     maxLength={256}
-                    className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none transition-colors focus:border-bronze-500 dark:border-white/20"
+                    className="w-full border border-[#d9d4c9] bg-white px-4 py-3.5 text-sm outline-none transition focus:border-neutral-700 focus:ring-2 focus:ring-neutral-900/5 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-white/50"
                   />
                 </label>
               )}
-              {error && <ErrorBanner message={error} />}
-              {resetNotice && <p role="status" className="mb-4 border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-xs leading-5 text-emerald-700 dark:text-emerald-300">{resetNotice}</p>}
-              <button disabled={submitting} className="mt-5 flex w-full items-center justify-between bg-neutral-900 px-5 py-4 text-left font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950">
+              {error && <div className="mt-5"><ErrorBanner message={error} /></div>}
+              {resetNotice && <p role="status" className="mt-5 border-l-2 border-emerald-700 bg-emerald-50 px-4 py-3 text-xs leading-5 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200">{resetNotice}</p>}
+              <button disabled={submitting} className="mt-7 flex w-full items-center justify-between bg-[#272925] px-5 py-4 text-left text-sm font-medium text-white transition-colors hover:bg-[#45483e] disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
                 {submitting ? t.signingIn : resetMode ? t.sendReset : t.signIn} <ArrowUpRight size={17} />
               </button>
               <button
@@ -582,11 +590,11 @@ const ClientPortal: React.FC = () => {
                   setError('');
                   setResetNotice('');
                 }}
-                className="mt-5 w-fit font-mono text-[10px] uppercase tracking-widest text-neutral-500 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-bronze-500"
+                className="mt-6 w-fit text-sm text-neutral-500 underline decoration-[#c9c4b8] underline-offset-4 transition-colors hover:text-neutral-900 dark:hover:text-white"
               >
                 {resetMode ? t.backToSignIn : t.forgotPassword}
               </button>
-              {!resetMode && <p className="mt-6 flex items-start gap-2 text-xs leading-6 text-neutral-500"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-bronze-500" />{t.secure}</p>}
+              {!resetMode && <p className="mt-8 border-t border-[#e4e0d7] pt-5 text-xs leading-6 text-neutral-500 dark:border-white/10"><ShieldCheck size={15} className="mr-2 inline text-neutral-400" />{t.secure}</p>}
             </form>
           </div>
         )}
