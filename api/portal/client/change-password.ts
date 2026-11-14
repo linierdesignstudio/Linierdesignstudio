@@ -11,6 +11,8 @@ import {
 interface PasswordProject {
   id: string;
   client_email: string | null;
+  client_login_salt: string | null;
+  client_login_hash: string | null;
   password_salt: string;
   password_hash: string;
 }
@@ -32,19 +34,23 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     const isProjectSession = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(session.sub);
-    const projectSessionRecords = isProjectSession
+    const accountEmail = isProjectSession ? '' : session.sub;
+    const projects = isProjectSession
       ? await supabaseRequest<PasswordProject[]>(
-        `client_projects?select=id,client_email,password_salt,password_hash&id=eq.${encodeURIComponent(session.sub)}&limit=1`
+        `client_projects?select=id,client_email,client_login_salt,client_login_hash,password_salt,password_hash&id=eq.${encodeURIComponent(session.sub)}&limit=1`
       )
-      : [];
-    const accountEmail = isProjectSession ? projectSessionRecords[0]?.client_email ?? '' : session.sub;
-    const projects = accountEmail
-      ? await supabaseRequest<PasswordProject[]>(
-        `client_projects?select=id,client_email,password_salt,password_hash&client_email=eq.${encodeURIComponent(accountEmail)}&order=created_at.asc`
-      )
-      : projectSessionRecords;
+      : await supabaseRequest<PasswordProject[]>(
+        `client_projects?select=id,client_email,client_login_salt,client_login_hash,password_salt,password_hash&client_email=eq.${encodeURIComponent(accountEmail)}&order=created_at.asc`
+      );
     const project = projects[0];
-    if (!project || (accountEmail && projects.some((entry) => entry.password_salt !== project.password_salt || entry.password_hash !== project.password_hash))) {
+    const currentSalt = accountEmail ? project?.client_login_salt : project?.password_salt;
+    const currentHash = accountEmail ? project?.client_login_hash : project?.password_hash;
+    if (
+      !project ||
+      !currentSalt ||
+      !currentHash ||
+      (accountEmail && projects.some((entry) => entry.client_login_salt !== currentSalt || entry.client_login_hash !== currentHash))
+    ) {
       clearSessionCookie(response);
       throw new HttpError(401, 'Sesi tidak valid. Silakan masuk kembali.');
     }
@@ -56,7 +62,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     if (!allowed) {
       throw new HttpError(429, 'Terlalu banyak percobaan. Coba kembali dalam 15 menit.');
     }
-    if (!verifyPassword(currentPassword, project.password_salt, project.password_hash)) {
+    if (!verifyPassword(currentPassword, currentSalt, currentHash)) {
       throw new HttpError(401, 'Password saat ini tidak sesuai.');
     }
 
@@ -66,8 +72,16 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     });
 
     const nextPassword = createPasswordHash(newPassword);
-    const changed = !accountEmail
-      ? await supabaseRequest<boolean>('rpc/portal_change_client_password', {
+    const changed = accountEmail
+      ? await supabaseRequest<Array<{ id: string }>>(
+        `client_projects?client_email=eq.${encodeURIComponent(accountEmail)}&client_login_salt=eq.${encodeURIComponent(currentSalt)}&client_login_hash=eq.${encodeURIComponent(currentHash)}&select=id`,
+        {
+          method: 'PATCH',
+          headers: { Prefer: 'return=representation' },
+          body: JSON.stringify({ client_login_salt: nextPassword.salt, client_login_hash: nextPassword.hash }),
+        }
+      ).then((updated) => updated.length === projects.length)
+      : await supabaseRequest<boolean>('rpc/portal_change_client_password', {
         method: 'POST',
         body: JSON.stringify({
           p_project_id: project.id,
@@ -77,14 +91,6 @@ export default async function handler(request: ApiRequest, response: ApiResponse
           p_new_password_hash: nextPassword.hash,
         }),
       })
-      : await supabaseRequest<Array<{ id: string }>>(
-        `client_projects?client_email=eq.${encodeURIComponent(accountEmail)}&password_salt=eq.${encodeURIComponent(project.password_salt)}&password_hash=eq.${encodeURIComponent(project.password_hash)}&select=id`,
-        {
-          method: 'PATCH',
-          headers: { Prefer: 'return=representation' },
-          body: JSON.stringify({ password_salt: nextPassword.salt, password_hash: nextPassword.hash }),
-        }
-      ).then((updated) => updated.length === projects.length);
     if (!changed) {
       throw new HttpError(409, 'Password akun sudah berubah. Gunakan password terbaru lalu coba kembali.');
     }

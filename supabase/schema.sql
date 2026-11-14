@@ -8,6 +8,8 @@ create table if not exists public.client_projects (
   status text not null default 'Berjalan',
   progress_percent integer not null default 0 check (progress_percent between 0 and 100),
   client_email text,
+  client_login_salt text,
+  client_login_hash text,
   password_salt text not null,
   password_hash text not null,
   created_at timestamptz not null default now(),
@@ -19,6 +21,40 @@ alter table public.client_projects
 
 alter table public.client_projects
   add column if not exists client_email text;
+
+alter table public.client_projects
+  add column if not exists client_login_salt text;
+
+alter table public.client_projects
+  add column if not exists client_login_hash text;
+
+with account_credentials as (
+  select distinct on (client_email)
+    client_email,
+    case
+      when client_login_salt is not null and client_login_hash is not null then client_login_salt
+      else password_salt
+    end as login_salt,
+    case
+      when client_login_salt is not null and client_login_hash is not null then client_login_hash
+      else password_hash
+    end as login_hash
+  from public.client_projects
+  where client_email is not null
+  order by client_email,
+    (client_login_salt is not null and client_login_hash is not null) desc,
+    created_at asc,
+    id asc
+)
+update public.client_projects as project
+  set client_login_salt = account_credentials.login_salt,
+      client_login_hash = account_credentials.login_hash
+  from account_credentials
+  where project.client_email = account_credentials.client_email
+    and (
+      project.client_login_salt is distinct from account_credentials.login_salt
+      or project.client_login_hash is distinct from account_credentials.login_hash
+    );
 
 create index if not exists client_projects_client_email_idx
   on public.client_projects (client_email)
@@ -50,14 +86,21 @@ create table if not exists public.project_login_attempts (
 create table if not exists public.project_password_reset_requests (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.client_projects(id) on delete cascade,
+  credential_type text not null default 'project' check (credential_type in ('project', 'account')),
   whatsapp_number text not null,
   status text not null default 'pending' check (status in ('pending', 'processed')),
   created_at timestamptz not null default now(),
   processed_at timestamptz
 );
 
-create unique index if not exists project_password_reset_one_pending_idx
-  on public.project_password_reset_requests (project_id)
+alter table public.project_password_reset_requests
+  add column if not exists credential_type text not null default 'project'
+  check (credential_type in ('project', 'account'));
+
+drop index if exists public.project_password_reset_one_pending_idx;
+
+create unique index project_password_reset_one_pending_idx
+  on public.project_password_reset_requests (project_id, credential_type)
   where status = 'pending';
 
 alter table public.client_projects enable row level security;
@@ -271,7 +314,9 @@ begin
 end;
 $$;
 
-create or replace function public.portal_resolve_password_reset(
+drop function if exists public.portal_resolve_password_reset(uuid, text, text);
+
+create function public.portal_resolve_password_reset(
   p_request_id uuid,
   p_password_salt text,
   p_password_hash text
@@ -282,6 +327,8 @@ returns table (
   project_code text,
   project_name text,
   client_name text,
+  client_email text,
+  credential_type text,
   whatsapp_number text
 )
 language plpgsql
@@ -291,9 +338,10 @@ as $$
 declare
   target_project_id uuid;
   target_client_email text;
+  target_credential_type text;
 begin
-  select reset_request.project_id
-    into target_project_id
+  select reset_request.project_id, reset_request.credential_type
+    into target_project_id, target_credential_type
     from public.project_password_reset_requests as reset_request
     where reset_request.id = p_request_id
       and reset_request.status = 'pending'
@@ -303,18 +351,29 @@ begin
     return;
   end if;
 
-  select client_email
-    into target_client_email
-    from public.client_projects
-    where id = target_project_id
-    for update;
+  if target_credential_type = 'account' then
+    select client_email
+      into target_client_email
+      from public.client_projects
+      where id = target_project_id
+      for update;
 
-  update public.client_projects
-    set password_salt = p_password_salt,
-        password_hash = p_password_hash,
-        updated_at = now()
-    where (target_client_email is not null and client_email = target_client_email)
-       or (target_client_email is null and id = target_project_id);
+    if target_client_email is null then
+      raise exception 'Client email account not found';
+    end if;
+
+    update public.client_projects
+      set client_login_salt = p_password_salt,
+          client_login_hash = p_password_hash,
+          updated_at = now()
+      where client_email = target_client_email;
+  else
+    update public.client_projects
+      set password_salt = p_password_salt,
+          password_hash = p_password_hash,
+          updated_at = now()
+      where id = target_project_id;
+  end if;
 
   update public.project_password_reset_requests
     set status = 'processed',
@@ -327,6 +386,8 @@ begin
            project.project_code,
            project.project_name,
            project.client_name,
+           project.client_email,
+           reset_request.credential_type,
            reset_request.whatsapp_number
       from public.project_password_reset_requests as reset_request
       join public.client_projects as project on project.id = reset_request.project_id

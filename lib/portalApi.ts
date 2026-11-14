@@ -33,6 +33,8 @@ export interface PortalAttachment {
 export interface PasswordResetRequest {
   id: string;
   project_id: string;
+  credential_type: 'project' | 'account';
+  client_email: string | null;
   project_code: string;
   project_name: string;
   client_name: string;

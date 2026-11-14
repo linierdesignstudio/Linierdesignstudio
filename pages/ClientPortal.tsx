@@ -33,11 +33,12 @@ const copy = {
     photo: 'Foto progress',
     forgotPassword: 'Lupa password?',
     resetTitle: 'Minta reset password',
+    resetIdentifier: 'ID proyek untuk reset password proyek, atau email untuk reset password akun',
     whatsapp: 'Nomor WhatsApp',
     whatsappHint: 'Gunakan kode negara, contoh: +62 812 3456 7890',
     sendReset: 'Kirim permintaan',
     backToSignIn: 'Kembali ke login',
-    resetSent: 'Jika ID proyek terdaftar, tim studio akan memverifikasi permintaan dan menghubungi Anda lewat WhatsApp.',
+    resetSent: 'Jika ID proyek atau email terdaftar, tim studio akan memverifikasi permintaan dan menghubungi Anda lewat WhatsApp.',
     changePassword: 'Ganti password',
     currentPassword: 'Password saat ini',
     newPassword: 'Password baru',
@@ -81,11 +82,12 @@ const copy = {
     photo: 'Progress photo',
     forgotPassword: 'Forgot password?',
     resetTitle: 'Request a password reset',
+    resetIdentifier: 'Project ID for project password, or email for account password',
     whatsapp: 'WhatsApp number',
     whatsappHint: 'Include your country code, e.g. +1 555 123 4567',
     sendReset: 'Send request',
     backToSignIn: 'Back to sign in',
-    resetSent: 'If the project ID is registered, the studio will verify the request and contact you via WhatsApp.',
+    resetSent: 'If the project ID or email is registered, the studio will verify the request and contact you via WhatsApp.',
     changePassword: 'Change password',
     currentPassword: 'Current password',
     newPassword: 'New password',
@@ -129,11 +131,12 @@ const copy = {
     photo: '进度照片',
     forgotPassword: '忘记密码？',
     resetTitle: '申请重置密码',
+    resetIdentifier: '重置项目密码请输入项目编号，重置邮箱账号请输入邮箱',
     whatsapp: 'WhatsApp 号码',
     whatsappHint: '请加国家代码，例如：+86 138 0000 0000',
     sendReset: '发送申请',
     backToSignIn: '返回登录',
-    resetSent: '如果项目编号已注册，工作室将核实请求并通过 WhatsApp 联系您。',
+    resetSent: '如果项目编号或邮箱已注册，工作室将核实请求并通过 WhatsApp 联系您。',
     changePassword: '更改密码',
     currentPassword: '当前密码',
     newPassword: '新密码',
@@ -237,7 +240,7 @@ const ClientPortal: React.FC = () => {
     try {
       await portalRequest<{ accepted: boolean }>('/api/portal/client/password-reset-requests', {
         method: 'POST',
-        body: JSON.stringify({ projectCode, whatsappNumber }),
+        body: JSON.stringify({ identifier: projectCode, whatsappNumber }),
       });
       setResetNotice(t.resetSent);
     } catch (cause) {
@@ -526,14 +529,14 @@ const ClientPortal: React.FC = () => {
               <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.2em] text-bronze-600 dark:text-bronze-400">CLIENT ACCESS</p>
               <h2 className="mb-8 font-display text-2xl font-semibold uppercase">{resetMode ? t.resetTitle : t.signIn}</h2>
               <label className="mb-7 block">
-                <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{resetMode ? t.projectId : t.loginIdentifier}</span>
+                <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
                 <input
                   autoComplete="username"
-                  autoCapitalize={resetMode ? 'characters' : 'none'}
+                  autoCapitalize="none"
                   value={projectCode}
                   onChange={(event) => setProjectCode(event.target.value)}
                   required
-                  maxLength={resetMode ? 32 : 254}
+                  maxLength={254}
                   className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none transition-colors focus:border-bronze-500 dark:border-white/20"
                 />
               </label>

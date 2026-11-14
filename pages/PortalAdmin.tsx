@@ -26,9 +26,9 @@ const copy = {
     clientEmail: 'Email klien',
     noClientEmail: 'Email login belum diatur',
     location: 'Lokasi',
-    clientPassword: 'Password akun klien (min. 8; akun baru 12)',
-    accountPassword: 'Password akun klien',
-    accountPasswordHint: 'Akun baru perlu password minimal 12 karakter. Untuk proyek lain dengan email yang sama, masukkan password akun yang sama. Saat ditautkan, login ID proyek juga memakai password akun tersebut.',
+    clientPassword: 'Password ID proyek (min. 12 karakter)',
+    clientLoginPassword: 'Password akun email klien',
+    accountPasswordHint: 'Akun email baru perlu password minimal 12 karakter. Semua proyek dengan email yang sama memakai password email ini; password ID proyek tetap terpisah.',
     saveClientAccount: 'Simpan akun klien',
     savedClientAccount: 'Akun email klien berhasil disimpan.',
     create: 'Buat proyek',
@@ -39,7 +39,7 @@ const copy = {
     progress: 'Progress (%)',
     date: 'Tanggal update',
     publish: 'Terbitkan update',
-    savedProject: 'Proyek berhasil dibuat. Catat password klien yang Anda masukkan; password tidak dapat ditampilkan kembali.',
+    savedProject: 'Proyek berhasil dibuat. Simpan password ID proyek dan password akun email secara aman; keduanya tidak dapat ditampilkan kembali.',
     savedUpdate: 'Update berhasil diterbitkan.',
     savedEdit: 'Update berhasil diperbarui.',
     refreshFailed: 'Update tersimpan, tetapi daftar gagal dimuat ulang. Muat ulang halaman.',
@@ -73,6 +73,8 @@ const copy = {
     noResetRequests: 'Belum ada permintaan reset password.',
     processReset: 'Buat password baru',
     temporaryPassword: 'Password baru',
+    projectPasswordReset: 'Password ID proyek',
+    emailPasswordReset: 'Password akun email',
     copyPassword: 'Salin password',
     passwordCopied: 'Password disalin.',
     copyFailed: 'Tidak dapat menyalin. Pilih password secara manual.',
@@ -129,9 +131,9 @@ const copy = {
     clientEmail: 'Client email',
     noClientEmail: 'Email login not set',
     location: 'Location',
-    clientPassword: 'Client account password (min. 8; new account 12)',
-    accountPassword: 'Client account password',
-    accountPasswordHint: 'New accounts need a password of at least 12 characters. For another project under the same email, enter the existing account password. Linking a project also changes its Project ID login to that account password.',
+    clientPassword: 'Project ID password (min. 12 characters)',
+    clientLoginPassword: 'Client email account password',
+    accountPasswordHint: 'New email accounts need a password of at least 12 characters. All projects with the same email use this email password; Project ID passwords remain separate.',
     saveClientAccount: 'Save client account',
     savedClientAccount: 'Client email login saved.',
     create: 'Create project',
@@ -142,7 +144,7 @@ const copy = {
     progress: 'Progress (%)',
     date: 'Update date',
     publish: 'Publish update',
-    savedProject: 'Project created. Keep a record of the client password you entered; it cannot be shown again.',
+    savedProject: 'Project created. Store the Project ID password and email account password securely; they cannot be shown again.',
     savedUpdate: 'Update published.',
     savedEdit: 'Update saved.',
     refreshFailed: 'The update was saved, but the list could not be refreshed. Reload the page.',
@@ -176,6 +178,8 @@ const copy = {
     noResetRequests: 'No password reset requests.',
     processReset: 'Create new password',
     temporaryPassword: 'New password',
+    projectPasswordReset: 'Project ID password',
+    emailPasswordReset: 'Email account password',
     copyPassword: 'Copy password',
     passwordCopied: 'Password copied.',
     copyFailed: 'Could not copy. Select the password manually.',
@@ -232,9 +236,9 @@ const copy = {
     clientEmail: '客户邮箱',
     noClientEmail: '尚未设置登录邮箱',
     location: '地点',
-    clientPassword: '客户账号密码（至少 8 个字符；新账号至少 12 个字符）',
-    accountPassword: '客户账号密码',
-    accountPasswordHint: '新账号密码至少 12 个字符。同一邮箱添加其他项目时，请输入现有账号密码。关联项目后，项目编号登录也会使用此账号密码。',
+    clientPassword: '项目编号密码（至少 12 个字符）',
+    clientLoginPassword: '客户邮箱账号密码',
+    accountPasswordHint: '新邮箱账号密码至少 12 个字符。同一邮箱的所有项目共用此邮箱密码；项目编号密码保持独立。',
     saveClientAccount: '保存客户账号',
     savedClientAccount: '客户邮箱登录已保存。',
     create: '创建项目',
@@ -245,7 +249,7 @@ const copy = {
     progress: '进度（%）',
     date: '更新日期',
     publish: '发布更新',
-    savedProject: '项目已创建。请记录您输入的客户密码；密码无法再次显示。',
+    savedProject: '项目已创建。请妥善保存项目编号密码和邮箱账号密码；密码无法再次显示。',
     savedUpdate: '更新已发布。',
     savedEdit: '更新已保存。',
     refreshFailed: '更新已保存，但列表无法刷新。请重新加载页面。',
@@ -279,6 +283,8 @@ const copy = {
     noResetRequests: '暂无密码重置请求。',
     processReset: '生成新密码',
     temporaryPassword: '新密码',
+    projectPasswordReset: '项目编号密码',
+    emailPasswordReset: '邮箱账号密码',
     copyPassword: '复制密码',
     passwordCopied: '密码已复制。',
     copyFailed: '无法复制，请手动选择密码。',
@@ -338,6 +344,8 @@ interface IssuedPassword {
     project_code: string;
     project_name: string;
     client_name: string;
+    client_email: string | null;
+    credential_type: 'project' | 'account';
     whatsapp_number: string;
   };
 }
@@ -492,7 +500,8 @@ const PortalAdmin: React.FC = () => {
           clientEmail: form.get('clientEmail'),
           location: form.get('location'),
           startDate: form.get('startDate'),
-          password: form.get('clientPassword'),
+          projectPassword: form.get('clientPassword'),
+          clientLoginPassword: form.get('clientLoginPassword'),
         }),
       });
       setProjects((current) => [result.project, ...current]);
@@ -545,12 +554,12 @@ const PortalAdmin: React.FC = () => {
         body: JSON.stringify({
           projectId: form.get('projectId'),
           clientEmail: form.get('clientEmail'),
-          clientPassword: form.get('clientPassword'),
+          clientLoginPassword: form.get('clientLoginPassword'),
         }),
       });
       setProjects((current) => current.map((project) => project.id === result.project.id ? result.project : project));
       setNotice(t.savedClientAccount);
-      const passwordInput = formElement.elements.namedItem('clientPassword');
+      const passwordInput = formElement.elements.namedItem('clientLoginPassword');
       if (passwordInput instanceof HTMLInputElement) passwordInput.value = '';
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Akun email klien tidak dapat disimpan.');
@@ -560,8 +569,10 @@ const PortalAdmin: React.FC = () => {
   };
 
   const processPasswordReset = async (request: PasswordResetRequest) => {
+    const resetType = request.credential_type === 'account' ? t.emailPasswordReset : t.projectPasswordReset;
+    const resetIdentifier = request.credential_type === 'account' ? request.client_email ?? request.project_code : request.project_code;
     const confirmed = window.confirm(
-      `${t.verifyClient}\n\n${request.client_name} — ${request.project_code}\n${request.whatsapp_number}`
+      `${t.verifyClient}\n\n${request.client_name} — ${resetType}: ${resetIdentifier}\n${request.whatsapp_number}`
     );
     if (!confirmed) return;
     setBusy(true);
@@ -1047,6 +1058,7 @@ const PortalAdmin: React.FC = () => {
                       <div>
                         <p className="font-medium">{request.client_name}<span className="mx-2 text-neutral-300">/</span><span className="font-mono text-xs text-bronze-600 dark:text-bronze-400">{request.project_code}</span></p>
                         <p className="mt-1 text-xs text-neutral-500">{request.project_name} <span className="mx-1">·</span>{request.whatsapp_number}</p>
+                        <p className="mt-1 text-[10px] text-neutral-400">{request.credential_type === 'account' ? t.emailPasswordReset : t.projectPasswordReset}</p>
                         <p className="mt-1 font-mono text-[9px] uppercase tracking-widest text-neutral-400">{formatAdminDate(request.created_at, language)}</p>
                       </div>
                       <button type="button" disabled={busy} onClick={() => processPasswordReset(request)} className="inline-flex items-center justify-center gap-2 bg-neutral-900 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-50 dark:bg-white dark:text-neutral-950">
@@ -1059,7 +1071,7 @@ const PortalAdmin: React.FC = () => {
             </section>
             {issuedPassword && (
               <section role="status" className="mb-5 border border-emerald-500/30 bg-emerald-500/5 p-6 sm:p-8">
-                <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">{t.temporaryPassword} / {issuedPassword.resetRequest.project_code}</p>
+                <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">{t.temporaryPassword} / {issuedPassword.resetRequest.credential_type === 'account' ? t.emailPasswordReset : t.projectPasswordReset} · {issuedPassword.resetRequest.credential_type === 'account' ? issuedPassword.resetRequest.client_email : issuedPassword.resetRequest.project_code}</p>
                 <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{issuedPassword.resetRequest.client_name} — {t.verifyClient}</p>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                   <code className="block min-w-0 flex-1 select-all break-all border border-emerald-500/20 bg-white px-4 py-3 font-mono text-lg dark:bg-neutral-950">{issuedPassword.password}</code>
@@ -1098,7 +1110,8 @@ const PortalAdmin: React.FC = () => {
                 <Field name="clientEmail" label={t.clientEmail} type="email" required maxLength={254} autoCapitalize="none" />
                 <Field name="location" label={t.location} maxLength={120} />
                 <Field name="startDate" label={t.startDate} type="date" defaultValue={today()} required />
-                <Field name="clientPassword" label={t.clientPassword} type="password" required minLength={8} maxLength={256} autoComplete="new-password" />
+                <Field name="clientPassword" label={t.clientPassword} type="password" required minLength={12} maxLength={256} autoComplete="new-password" />
+                <Field name="clientLoginPassword" label={t.clientLoginPassword} type="password" required minLength={8} maxLength={256} autoComplete="new-password" />
                 <p className="-mt-3 text-xs leading-5 text-neutral-500">{t.accountPasswordHint}</p>
                 <button disabled={busy} className="mt-2 flex w-full items-center justify-between bg-neutral-900 px-5 py-4 font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-60 dark:bg-white dark:text-neutral-950">
                   {t.create} <ArrowUpRight size={17} />
@@ -1328,7 +1341,7 @@ const PortalAdmin: React.FC = () => {
                         <form onSubmit={saveClientAccount} className="mt-4 grid gap-3 border-t border-neutral-100 pt-4 dark:border-white/10 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
                           <input type="hidden" name="projectId" value={project.id} />
                           <Field name="clientEmail" label={t.clientEmail} type="email" defaultValue={project.client_email ?? ''} required maxLength={254} autoCapitalize="none" />
-                          <Field name="clientPassword" label={t.accountPassword} type="password" required minLength={8} maxLength={256} autoComplete="new-password" />
+                          <Field name="clientLoginPassword" label={t.clientLoginPassword} type="password" required minLength={8} maxLength={256} autoComplete="new-password" />
                           <button disabled={busy} className="border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15">{t.saveClientAccount}</button>
                         </form>
                         <p className="mt-2 text-[10px] leading-5 text-neutral-500">{t.accountPasswordHint}</p>

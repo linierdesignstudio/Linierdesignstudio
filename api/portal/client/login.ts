@@ -9,6 +9,8 @@ import {
 
 interface LoginProject extends ProjectRecord {
   client_email: string | null;
+  client_login_salt: string | null;
+  client_login_hash: string | null;
   password_salt: string;
   password_hash: string;
 }
@@ -34,11 +36,20 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
     const projects = await supabaseRequest<LoginProject[]>(
       isProjectCode
-        ? `client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,start_date,client_email,password_salt,password_hash&project_code=eq.${encodeURIComponent(identifier.toUpperCase())}&limit=1`
-        : `client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,start_date,client_email,password_salt,password_hash&client_email=eq.${encodeURIComponent(email)}&order=created_at.asc`
+        ? `client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,start_date,client_email,client_login_salt,client_login_hash,password_salt,password_hash&project_code=eq.${encodeURIComponent(identifier.toUpperCase())}&limit=1`
+        : `client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,start_date,client_email,client_login_salt,client_login_hash,password_salt,password_hash&client_email=eq.${encodeURIComponent(email)}&order=created_at.asc`
     );
     const project = projects[0];
-    if (!project || (!isProjectCode && projects.some((entry) => entry.password_salt !== project.password_salt || entry.password_hash !== project.password_hash))) {
+    if (!project) {
+      throw new HttpError(401, 'ID proyek, email, atau password tidak sesuai.');
+    }
+    const loginSalt = isProjectCode ? project.password_salt : project.client_login_salt;
+    const loginHash = isProjectCode ? project.password_hash : project.client_login_hash;
+    if (
+      !loginSalt ||
+      !loginHash ||
+      (!isProjectCode && projects.some((entry) => entry.client_login_salt !== loginSalt || entry.client_login_hash !== loginHash))
+    ) {
       throw new HttpError(401, 'ID proyek, email, atau password tidak sesuai.');
     }
 
@@ -50,7 +61,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       throw new HttpError(429, 'Terlalu banyak percobaan masuk. Coba kembali dalam 15 menit.');
     }
 
-    if (!verifyPassword(password, project.password_salt, project.password_hash)) {
+    if (!verifyPassword(password, loginSalt, loginHash)) {
       throw new HttpError(401, 'ID proyek, email, atau password tidak sesuai.');
     }
 

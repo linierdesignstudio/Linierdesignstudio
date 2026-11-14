@@ -6,12 +6,14 @@ import { createPasswordHash, getSession, requireRole, supabaseRequest } from '..
 interface ResetRequestRecord {
   id: string;
   project_id: string;
+  credential_type: 'project' | 'account';
   whatsapp_number: string;
   created_at: string;
   client_projects: {
     project_code: string;
     project_name: string;
     client_name: string;
+    client_email: string | null;
   };
 }
 
@@ -21,6 +23,8 @@ interface ResolvedResetRequest {
   project_code: string;
   project_name: string;
   client_name: string;
+  client_email: string | null;
+  credential_type: 'project' | 'account';
   whatsapp_number: string;
 }
 
@@ -30,7 +34,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
     if (request.method === 'GET') {
       const records = await supabaseRequest<ResetRequestRecord[]>(
-        'project_password_reset_requests?select=id,project_id,whatsapp_number,created_at,client_projects(project_code,project_name,client_name)&status=eq.pending&order=created_at.asc'
+        'project_password_reset_requests?select=id,project_id,credential_type,whatsapp_number,created_at,client_projects(project_code,project_name,client_name,client_email)&status=eq.pending&order=created_at.asc'
       );
       const requests = records.map((record) => ({
         id: record.id,
@@ -38,6 +42,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
         project_code: record.client_projects.project_code,
         project_name: record.client_projects.project_name,
         client_name: record.client_projects.client_name,
+        client_email: record.client_projects.client_email,
+        credential_type: record.credential_type,
         whatsapp_number: record.whatsapp_number,
         created_at: record.created_at,
       }));

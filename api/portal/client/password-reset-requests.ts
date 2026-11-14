@@ -6,10 +6,15 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   try {
     requireMethod(request, 'POST');
     const body = await readJson(request);
-    const projectCode = typeof body.projectCode === 'string' ? body.projectCode.trim().toUpperCase() : '';
+    const identifier = typeof body.identifier === 'string'
+      ? body.identifier.trim()
+      : typeof body.projectCode === 'string' ? body.projectCode.trim() : '';
     const whatsappNumber = normalizeWhatsapp(body.whatsappNumber);
+    const isEmail = identifier.includes('@');
+    const email = isEmail ? identifier.toLowerCase() : '';
+    const projectCode = isEmail ? '' : identifier.toUpperCase();
 
-    if (!/^[A-Z0-9_-]{3,32}$/.test(projectCode)) {
+    if (isEmail ? !isValidEmail(email) : !/^[A-Z0-9_-]{3,32}$/.test(projectCode)) {
       throw new HttpError(400, 'Masukkan ID proyek yang valid.');
     }
     if (!/^\+[1-9]\d{7,14}$/.test(whatsappNumber)) {
@@ -17,11 +22,13 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     const projects = await supabaseRequest<Array<{ id: string }>>(
-      `client_projects?select=id&project_code=eq.${encodeURIComponent(projectCode)}&limit=1`
+      isEmail
+        ? `client_projects?select=id&client_email=eq.${encodeURIComponent(email)}&order=created_at.asc&limit=1`
+        : `client_projects?select=id&project_code=eq.${encodeURIComponent(projectCode)}&limit=1`
     );
     if (projects[0]) {
       const pendingRequests = await supabaseRequest<Array<{ id: string }>>(
-        `project_password_reset_requests?select=id&project_id=eq.${encodeURIComponent(projects[0].id)}&status=eq.pending&limit=1`
+        `project_password_reset_requests?select=id&project_id=eq.${encodeURIComponent(projects[0].id)}&credential_type=eq.${isEmail ? 'account' : 'project'}&status=eq.pending&limit=1`
       );
       if (pendingRequests[0]) {
         await supabaseRequest<unknown>(
@@ -43,6 +50,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
             headers: { Prefer: 'return=representation' },
             body: JSON.stringify({
               project_id: projects[0].id,
+              credential_type: isEmail ? 'account' : 'project',
               whatsapp_number: whatsappNumber,
             }),
           }
@@ -60,4 +68,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
 function normalizeWhatsapp(value: unknown): string {
   return typeof value === 'string' ? value.replace(/[\s()-]/g, '') : '';
+}
+
+function isValidEmail(value: string): boolean {
+  return value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
