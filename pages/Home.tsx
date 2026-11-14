@@ -66,8 +66,8 @@ const Home: React.FC = () => {
             />
         </motion.div>
 
-        <div className="absolute inset-0 z-10 bg-black/20 pointer-events-none" />
-        <div className="absolute inset-x-0 bottom-0 z-10 h-1/2 bg-gradient-to-t from-black/55 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 z-10 bg-black/25 pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 z-10 h-2/3 bg-gradient-to-t from-black/65 to-transparent pointer-events-none" />
 
         <div className="absolute top-24 sm:top-28 md:top-32 left-4 sm:left-6 md:left-12 right-4 sm:right-6 md:right-12 z-20 flex items-start justify-between text-white mix-blend-difference pointer-events-none">
             <motion.div
@@ -90,7 +90,7 @@ const Home: React.FC = () => {
             </motion.div>
         </div>
 
-        <motion.div style={{ y: textY }} className="relative z-20 mix-blend-difference text-white pointer-events-none w-full flex flex-col items-center md:items-start pt-12 sm:pt-16 md:pt-0">
+        <motion.div style={{ y: textY }} className="relative z-20 text-white pointer-events-none w-full flex flex-col items-center md:items-start pt-12 sm:pt-16 md:pt-0">
             
             {/* DISCIPLINES MOVED ABOVE TITLE */}
             <div className="w-full mb-5 sm:mb-6 text-center md:text-left">
@@ -106,7 +106,7 @@ const Home: React.FC = () => {
             </div>
 
             {/* Split text into 2 lines/blocks with Text Reveal + Split effect */}
-            <h1 className="text-[11vw] sm:text-[12vw] md:text-[8vw] lg:text-[7vw] leading-[0.92] font-display font-bold uppercase tracking-tighter text-center md:text-left w-full flex flex-col items-center md:items-start">
+            <h1 className="text-[11vw] sm:text-[12vw] md:text-[8vw] lg:text-[7vw] leading-[0.92] font-display font-semibold uppercase tracking-tight text-center md:text-left w-full flex flex-col items-center md:items-start drop-shadow-[0_2px_14px_rgba(0,0,0,0.55)]">
                 <SplitTextReveal 
                     key={`line1-${language}`}
                     text={t.hero.title1 || "Architecture"} 
@@ -118,7 +118,7 @@ const Home: React.FC = () => {
                         key={`line2-${language}`}
                         text={t.hero.title2 || "With Purpose"} 
                         delay={0.45}
-                        className="block text-neutral-600 dark:text-neutral-400" 
+                        className="block text-white/90"
                     />
                     <motion.span 
                         initial={{ scale: 0, opacity: 0 }}
