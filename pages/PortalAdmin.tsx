@@ -12,6 +12,8 @@ const copy = {
     subtitle: 'Masuk untuk membuat akses klien dan membagikan update harian.',
     email: 'Email admin',
     password: 'Password admin',
+    forgotPassword: 'Lupa password admin?',
+    forgotPasswordHint: 'Ubah PORTAL_ADMIN_PASSWORD di Environment Variables Vercel, lalu redeploy. Email admin tetap menggunakan PORTAL_ADMIN_EMAIL.',
     contact: 'Kontak',
     services: 'Jenis layanan',
     signIn: 'Masuk',
@@ -21,8 +23,14 @@ const copy = {
     projectCode: 'ID Proyek',
     projectName: 'Nama proyek',
     clientName: 'Nama klien',
+    clientEmail: 'Email klien',
+    noClientEmail: 'Email login belum diatur',
     location: 'Lokasi',
-    clientPassword: 'Password klien (min. 12 karakter)',
+    clientPassword: 'Password akun klien (min. 8; akun baru 12)',
+    accountPassword: 'Password akun klien',
+    accountPasswordHint: 'Akun baru perlu password minimal 12 karakter. Untuk proyek lain dengan email yang sama, masukkan password akun yang sama. Saat ditautkan, login ID proyek juga memakai password akun tersebut.',
+    saveClientAccount: 'Simpan akun klien',
+    savedClientAccount: 'Akun email klien berhasil disimpan.',
     create: 'Buat proyek',
     newUpdate: 'Update progress',
     chooseProject: 'Pilih proyek',
@@ -107,6 +115,8 @@ const copy = {
     subtitle: 'Sign in to create client access and share daily updates.',
     email: 'Admin email',
     password: 'Admin password',
+    forgotPassword: 'Forgot admin password?',
+    forgotPasswordHint: 'Update PORTAL_ADMIN_PASSWORD in Vercel Environment Variables, then redeploy. Keep PORTAL_ADMIN_EMAIL as the admin email.',
     contact: 'Contact',
     services: 'Our services',
     signIn: 'Sign in',
@@ -116,8 +126,14 @@ const copy = {
     projectCode: 'Project ID',
     projectName: 'Project name',
     clientName: 'Client name',
+    clientEmail: 'Client email',
+    noClientEmail: 'Email login not set',
     location: 'Location',
-    clientPassword: 'Client password (min. 12 characters)',
+    clientPassword: 'Client account password (min. 8; new account 12)',
+    accountPassword: 'Client account password',
+    accountPasswordHint: 'New accounts need a password of at least 12 characters. For another project under the same email, enter the existing account password. Linking a project also changes its Project ID login to that account password.',
+    saveClientAccount: 'Save client account',
+    savedClientAccount: 'Client email login saved.',
     create: 'Create project',
     newUpdate: 'Progress update',
     chooseProject: 'Choose a project',
@@ -202,6 +218,8 @@ const copy = {
     subtitle: '登录以创建客户访问权限并发布每日更新。',
     email: '管理员邮箱',
     password: '管理员密码',
+    forgotPassword: '忘记管理员密码？',
+    forgotPasswordHint: '请在 Vercel 环境变量中更新 PORTAL_ADMIN_PASSWORD，然后重新部署。管理员邮箱仍使用 PORTAL_ADMIN_EMAIL。',
     contact: '联系我们',
     services: '服务类型',
     signIn: '登录',
@@ -211,8 +229,14 @@ const copy = {
     projectCode: '项目编号',
     projectName: '项目名称',
     clientName: '客户名称',
+    clientEmail: '客户邮箱',
+    noClientEmail: '尚未设置登录邮箱',
     location: '地点',
-    clientPassword: '客户密码（至少 12 个字符）',
+    clientPassword: '客户账号密码（至少 8 个字符；新账号至少 12 个字符）',
+    accountPassword: '客户账号密码',
+    accountPasswordHint: '新账号密码至少 12 个字符。同一邮箱添加其他项目时，请输入现有账号密码。关联项目后，项目编号登录也会使用此账号密码。',
+    saveClientAccount: '保存客户账号',
+    savedClientAccount: '客户邮箱登录已保存。',
     create: '创建项目',
     newUpdate: '进度更新',
     chooseProject: '选择项目',
@@ -465,6 +489,7 @@ const PortalAdmin: React.FC = () => {
           projectCode: form.get('projectCode'),
           projectName: form.get('projectName'),
           clientName: form.get('clientName'),
+          clientEmail: form.get('clientEmail'),
           location: form.get('location'),
           startDate: form.get('startDate'),
           password: form.get('clientPassword'),
@@ -502,6 +527,33 @@ const PortalAdmin: React.FC = () => {
       setNotice(t.savedDate);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Tanggal mulai proyek tidak dapat disimpan.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveClientAccount = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const result = await portalRequest<{ project: PortalProject }>('/api/portal/admin/projects', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          projectId: form.get('projectId'),
+          clientEmail: form.get('clientEmail'),
+          clientPassword: form.get('clientPassword'),
+        }),
+      });
+      setProjects((current) => current.map((project) => project.id === result.project.id ? result.project : project));
+      setNotice(t.savedClientAccount);
+      const passwordInput = formElement.elements.namedItem('clientPassword');
+      if (passwordInput instanceof HTMLInputElement) passwordInput.value = '';
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Akun email klien tidak dapat disimpan.');
     } finally {
       setBusy(false);
     }
@@ -879,6 +931,10 @@ const PortalAdmin: React.FC = () => {
             <button disabled={busy} className="flex w-full items-center justify-between bg-neutral-900 px-5 py-4 font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-60 dark:bg-white dark:text-neutral-950">
               {busy ? '...' : t.signIn} <ArrowUpRight size={17} />
             </button>
+            <details className="mt-5 border-t border-neutral-200 pt-4 text-xs dark:border-white/10">
+              <summary className="w-fit cursor-pointer font-mono uppercase tracking-widest text-neutral-500 transition-colors hover:text-bronze-600 dark:hover:text-bronze-400">{t.forgotPassword}</summary>
+              <p className="mt-3 leading-6 text-neutral-500">{t.forgotPasswordHint}</p>
+            </details>
           </form>
         ) : (
           <>
@@ -1039,9 +1095,11 @@ const PortalAdmin: React.FC = () => {
                 <Field name="projectCode" label={t.projectCode} required maxLength={32} placeholder="LIN-2026-001" autoCapitalize="characters" />
                 <Field name="projectName" label={t.projectName} required maxLength={120} />
                 <Field name="clientName" label={t.clientName} required maxLength={120} />
+                <Field name="clientEmail" label={t.clientEmail} type="email" required maxLength={254} autoCapitalize="none" />
                 <Field name="location" label={t.location} maxLength={120} />
                 <Field name="startDate" label={t.startDate} type="date" defaultValue={today()} required />
-                <Field name="clientPassword" label={t.clientPassword} type="password" required minLength={12} maxLength={256} autoComplete="new-password" />
+                <Field name="clientPassword" label={t.clientPassword} type="password" required minLength={8} maxLength={256} autoComplete="new-password" />
+                <p className="-mt-3 text-xs leading-5 text-neutral-500">{t.accountPasswordHint}</p>
                 <button disabled={busy} className="mt-2 flex w-full items-center justify-between bg-neutral-900 px-5 py-4 font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-60 dark:bg-white dark:text-neutral-950">
                   {t.create} <ArrowUpRight size={17} />
                 </button>
@@ -1253,7 +1311,7 @@ const PortalAdmin: React.FC = () => {
                     {projects.map((project) => (
                       <li key={`${project.id}-${project.start_date ?? ''}`} className="py-4 text-sm">
                         <div className="flex items-center justify-between gap-4">
-                          <span className="min-w-0"><strong className="font-mono text-[10px] text-bronze-600 dark:text-bronze-400">{project.project_code}</strong><span className="mx-2 text-neutral-300">/</span><span className="font-medium">{project.project_name}</span><span className="mt-1 block text-xs text-neutral-500">{project.client_name}</span></span>
+                          <span className="min-w-0"><strong className="font-mono text-[10px] text-bronze-600 dark:text-bronze-400">{project.project_code}</strong><span className="mx-2 text-neutral-300">/</span><span className="font-medium">{project.project_name}</span><span className="mt-1 block text-xs text-neutral-500">{project.client_name}</span><span className="mt-1 block text-[10px] text-neutral-400">{project.client_email ?? t.noClientEmail}</span></span>
                           <span className="w-24 shrink-0">
                             <span className="mb-1 block text-right font-mono text-[10px] text-neutral-500">{project.progress_percent}%</span>
                             <span className="block h-1 bg-neutral-100 dark:bg-white/10"><span className="block h-full bg-bronze-500" style={{ width: `${project.progress_percent}%` }} /></span>
@@ -1267,6 +1325,13 @@ const PortalAdmin: React.FC = () => {
                           </label>
                           <button disabled={busy} className="border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15">{t.saveDate}</button>
                         </form>
+                        <form onSubmit={saveClientAccount} className="mt-4 grid gap-3 border-t border-neutral-100 pt-4 dark:border-white/10 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                          <input type="hidden" name="projectId" value={project.id} />
+                          <Field name="clientEmail" label={t.clientEmail} type="email" defaultValue={project.client_email ?? ''} required maxLength={254} autoCapitalize="none" />
+                          <Field name="clientPassword" label={t.accountPassword} type="password" required minLength={8} maxLength={256} autoComplete="new-password" />
+                          <button disabled={busy} className="border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15">{t.saveClientAccount}</button>
+                        </form>
+                        <p className="mt-2 text-[10px] leading-5 text-neutral-500">{t.accountPasswordHint}</p>
                       </li>
                     ))}
                   </ul>

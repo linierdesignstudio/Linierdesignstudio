@@ -10,6 +10,8 @@ const copy = {
     title: 'Perjalanan proyek Anda.',
     subtitle: 'Masuk untuk melihat perkembangan terbaru langsung dari tim studio.',
     projectId: 'ID Proyek',
+    loginIdentifier: 'ID proyek atau email',
+    chooseProject: 'Pilih proyek',
     password: 'Password',
     signIn: 'Masuk ke portal',
     signingIn: 'Memeriksa akses...',
@@ -56,6 +58,8 @@ const copy = {
     title: 'Your project journey.',
     subtitle: 'Sign in to see the latest progress directly from the studio team.',
     projectId: 'Project ID',
+    loginIdentifier: 'Project ID or email',
+    chooseProject: 'Choose a project',
     password: 'Password',
     signIn: 'Sign in to portal',
     signingIn: 'Checking access...',
@@ -102,6 +106,8 @@ const copy = {
     title: '您的项目进程。',
     subtitle: '登录后即可查看工作室团队分享的最新进度。',
     projectId: '项目编号',
+    loginIdentifier: '项目编号或邮箱',
+    chooseProject: '选择项目',
     password: '密码',
     signIn: '登录门户',
     signingIn: '正在验证...',
@@ -148,6 +154,7 @@ const copy = {
 const ClientPortal: React.FC = () => {
   const { language } = useLanguage();
   const t = copy[language];
+  const [projects, setProjects] = useState<PortalProject[]>([]);
   const [project, setProject] = useState<PortalProject | null>(null);
   const [updates, setUpdates] = useState<PortalUpdate[]>([]);
   const [projectCode, setProjectCode] = useState('');
@@ -168,14 +175,11 @@ const ClientPortal: React.FC = () => {
 
   useEffect(() => {
     let active = true;
-    portalRequest<{ project: PortalProject }>('/api/portal/client/session')
-      .then(async ({ project: currentProject }) => {
+    portalRequest<{ projects: PortalProject[] }>('/api/portal/client/session')
+      .then(({ projects: clientProjects }) => {
         if (!active) return;
-        setProject(currentProject);
-        const result = await portalRequest<{ updates: PortalUpdate[] }>('/api/portal/client/updates');
-        if (active) {
-          setUpdates(result.updates);
-        }
+        setProjects(clientProjects);
+        setProject(clientProjects[0] ?? null);
       })
       .catch((cause: unknown) => {
         if (!active) return;
@@ -189,18 +193,34 @@ const ClientPortal: React.FC = () => {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    if (!project) {
+      setUpdates([]);
+      return () => { active = false; };
+    }
+
+    portalRequest<{ updates: PortalUpdate[] }>(`/api/portal/client/updates?projectId=${encodeURIComponent(project.id)}`)
+      .then(({ updates: currentUpdates }) => {
+        if (active) setUpdates(currentUpdates);
+      })
+      .catch((cause: unknown) => {
+        if (active) setError(cause instanceof Error ? cause.message : 'Riwayat update tidak dapat dimuat.');
+      });
+    return () => { active = false; };
+  }, [project?.id]);
+
   const signIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitting(true);
     setError('');
     try {
-      const result = await portalRequest<{ project: PortalProject }>('/api/portal/client/login', {
+      const result = await portalRequest<{ projects: PortalProject[] }>('/api/portal/client/login', {
         method: 'POST',
-        body: JSON.stringify({ projectCode, password }),
+        body: JSON.stringify({ identifier: projectCode, password }),
       });
-      setProject(result.project);
-      const updateResult = await portalRequest<{ updates: PortalUpdate[] }>('/api/portal/client/updates');
-      setUpdates(updateResult.updates);
+      setProjects(result.projects);
+      setProject(result.projects[0] ?? null);
       setPassword('');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Tidak dapat masuk ke portal.');
@@ -247,6 +267,7 @@ const ClientPortal: React.FC = () => {
       setConfirmNewPassword('');
       setPassword('');
       setProject(null);
+      setProjects([]);
       setUpdates([]);
       setError('');
       setResetMode(false);
@@ -272,6 +293,7 @@ const ClientPortal: React.FC = () => {
     try {
       await portalRequest('/api/portal/logout', { method: 'POST' });
       setProject(null);
+      setProjects([]);
       setUpdates([]);
       setError('');
       closePasswordChange();
@@ -298,6 +320,24 @@ const ClientPortal: React.FC = () => {
                   <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.24em] text-bronze-300">{t.eyebrow} / {project.project_code}</p>
                   <h1 className="max-w-3xl font-display text-4xl font-semibold uppercase leading-[0.95] tracking-tight sm:text-6xl">{project.project_name}</h1>
                   <p className="mt-5 text-sm text-white/60">{project.client_name}<span className="mx-3 text-white/25">/</span>{project.location || t.location}</p>
+                  {projects.length > 1 && (
+                    <label className="mt-6 block max-w-md">
+                      <span className="mb-2 block font-mono text-[9px] uppercase tracking-widest text-white/50">{t.chooseProject}</span>
+                      <select
+                        value={project.id}
+                        onChange={(event) => {
+                          const nextProject = projects.find((item) => item.id === event.target.value);
+                          if (nextProject) {
+                            setUpdates([]);
+                            setProject(nextProject);
+                          }
+                        }}
+                        className="w-full border border-white/20 bg-neutral-900 px-3 py-3 text-sm text-white outline-none focus:border-bronze-400"
+                      >
+                        {projects.map((item) => <option key={item.id} value={item.id}>{item.project_code} — {item.project_name}</option>)}
+                      </select>
+                    </label>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-3 self-start md:self-auto">
                   <button
@@ -486,14 +526,14 @@ const ClientPortal: React.FC = () => {
               <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.2em] text-bronze-600 dark:text-bronze-400">CLIENT ACCESS</p>
               <h2 className="mb-8 font-display text-2xl font-semibold uppercase">{resetMode ? t.resetTitle : t.signIn}</h2>
               <label className="mb-7 block">
-                <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{t.projectId}</span>
+                <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{resetMode ? t.projectId : t.loginIdentifier}</span>
                 <input
                   autoComplete="username"
-                  autoCapitalize="characters"
+                  autoCapitalize={resetMode ? 'characters' : 'none'}
                   value={projectCode}
                   onChange={(event) => setProjectCode(event.target.value)}
                   required
-                  maxLength={32}
+                  maxLength={resetMode ? 32 : 254}
                   className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none transition-colors focus:border-bronze-500 dark:border-white/20"
                 />
               </label>
@@ -535,6 +575,7 @@ const ClientPortal: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setResetMode((current) => !current);
+                  setProjectCode('');
                   setError('');
                   setResetNotice('');
                 }}

@@ -1,19 +1,23 @@
 import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
 import { clearSessionCookie, requireMethod, sendError, sendJson } from '../../_lib/http.js';
-import { getProjectById, getSession, requireRole } from '../../_lib/portal.js';
+import { getProjectById, getSession, requireRole, supabaseRequest, type ProjectRecord } from '../../_lib/portal.js';
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {
     requireMethod(request, 'GET');
     const session = getSession(request);
     requireRole(session, 'client');
-    const project = await getProjectById(session.sub);
-    if (!project) {
+    const projects = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(session.sub)
+      ? [await getProjectById(session.sub)].filter((project): project is ProjectRecord => project !== null)
+      : await supabaseRequest<ProjectRecord[]>(
+        `client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,start_date&client_email=eq.${encodeURIComponent(session.sub)}&order=created_at.asc`
+      );
+    if (projects.length === 0) {
       clearSessionCookie(response);
       sendJson(response, 401, { error: 'Sesi tidak valid. Silakan masuk kembali.' });
       return;
     }
-    sendJson(response, 200, { project });
+    sendJson(response, 200, { projects });
   } catch (error) {
     sendError(response, error);
   }

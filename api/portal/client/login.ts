@@ -8,6 +8,7 @@ import {
 } from '../../_lib/portal.js';
 
 interface LoginProject extends ProjectRecord {
+  client_email: string | null;
   password_salt: string;
   password_hash: string;
 }
@@ -16,20 +17,30 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   try {
     requireMethod(request, 'POST');
     const body = await readJson(request);
-    const projectCode = typeof body.projectCode === 'string'
-      ? body.projectCode.trim().toUpperCase()
+    const identifier = typeof body.identifier === 'string'
+      ? body.identifier.trim()
       : '';
     const password = typeof body.password === 'string' ? body.password : '';
 
-    if (!/^[A-Z0-9_-]{3,32}$/.test(projectCode) || password.length < 1 || password.length > 256) {
+    if (!identifier || identifier.length > 254 || password.length < 1 || password.length > 256) {
       throw new HttpError(401, 'ID proyek atau password tidak sesuai.');
     }
 
+    const isProjectCode = /^[A-Z0-9_-]{3,32}$/i.test(identifier);
+    const email = isProjectCode ? '' : identifier.toLowerCase();
+    if (!isProjectCode && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new HttpError(401, 'ID proyek, email, atau password tidak sesuai.');
+    }
+
     const projects = await supabaseRequest<LoginProject[]>(
-      `client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,start_date,password_salt,password_hash&project_code=eq.${encodeURIComponent(projectCode)}&limit=1`
+      isProjectCode
+        ? `client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,start_date,client_email,password_salt,password_hash&project_code=eq.${encodeURIComponent(identifier.toUpperCase())}&limit=1`
+        : `client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,start_date,client_email,password_salt,password_hash&client_email=eq.${encodeURIComponent(email)}&order=created_at.asc`
     );
     const project = projects[0];
-    if (!project) throw new HttpError(401, 'ID proyek atau password tidak sesuai.');
+    if (!project || (!isProjectCode && projects.some((entry) => entry.password_salt !== project.password_salt || entry.password_hash !== project.password_hash))) {
+      throw new HttpError(401, 'ID proyek, email, atau password tidak sesuai.');
+    }
 
     const allowed = await supabaseRequest<boolean>('rpc/portal_allow_login_attempt', {
       method: 'POST',
@@ -40,25 +51,25 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     if (!verifyPassword(password, project.password_salt, project.password_hash)) {
-      throw new HttpError(401, 'ID proyek atau password tidak sesuai.');
+      throw new HttpError(401, 'ID proyek, email, atau password tidak sesuai.');
     }
 
     await supabaseRequest<boolean>('rpc/portal_allow_login_attempt', {
       method: 'POST',
       body: JSON.stringify({ p_project_id: project.id, p_success: true }),
     });
-    setSessionCookie(response, createSession('client', project.id));
+    setSessionCookie(response, createSession('client', isProjectCode ? project.id : email));
     sendJson(response, 200, {
-      project: {
-        id: project.id,
-        project_code: project.project_code,
-        project_name: project.project_name,
-        client_name: project.client_name,
-        location: project.location,
-        status: project.status,
-        progress_percent: project.progress_percent,
-        start_date: project.start_date,
-      },
+      projects: projects.map(({ id, project_code, project_name, client_name, location, status, progress_percent, start_date }) => ({
+        id,
+        project_code,
+        project_name,
+        client_name,
+        location,
+        status,
+        progress_percent,
+        start_date,
+      })),
     });
   } catch (error) {
     sendError(response, error);

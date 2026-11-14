@@ -10,6 +10,7 @@ import {
 
 interface PasswordProject {
   id: string;
+  client_email: string | null;
   password_salt: string;
   password_hash: string;
 }
@@ -30,11 +31,20 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       throw new HttpError(400, 'Password baru harus terdiri dari 8 hingga 256 karakter.');
     }
 
-    const projects = await supabaseRequest<PasswordProject[]>(
-      `client_projects?select=id,password_salt,password_hash&id=eq.${encodeURIComponent(session.sub)}&limit=1`
-    );
+    const isProjectSession = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(session.sub);
+    const projectSessionRecords = isProjectSession
+      ? await supabaseRequest<PasswordProject[]>(
+        `client_projects?select=id,client_email,password_salt,password_hash&id=eq.${encodeURIComponent(session.sub)}&limit=1`
+      )
+      : [];
+    const accountEmail = isProjectSession ? projectSessionRecords[0]?.client_email ?? '' : session.sub;
+    const projects = accountEmail
+      ? await supabaseRequest<PasswordProject[]>(
+        `client_projects?select=id,client_email,password_salt,password_hash&client_email=eq.${encodeURIComponent(accountEmail)}&order=created_at.asc`
+      )
+      : projectSessionRecords;
     const project = projects[0];
-    if (!project) {
+    if (!project || (accountEmail && projects.some((entry) => entry.password_salt !== project.password_salt || entry.password_hash !== project.password_hash))) {
       clearSessionCookie(response);
       throw new HttpError(401, 'Sesi tidak valid. Silakan masuk kembali.');
     }
@@ -56,16 +66,25 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     });
 
     const nextPassword = createPasswordHash(newPassword);
-    const changed = await supabaseRequest<boolean>('rpc/portal_change_client_password', {
-      method: 'POST',
-      body: JSON.stringify({
-        p_project_id: project.id,
-        p_current_password_salt: project.password_salt,
-        p_current_password_hash: project.password_hash,
-        p_new_password_salt: nextPassword.salt,
-        p_new_password_hash: nextPassword.hash,
-      }),
-    });
+    const changed = !accountEmail
+      ? await supabaseRequest<boolean>('rpc/portal_change_client_password', {
+        method: 'POST',
+        body: JSON.stringify({
+          p_project_id: project.id,
+          p_current_password_salt: project.password_salt,
+          p_current_password_hash: project.password_hash,
+          p_new_password_salt: nextPassword.salt,
+          p_new_password_hash: nextPassword.hash,
+        }),
+      })
+      : await supabaseRequest<Array<{ id: string }>>(
+        `client_projects?client_email=eq.${encodeURIComponent(accountEmail)}&password_salt=eq.${encodeURIComponent(project.password_salt)}&password_hash=eq.${encodeURIComponent(project.password_hash)}&select=id`,
+        {
+          method: 'PATCH',
+          headers: { Prefer: 'return=representation' },
+          body: JSON.stringify({ password_salt: nextPassword.salt, password_hash: nextPassword.hash }),
+        }
+      ).then((updated) => updated.length === projects.length);
     if (!changed) {
       throw new HttpError(409, 'Password akun sudah berubah. Gunakan password terbaru lalu coba kembali.');
     }

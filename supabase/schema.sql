@@ -7,6 +7,7 @@ create table if not exists public.client_projects (
   start_date date,
   status text not null default 'Berjalan',
   progress_percent integer not null default 0 check (progress_percent between 0 and 100),
+  client_email text,
   password_salt text not null,
   password_hash text not null,
   created_at timestamptz not null default now(),
@@ -15,6 +16,13 @@ create table if not exists public.client_projects (
 
 alter table public.client_projects
   add column if not exists start_date date;
+
+alter table public.client_projects
+  add column if not exists client_email text;
+
+create index if not exists client_projects_client_email_idx
+  on public.client_projects (client_email)
+  where client_email is not null;
 
 create table if not exists public.project_updates (
   id uuid primary key default gen_random_uuid(),
@@ -282,6 +290,7 @@ set search_path = public, pg_temp
 as $$
 declare
   target_project_id uuid;
+  target_client_email text;
 begin
   select reset_request.project_id
     into target_project_id
@@ -294,11 +303,18 @@ begin
     return;
   end if;
 
+  select client_email
+    into target_client_email
+    from public.client_projects
+    where id = target_project_id
+    for update;
+
   update public.client_projects
     set password_salt = p_password_salt,
         password_hash = p_password_hash,
         updated_at = now()
-    where id = target_project_id;
+    where (target_client_email is not null and client_email = target_client_email)
+       or (target_client_email is null and id = target_project_id);
 
   update public.project_password_reset_requests
     set status = 'processed',
