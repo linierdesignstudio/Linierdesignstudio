@@ -1,6 +1,6 @@
 import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from '../../_lib/http.js';
-import { createPasswordHash, getSession, requireRole, supabaseRequest, verifyPassword } from '../../_lib/portal.js';
+import { createPasswordHash, getSession, requireAdminPermission, supabaseRequest, verifyPassword } from '../../_lib/portal.js';
 
 interface AdminProject {
   id: string;
@@ -18,9 +18,9 @@ interface AdminProject {
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {
     const session = getSession(request);
-    requireRole(session, 'admin');
 
     if (request.method === 'GET') {
+      requireAdminPermission(session, 'project_read');
       const projects = await supabaseRequest<AdminProject[]>(
         'client_projects?select=id,project_code,project_name,client_name,client_email,location,start_date,status,progress_percent,created_at&order=created_at.desc'
       );
@@ -29,6 +29,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     if (request.method === 'PATCH') {
+      requireAdminPermission(session, 'manage_client_access');
       const body = await readJson(request);
       const projectId = typeof body.projectId === 'string' ? body.projectId : '';
       if (typeof body.clientEmail === 'string' || typeof body.clientLoginPassword === 'string') {
@@ -94,6 +95,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     requireMethod(request, 'POST');
+    requireAdminPermission(session, 'manage_client_access');
     const body = await readJson(request);
     const projectCode = text(body.projectCode).toUpperCase();
     const projectName = text(body.projectName);

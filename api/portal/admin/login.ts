@@ -8,11 +8,13 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const body = await readJson(request);
     const email = typeof body.email === 'string' ? body.email.trim() : '';
     const password = typeof body.password === 'string' ? body.password : '';
-    if (email.length < 1 || email.length > 254 || password.length < 1 || password.length > 256 || !createAdminSession(email, password)) {
+    if (email.length < 1 || email.length > 254 || password.length < 1 || password.length > 256) {
       throw new HttpError(401, 'Email atau password admin tidak sesuai.');
     }
-    setSessionCookie(response, createSession('admin', 'studio'));
-    sendJson(response, 200, { authenticated: true });
+    const role = createAdminSession(email, password);
+    if (!role) throw new HttpError(401, 'Email atau password admin tidak sesuai.');
+    setSessionCookie(response, createSession(role, email.toLowerCase()));
+    sendJson(response, 200, { authenticated: true, role });
   } catch (error) {
     sendError(response, error);
   }

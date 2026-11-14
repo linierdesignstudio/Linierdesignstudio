@@ -12,10 +12,23 @@ const SESSION_COOKIE = 'portal_session';
 const SESSION_TTL_SECONDS = 12 * 60 * 60;
 
 export interface PortalSession {
-  role: 'client' | 'admin';
+  role: 'client' | 'admin' | 'staff';
   sub: string;
   exp: number;
 }
+
+export type AdminPermission =
+  | 'project_read'
+  | 'manage_updates'
+  | 'delete_updates'
+  | 'process_resets'
+  | 'manage_client_access';
+
+const STAFF_PERMISSIONS = new Set<AdminPermission>([
+  'project_read',
+  'manage_updates',
+  'process_resets',
+]);
 
 export interface ProjectRecord {
   id: string;
@@ -80,7 +93,7 @@ export function getSession(request: ApiRequest): PortalSession {
   try {
     const session = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as PortalSession;
     if (
-      (session.role !== 'client' && session.role !== 'admin') ||
+      (session.role !== 'client' && session.role !== 'admin' && session.role !== 'staff') ||
       typeof session.sub !== 'string' ||
       !Number.isInteger(session.exp) ||
       session.exp <= Math.floor(Date.now() / 1000)
@@ -95,6 +108,13 @@ export function getSession(request: ApiRequest): PortalSession {
 
 export function requireRole(session: PortalSession, role: PortalSession['role']): void {
   if (session.role !== role) {
+    throw new HttpError(403, 'Anda tidak memiliki akses ke fitur ini.');
+  }
+}
+
+export function requireAdminPermission(session: PortalSession, permission: AdminPermission): void {
+  if (session.role === 'admin') return;
+  if (session.role !== 'staff' || !STAFF_PERMISSIONS.has(permission)) {
     throw new HttpError(403, 'Anda tidak memiliki akses ke fitur ini.');
   }
 }
@@ -211,20 +231,47 @@ export async function getProjectById(id: string): Promise<ProjectRecord | null> 
   return projects[0] ?? null;
 }
 
-export function createAdminSession(email: string, password: string): boolean {
+export function createAdminSession(email: string, password: string): 'admin' | 'staff' | null {
   const configuredEmail = process.env.PORTAL_ADMIN_EMAIL?.trim().toLowerCase();
   const configuredPassword = process.env.PORTAL_ADMIN_PASSWORD;
   if (!configuredEmail || !isValidEmail(configuredEmail) || !configuredPassword || configuredPassword.length < 16) {
     throw new HttpError(503, 'Email dan password admin belum dikonfigurasi dengan aman.');
   }
+  const staffEmail = process.env.PORTAL_STAFF_EMAIL?.trim().toLowerCase();
+  const staffPassword = process.env.PORTAL_STAFF_PASSWORD;
+  if (Boolean(staffEmail) !== Boolean(staffPassword)) {
+    throw new HttpError(503, 'Email dan password staf harus dikonfigurasi bersama.');
+  }
+  if (
+    staffEmail &&
+    (!isValidEmail(staffEmail) || staffEmail === configuredEmail || !staffPassword || staffPassword.length < 16)
+  ) {
+    throw new HttpError(503, 'Akun staf belum dikonfigurasi dengan aman.');
+  }
+
   const secret = sessionSecret();
-  const expectedEmail = createHmac('sha256', secret).update(configuredEmail).digest();
   const actualEmail = createHmac('sha256', secret).update(email.trim().toLowerCase()).digest();
-  const expectedPassword = createHmac('sha256', secret).update(configuredPassword).digest();
   const actualPassword = createHmac('sha256', secret).update(password).digest();
-  const emailMatches = timingSafeEqual(expectedEmail, actualEmail);
-  const passwordMatches = timingSafeEqual(expectedPassword, actualPassword);
-  return emailMatches && passwordMatches;
+  const adminEmailMatches = timingSafeEqual(
+    createHmac('sha256', secret).update(configuredEmail).digest(),
+    actualEmail
+  );
+  const adminPasswordMatches = timingSafeEqual(
+    createHmac('sha256', secret).update(configuredPassword).digest(),
+    actualPassword
+  );
+  const staffEmailMatches = timingSafeEqual(
+    createHmac('sha256', secret).update(staffEmail ?? '').digest(),
+    actualEmail
+  );
+  const staffPasswordMatches = timingSafeEqual(
+    createHmac('sha256', secret).update(staffPassword ?? '').digest(),
+    actualPassword
+  );
+
+  if (adminEmailMatches && adminPasswordMatches) return 'admin';
+  if (staffEmail && staffEmailMatches && staffPasswordMatches) return 'staff';
+  return null;
 }
 
 function isValidEmail(value: string): boolean {

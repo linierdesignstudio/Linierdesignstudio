@@ -5,7 +5,7 @@ import {
   createStorageUploadUrl,
   deleteStorageObjects,
   getSession,
-  requireRole,
+  requireAdminPermission,
 } from '../../_lib/portal.js';
 
 const FILE_TYPES: Record<string, string> = {
@@ -30,9 +30,10 @@ interface UploadRequest {
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {
-    requireRole(getSession(request), 'admin');
+    const session = getSession(request);
 
     if (request.method === 'POST') {
+      requireAdminPermission(session, 'manage_updates');
       const body = await readJson(request);
       const projectId = typeof body.projectId === 'string' ? body.projectId : '';
       if (!isUuid(projectId)) throw new HttpError(400, 'Pilih proyek yang valid.');
@@ -55,6 +56,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     requireMethod(request, 'DELETE');
+    requireAdminPermission(session, 'manage_updates');
     const body = await readJson(request);
     if (!Array.isArray(body.paths) || body.paths.length > 5 || body.paths.some((path) => typeof path !== 'string' || !FILE_PATH_PATTERN.test(path))) {
       throw new HttpError(400, 'Daftar file untuk dibersihkan tidak valid.');

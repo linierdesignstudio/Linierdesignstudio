@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from '../../_lib/http.js';
-import { createPasswordHash, getSession, requireRole, supabaseRequest } from '../../_lib/portal.js';
+import { createPasswordHash, getSession, requireAdminPermission, supabaseRequest } from '../../_lib/portal.js';
 
 interface ResetRequestRecord {
   id: string;
@@ -30,7 +30,7 @@ interface ResolvedResetRequest {
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {
-    requireRole(getSession(request), 'admin');
+    requireAdminPermission(getSession(request), 'process_resets');
 
     if (request.method === 'GET') {
       const records = await supabaseRequest<ResetRequestRecord[]>(

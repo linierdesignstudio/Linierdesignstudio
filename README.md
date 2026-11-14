@@ -30,6 +30,8 @@ The client portal uses Vercel Functions and Supabase. Client passwords and proje
    - `PORTAL_SESSION_SECRET` — a random secret of at least 32 characters.
    - `PORTAL_ADMIN_EMAIL` — the admin sign-in email address.
    - `PORTAL_ADMIN_PASSWORD` — a unique admin password of at least 16 characters.
+   - `PORTAL_STAFF_EMAIL` — the separate staff sign-in email address.
+   - `PORTAL_STAFF_PASSWORD` — a unique staff password of at least 16 characters. Set both staff variables together; staff can manage progress updates and process client password-reset requests, but cannot create projects, change client access, or delete updates.
 3. Deploy to Vercel or run `vercel dev`. The Vercel configuration uses the Other framework preset so the `api/` functions are deployed alongside the Vite `dist` output. `npm run dev` alone does not run the API functions.
 4. Open the deployed site's URL with `#/portal/admin` appended to sign in, create project IDs, client emails, and passwords, and post daily progress updates. Projects with the same client email share one email-account password and appear together after email sign-in, while each project keeps its own project-ID password. Existing projects can be linked to an email account from the project list without changing their project-ID passwords.
 5. In the admin portal, add a construction start date to each project and add up to five photos or progress files (JPG, PNG, WEBP, PDF, DOC, DOCX, XLSX, TXT, or CSV; 20 MB each) to an update. Clients see the elapsed construction duration and can preview or download the uploaded photos.

@@ -1,6 +1,6 @@
 import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from '../../_lib/http.js';
-import { createStorageDownloadUrl, deleteStorageObjects, getSession, requireRole, supabaseRequest, type PortalAttachment } from '../../_lib/portal.js';
+import { createStorageDownloadUrl, deleteStorageObjects, getSession, requireAdminPermission, supabaseRequest, type PortalAttachment } from '../../_lib/portal.js';
 
 interface ProjectUpdateRecord {
   id: string;
@@ -15,9 +15,10 @@ interface ProjectUpdateRecord {
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {
-    requireRole(getSession(request), 'admin');
+    const session = getSession(request);
 
     if (request.method === 'GET') {
+      requireAdminPermission(session, 'project_read');
       const projectId = new URL(request.url ?? '/', 'http://localhost').searchParams.get('projectId') ?? '';
       if (!isUuid(projectId)) throw new HttpError(400, 'Pilih proyek yang valid.');
       const storedUpdates = await supabaseRequest<ProjectUpdateRecord[]>(
@@ -36,6 +37,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     if (request.method === 'PATCH') {
+      requireAdminPermission(session, 'manage_updates');
       const body = await readJson(request);
       const updateId = typeof body.updateId === 'string' ? body.updateId : '';
       const projectId = typeof body.projectId === 'string' ? body.projectId : '';
@@ -59,6 +61,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     if (request.method === 'DELETE') {
+      requireAdminPermission(session, 'delete_updates');
       const body = await readJson(request);
       const updateId = typeof body.updateId === 'string' ? body.updateId : '';
       if (!isUuid(updateId)) throw new HttpError(400, 'Pilih update yang valid.');
@@ -88,6 +91,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     requireMethod(request, 'POST');
+    requireAdminPermission(session, 'manage_updates');
     const body = await readJson(request);
     const projectId = typeof body.projectId === 'string' ? body.projectId : '';
     if (!isUuid(projectId)) throw new HttpError(400, 'Pilih proyek yang valid.');

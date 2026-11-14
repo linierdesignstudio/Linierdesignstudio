@@ -10,10 +10,10 @@ const copy = {
     eyebrow: 'LINIER STUDIO / ADMIN',
     title: 'Kelola progress proyek.',
     subtitle: 'Masuk untuk membuat akses klien dan membagikan update harian.',
-    email: 'Email admin',
-    password: 'Password admin',
+    email: 'Email admin/staf',
+    password: 'Password admin/staf',
     forgotPassword: 'Lupa password admin?',
-    forgotPasswordHint: 'Ubah PORTAL_ADMIN_PASSWORD di Environment Variables Vercel, lalu redeploy. Email admin tetap menggunakan PORTAL_ADMIN_EMAIL.',
+    forgotPasswordHint: 'Untuk admin, ubah PORTAL_ADMIN_PASSWORD; untuk staf, ubah PORTAL_STAFF_PASSWORD di Environment Variables Vercel, lalu redeploy.',
     contact: 'Kontak',
     services: 'Jenis layanan',
     signIn: 'Masuk',
@@ -108,6 +108,7 @@ const copy = {
     noDate: 'Tanggal mulai belum diatur',
     adminDashboard: 'Dashboard admin',
     studioAdmin: 'Admin studio',
+    studioStaff: 'Staf studio',
     navigation: 'Navigasi',
     viewAllProjects: 'Lihat semua proyek',
   },
@@ -115,10 +116,10 @@ const copy = {
     eyebrow: 'LINIER STUDIO / ADMIN',
     title: 'Manage project progress.',
     subtitle: 'Sign in to create client access and share daily updates.',
-    email: 'Admin email',
-    password: 'Admin password',
+    email: 'Admin/staff email',
+    password: 'Admin/staff password',
     forgotPassword: 'Forgot admin password?',
-    forgotPasswordHint: 'Update PORTAL_ADMIN_PASSWORD in Vercel Environment Variables, then redeploy. Keep PORTAL_ADMIN_EMAIL as the admin email.',
+    forgotPasswordHint: 'For admins, update PORTAL_ADMIN_PASSWORD; for staff, update PORTAL_STAFF_PASSWORD in Vercel Environment Variables, then redeploy.',
     contact: 'Contact',
     services: 'Our services',
     signIn: 'Sign in',
@@ -213,6 +214,7 @@ const copy = {
     noDate: 'Start date not set',
     adminDashboard: 'Admin dashboard',
     studioAdmin: 'Studio admin',
+    studioStaff: 'Studio staff',
     navigation: 'Navigation',
     viewAllProjects: 'View all projects',
   },
@@ -220,10 +222,10 @@ const copy = {
     eyebrow: 'LINIER STUDIO / 管理',
     title: '管理项目进度。',
     subtitle: '登录以创建客户访问权限并发布每日更新。',
-    email: '管理员邮箱',
-    password: '管理员密码',
+    email: '管理员/员工邮箱',
+    password: '管理员/员工密码',
     forgotPassword: '忘记管理员密码？',
-    forgotPasswordHint: '请在 Vercel 环境变量中更新 PORTAL_ADMIN_PASSWORD，然后重新部署。管理员邮箱仍使用 PORTAL_ADMIN_EMAIL。',
+    forgotPasswordHint: '管理员请更新 PORTAL_ADMIN_PASSWORD；员工请更新 PORTAL_STAFF_PASSWORD，然后重新部署。',
     contact: '联系我们',
     services: '服务类型',
     signIn: '登录',
@@ -318,6 +320,7 @@ const copy = {
     noDate: '未设置开始日期',
     adminDashboard: '管理员仪表板',
     studioAdmin: '工作室管理员',
+    studioStaff: '工作室员工',
     navigation: '导航',
     viewAllProjects: '查看所有项目',
   },
@@ -336,6 +339,7 @@ const DOCUMENT_TYPES = [
 ];
 const heroImage = new URL('../1.jpeg', import.meta.url).href;
 const logoImage = new URL('../LInier-logo-transparent.png', import.meta.url).href;
+type AdminRole = 'admin' | 'staff';
 
 interface IssuedPassword {
   password: string;
@@ -369,6 +373,7 @@ const PortalAdmin: React.FC = () => {
   const { language, setLanguage, t: siteT } = useLanguage();
   const t = copy[language];
   const [authenticated, setAuthenticated] = useState(false);
+  const [adminRole, setAdminRole] = useState<AdminRole | null>(null);
   const [checking, setChecking] = useState(true);
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
@@ -403,13 +408,15 @@ const PortalAdmin: React.FC = () => {
 
   useEffect(() => {
     let active = true;
-    portalRequest('/api/portal/admin/session')
-      .then(async () => {
+    portalRequest<{ role: AdminRole }>('/api/portal/admin/session')
+      .then(async ({ role }) => {
         const result = await loadAdminData();
         if (active) {
           setProjects(result.projects);
           setPasswordRequests(result.requests);
           setSelectedProjectId(result.projects[0]?.id ?? '');
+          setAdminRole(role);
+          setActiveSection('admin-dashboard');
           setAuthenticated(true);
         }
       })
@@ -448,7 +455,7 @@ const PortalAdmin: React.FC = () => {
     setBusy(true);
     setError('');
     try {
-      await portalRequest('/api/portal/admin/login', {
+      const { role } = await portalRequest<{ role: AdminRole }>('/api/portal/admin/login', {
         method: 'POST',
         body: JSON.stringify({ email: adminEmail, password: adminPassword }),
       });
@@ -456,6 +463,7 @@ const PortalAdmin: React.FC = () => {
       setProjects(result.projects);
       setPasswordRequests(result.requests);
       setSelectedProjectId(result.projects[0]?.id ?? '');
+      setAdminRole(role);
       setAuthenticated(true);
       setAdminEmail('');
       setAdminPassword('');
@@ -470,6 +478,8 @@ const PortalAdmin: React.FC = () => {
     try {
       await portalRequest('/api/portal/logout', { method: 'POST' });
       setAuthenticated(false);
+      setAdminRole(null);
+      setActiveSection('admin-dashboard');
       setProjects([]);
       setPasswordRequests([]);
       setSelectedProjectId('');
@@ -829,7 +839,7 @@ const PortalAdmin: React.FC = () => {
     { id: 'admin-progress', label: t.projectProgress, icon: <ChartNoAxesColumn size={17} /> },
     { id: 'admin-access', label: t.clientAccess, icon: <FolderOpen size={17} /> },
     { id: 'admin-resets', label: t.passwordRequestsNav, icon: <KeyRound size={17} /> },
-  ];
+  ].filter((item) => adminRole !== 'staff' || item.id !== 'admin-access');
   const activePageTitle = activeSection === 'admin-dashboard'
     ? t.adminDashboard
     : navigation.find((item) => item.id === activeSection)?.label ?? t.adminDashboard;
@@ -889,7 +899,7 @@ const PortalAdmin: React.FC = () => {
                 {passwordRequests.length > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 font-mono text-[8px] text-white">{passwordRequests.length}</span>}
               </button>
               <span className="hidden h-9 w-9 items-center justify-center rounded-full bg-neutral-900 font-mono text-[10px] text-white sm:flex dark:bg-white dark:text-neutral-900">LS</span>
-              <span className="hidden text-xs font-medium sm:block">{t.studioAdmin}</span>
+              <span className="hidden text-xs font-medium sm:block">{adminRole === 'staff' ? t.studioStaff : t.studioAdmin}</span>
               <Link to="/portal" aria-label={t.back} className="inline-flex items-center gap-1 border-l border-neutral-200 pl-3 text-[10px] font-mono uppercase tracking-wider text-neutral-500 transition-colors hover:text-neutral-900 dark:border-white/15 dark:text-neutral-300 sm:pl-4"><span className="hidden sm:inline">{t.back}</span><ArrowUpRight size={13} /></Link>
               <button type="button" onClick={signOut} aria-label={t.signOut} title={t.signOut} className="flex h-10 w-10 items-center justify-center border border-neutral-200 text-neutral-600 transition-colors hover:border-red-400 hover:text-red-600 dark:border-white/15 dark:text-neutral-300 lg:hidden"><LogOut size={16} /></button>
             </div>
@@ -1095,7 +1105,7 @@ const PortalAdmin: React.FC = () => {
               </>
             )}
             <div className="space-y-5">
-            {activeSection === 'admin-access' && <section id="admin-access" className="mx-auto w-full max-w-3xl scroll-mt-24 border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+            {adminRole === 'admin' && activeSection === 'admin-access' && <section id="admin-access" className="mx-auto w-full max-w-3xl scroll-mt-24 border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-8 flex items-start gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                 <Plus size={19} className="text-bronze-500" />
                 <div>
@@ -1295,15 +1305,17 @@ const PortalAdmin: React.FC = () => {
                           >
                             {editingUpdateId === update.id ? t.editingUpdate : t.editUpdate}
                           </button>
-                          <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() => deleteProgressUpdate(update)}
-                            className="inline-flex items-center gap-2 border border-red-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-red-600 transition-colors hover:border-red-500 hover:bg-red-50 disabled:opacity-50 dark:border-red-400/20 dark:text-red-400 dark:hover:bg-red-500/10"
-                          >
-                            <Trash2 size={13} />
-                            {busy ? t.deletingUpdate : t.deleteUpdate}
-                          </button>
+                          {adminRole === 'admin' && (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => deleteProgressUpdate(update)}
+                              className="inline-flex items-center gap-2 border border-red-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-red-600 transition-colors hover:border-red-500 hover:bg-red-50 disabled:opacity-50 dark:border-red-400/20 dark:text-red-400 dark:hover:bg-red-500/10"
+                            >
+                              <Trash2 size={13} />
+                              {busy ? t.deletingUpdate : t.deleteUpdate}
+                            </button>
+                          )}
                         </div>
                       </li>
                     ))}
@@ -1330,6 +1342,8 @@ const PortalAdmin: React.FC = () => {
                             <span className="block h-1 bg-neutral-100 dark:bg-white/10"><span className="block h-full bg-bronze-500" style={{ width: `${project.progress_percent}%` }} /></span>
                           </span>
                         </div>
+                        {adminRole === 'admin' && (
+                          <>
                         <form onSubmit={saveProjectStartDate} className="mt-4 flex flex-wrap items-end gap-3 border-t border-neutral-100 pt-4 dark:border-white/10">
                           <input type="hidden" name="projectId" value={project.id} />
                           <label className="min-w-[180px] flex-1">
@@ -1345,6 +1359,8 @@ const PortalAdmin: React.FC = () => {
                           <button disabled={busy} className="border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15">{t.saveClientAccount}</button>
                         </form>
                         <p className="mt-2 text-[10px] leading-5 text-neutral-500">{t.accountPasswordHint}</p>
+                          </>
+                        )}
                       </li>
                     ))}
                   </ul>
