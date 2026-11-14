@@ -61,8 +61,17 @@ const copy = {
     sendWhatsapp: 'Buka chat WhatsApp',
     verifyClient: 'Pastikan identitas klien sebelum mengirim password ini.',
     duration: 'Durasi pembangunan',
-    attachmentLabel: 'Foto & file progress',
-    attachmentHint: 'Maks. 5 file · 20 MB per file · JPG, PNG, WEBP, PDF, DOC, DOCX, XLSX, TXT, CSV',
+    attachmentLabel: 'Lampiran progress',
+    photo: 'Foto progress',
+    progressFiles: 'File progress',
+    photoHint: 'JPG, PNG, WEBP · Maksimal 5 lampiran gabungan per update.',
+    documentHint: 'PDF, DOC, DOCX, XLSX, TXT, CSV · Maksimal 5 lampiran gabungan per update.',
+    choosePhotos: 'Pilih foto',
+    chooseProgressFiles: 'Pilih file progress',
+    invalidPhoto: 'Pilih foto berformat JPG, PNG, atau WEBP.',
+    invalidProgressFile: 'Pilih file PDF, DOC, DOCX, XLSX, TXT, atau CSV.',
+    fileCountLimit: 'Maksimal 5 lampiran untuk satu update.',
+    fileSizeLimit: 'Ukuran setiap file maksimal 20 MB.',
     removeFiles: 'Hapus pilihan',
     dashboard: 'Dashboard',
     projectProgress: 'Progress proyek',
@@ -137,8 +146,17 @@ const copy = {
     sendWhatsapp: 'Open WhatsApp chat',
     verifyClient: 'Verify the client before sharing this password.',
     duration: 'Construction duration',
-    attachmentLabel: 'Progress photos & files',
-    attachmentHint: 'Up to 5 files · 20 MB each · JPG, PNG, WEBP, PDF, DOC, DOCX, XLSX, TXT, CSV',
+    attachmentLabel: 'Progress attachments',
+    photo: 'Progress photos',
+    progressFiles: 'Progress files',
+    photoHint: 'JPG, PNG, WEBP · Up to 5 combined attachments per update.',
+    documentHint: 'PDF, DOC, DOCX, XLSX, TXT, CSV · Up to 5 combined attachments per update.',
+    choosePhotos: 'Choose photos',
+    chooseProgressFiles: 'Choose progress files',
+    invalidPhoto: 'Choose JPG, PNG, or WEBP photos.',
+    invalidProgressFile: 'Choose PDF, DOC, DOCX, XLSX, TXT, or CSV files.',
+    fileCountLimit: 'Choose no more than 5 attachments per update.',
+    fileSizeLimit: 'Each file must be 20 MB or smaller.',
     removeFiles: 'Clear selection',
     dashboard: 'Dashboard',
     projectProgress: 'Project progress',
@@ -213,8 +231,17 @@ const copy = {
     sendWhatsapp: '打开 WhatsApp 聊天',
     verifyClient: '发送密码前请先核实客户身份。',
     duration: '施工时长',
-    attachmentLabel: '进度照片和文件',
-    attachmentHint: '最多 5 个文件 · 每个 20 MB · JPG、PNG、WEBP、PDF、DOC、DOCX、XLSX、TXT、CSV',
+    attachmentLabel: '进度附件',
+    photo: '进度照片',
+    progressFiles: '进度文件',
+    photoHint: 'JPG、PNG、WEBP · 每次更新最多 5 个附件。',
+    documentHint: 'PDF、DOC、DOCX、XLSX、TXT、CSV · 每次更新最多 5 个附件。',
+    choosePhotos: '选择照片',
+    chooseProgressFiles: '选择进度文件',
+    invalidPhoto: '请选择 JPG、PNG 或 WEBP 格式的照片。',
+    invalidProgressFile: '请选择 PDF、DOC、DOCX、XLSX、TXT 或 CSV 文件。',
+    fileCountLimit: '每次更新最多可上传 5 个附件。',
+    fileSizeLimit: '每个文件最大 20 MB。',
     removeFiles: '清除所选文件',
     dashboard: '仪表板',
     projectProgress: '项目进度',
@@ -236,7 +263,17 @@ const copy = {
   },
 } as const;
 
-const ACCEPTED_FILES = '.jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xlsx,.txt,.csv';
+const ACCEPTED_IMAGES = '.jpg,.jpeg,.png,.webp';
+const ACCEPTED_DOCUMENTS = '.pdf,.doc,.docx,.xlsx,.txt,.csv';
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const DOCUMENT_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'text/plain',
+  'text/csv',
+];
 const heroImage = new URL('../1.jpeg', import.meta.url).href;
 const logoImage = new URL('../LInier-logo-transparent.png', import.meta.url).href;
 
@@ -286,7 +323,8 @@ const PortalAdmin: React.FC = () => {
   const [previewFiles, setPreviewFiles] = useState<Array<{ name: string; url: string }>>([]);
   const [activeSection, setActiveSection] = useState('admin-dashboard');
   const [isDark, setIsDark] = useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const imageInputRef = React.useRef<HTMLInputElement>(null);
+  const documentInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'));
@@ -578,7 +616,8 @@ const PortalAdmin: React.FC = () => {
       setSelectedFiles([]);
       setEditingUpdateId('');
       setEditingAttachments([]);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (imageInputRef.current) imageInputRef.current.value = '';
+      if (documentInputRef.current) documentInputRef.current.value = '';
       const dateInput = formElement.elements.namedItem('updateDate');
       if (dateInput instanceof HTMLInputElement) dateInput.value = today();
     } catch (cause) {
@@ -601,8 +640,41 @@ const PortalAdmin: React.FC = () => {
     }
   };
 
+  const handleProgressFileSelection = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    category: 'photo' | 'document'
+  ) => {
+    const input = event.currentTarget;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    if (files.length === 0) return;
+
+    const acceptedTypes = category === 'photo' ? IMAGE_TYPES : DOCUMENT_TYPES;
+    if (files.some((file) => !acceptedTypes.includes(file.type))) {
+      setError(category === 'photo' ? t.invalidPhoto : t.invalidProgressFile);
+      return;
+    }
+    if (files.some((file) => file.size > 20 * 1024 * 1024)) {
+      setError(t.fileSizeLimit);
+      return;
+    }
+
+    const combinedFiles = [...selectedFiles, ...files];
+    if (editingAttachments.length + combinedFiles.length > 5) {
+      setError(t.fileCountLimit);
+      return;
+    }
+
+    setError('');
+    setSelectedFiles(combinedFiles);
+  };
+
   const selectedProject = projects.find((project) => project.id === selectedProjectId);
   const selectedUpdate = adminUpdates.find((update) => update.id === editingUpdateId);
+  const existingPhotos = editingAttachments.filter((attachment) => attachment.contentType.startsWith('image/'));
+  const existingDocuments = editingAttachments.filter((attachment) => !attachment.contentType.startsWith('image/'));
+  const selectedPhotos = selectedFiles.filter((file) => file.type.startsWith('image/'));
+  const selectedDocuments = selectedFiles.filter((file) => !file.type.startsWith('image/'));
   const averageProgress = projects.length
     ? Math.round(projects.reduce((sum, project) => sum + project.progress_percent, 0) / projects.length)
     : 0;
@@ -915,7 +987,7 @@ const PortalAdmin: React.FC = () => {
                   <form id="progress-update-form" key={`${selectedProjectId}-${editingUpdateId || 'new'}`} onSubmit={submitProgressUpdate} className="space-y-5">
                     <label className="block">
                       <span className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-neutral-500">{t.projects}</span>
-                      <select value={selectedProjectId} onChange={(event) => { setSelectedFiles([]); setEditingUpdateId(''); setEditingAttachments([]); setAdminUpdates([]); setSelectedProjectId(event.target.value); }} required className="w-full border-b border-neutral-300 bg-transparent py-3 text-sm outline-none focus:border-bronze-500 dark:border-white/20 dark:[color-scheme:dark]">
+                      <select value={selectedProjectId} onChange={(event) => { setSelectedFiles([]); setEditingUpdateId(''); setEditingAttachments([]); setAdminUpdates([]); if (imageInputRef.current) imageInputRef.current.value = ''; if (documentInputRef.current) documentInputRef.current.value = ''; setSelectedProjectId(event.target.value); }} required className="w-full border-b border-neutral-300 bg-transparent py-3 text-sm outline-none focus:border-bronze-500 dark:border-white/20 dark:[color-scheme:dark]">
                         <option value="">{t.chooseProject}</option>
                         {projects.map((project) => <option key={project.id} value={project.id}>{project.project_code} — {project.project_name}</option>)}
                       </select>
@@ -929,7 +1001,8 @@ const PortalAdmin: React.FC = () => {
                             setEditingUpdateId('');
                             setEditingAttachments([]);
                             setSelectedFiles([]);
-                            if (fileInputRef.current) fileInputRef.current.value = '';
+                            if (imageInputRef.current) imageInputRef.current.value = '';
+                            if (documentInputRef.current) documentInputRef.current.value = '';
                           }}
                           className="font-mono text-[9px] uppercase tracking-widest text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
                         >
@@ -946,68 +1019,88 @@ const PortalAdmin: React.FC = () => {
                       <Field name="progressPercent" label={t.progress} type="number" min={0} max={100} defaultValue={selectedUpdate?.progress_percent ?? selectedProject?.progress_percent ?? 0} required />
                       <Field name="updateDate" label={t.date} type="date" defaultValue={selectedUpdate?.update_date ?? today()} required />
                     </div>
-                    <div className="border border-dashed border-neutral-300 bg-neutral-50/80 p-4 dark:border-white/15 dark:bg-white/[0.03]">
+                    <div>
                       <div className="mb-3 flex items-center gap-2">
                         <ImagePlus size={16} className="text-bronze-500" />
                         <span className="font-mono text-[10px] uppercase tracking-widest">{t.attachmentLabel}</span>
                       </div>
-                      {editingUpdateId && editingAttachments.length > 0 && (
-                        <div className="mb-4 space-y-2">
-                          <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">{t.existingAttachments}</p>
-                          {editingAttachments.map((attachment) => (
-                            <div key={attachment.path} className="flex items-center gap-3 border border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-neutral-900">
-                              {attachment.contentType.startsWith('image/') && attachment.url ? (
-                                <img src={attachment.url} alt={attachment.name} className="h-14 w-20 shrink-0 object-cover" />
-                              ) : (
-                                <FileText size={18} className="mx-7 shrink-0 text-bronze-500" />
-                              )}
-                              <a href={attachment.downloadUrl ?? attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs hover:text-bronze-600">{attachment.name}</a>
-                              <button type="button" onClick={() => setEditingAttachments((current) => current.filter((item) => item.path !== attachment.path))} aria-label={`${t.removeAttachment}: ${attachment.name}`} title={t.removeAttachment} className="flex h-8 w-8 shrink-0 items-center justify-center text-neutral-400 hover:text-red-500">
-                                <X size={15} />
-                              </button>
+                      <div className="space-y-4">
+                        <section className="border border-dashed border-neutral-300 bg-neutral-50/80 p-4 dark:border-white/15 dark:bg-white/[0.03]">
+                          <div className="mb-3 flex items-center gap-2">
+                            <ImagePlus size={16} className="text-bronze-500" />
+                            <h3 className="font-mono text-[10px] uppercase tracking-widest">{t.photo}</h3>
+                          </div>
+                          {editingUpdateId && existingPhotos.length > 0 && (
+                            <div className="mb-4 space-y-2">
+                              <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">{t.existingAttachments}</p>
+                              {existingPhotos.map((attachment) => (
+                                <div key={attachment.path} className="flex items-center gap-3 border border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-neutral-900">
+                                  {attachment.url && <img src={attachment.url} alt={attachment.name} className="h-14 w-20 shrink-0 object-cover" />}
+                                  <a href={attachment.downloadUrl ?? attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs hover:text-bronze-600">{attachment.name}</a>
+                                  <button type="button" onClick={() => setEditingAttachments((current) => current.filter((item) => item.path !== attachment.path))} aria-label={`${t.removeAttachment}: ${attachment.name}`} title={t.removeAttachment} className="flex h-8 w-8 shrink-0 items-center justify-center text-neutral-400 hover:text-red-500">
+                                    <X size={15} />
+                                  </button>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      )}
-                      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 border border-neutral-200 bg-white px-4 py-5 text-center transition-colors hover:border-bronze-500 dark:border-white/10 dark:bg-neutral-900">
-                        <Upload size={19} className="text-bronze-500" />
-                        <span className="text-xs font-medium">{language === 'ID' ? 'Pilih foto atau dokumen' : language === 'CN' ? '选择照片或文档' : 'Choose photos or documents'}</span>
-                        <span className="max-w-sm text-[10px] leading-5 text-neutral-500">{t.attachmentHint}</span>
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          multiple
-                          accept={ACCEPTED_FILES}
-                          className="sr-only"
-                          onChange={(event) => {
-                            const files = Array.from(event.currentTarget.files ?? []);
-                            if (files.length + editingAttachments.length > 5) {
-                              setError(language === 'ID' ? 'Maksimal 5 file untuk satu update.' : language === 'CN' ? '每次更新最多上传 5 个文件。' : 'Choose no more than 5 files per update.');
-                              event.currentTarget.value = '';
-                              return;
-                            }
-                            const oversized = files.some((file) => file.size > 20 * 1024 * 1024);
-                            if (oversized) {
-                              setError(language === 'ID' ? 'Ukuran setiap file maksimal 20 MB.' : language === 'CN' ? '每个文件最大 20 MB。' : 'Each file must be 20 MB or smaller.');
-                              event.currentTarget.value = '';
-                              return;
-                            }
-                            setError('');
-                            setSelectedFiles(files);
-                          }}
-                        />
-                      </label>
-                      {selectedFiles.length > 0 && (
-                        <div className="mt-3 space-y-2">
-                          {selectedFiles.map((file) => (
-                            <div key={`${file.name}-${file.lastModified}`} className="flex items-center justify-between gap-3 text-xs">
-                              <span className="flex min-w-0 items-center gap-2"><FileText size={14} className="shrink-0 text-bronze-500" /><span className="truncate">{file.name}</span></span>
-                              <span className="shrink-0 font-mono text-[10px] text-neutral-400">{formatBytes(file.size)}</span>
+                          )}
+                          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 border border-neutral-200 bg-white px-4 py-5 text-center transition-colors hover:border-bronze-500 dark:border-white/10 dark:bg-neutral-900">
+                            <Upload size={19} className="text-bronze-500" />
+                            <span className="text-xs font-medium">{t.choosePhotos}</span>
+                            <span className="max-w-sm text-[10px] leading-5 text-neutral-500">{t.photoHint}</span>
+                            <input type="file" ref={imageInputRef} multiple accept={ACCEPTED_IMAGES} className="sr-only" onChange={(event) => handleProgressFileSelection(event, 'photo')} />
+                          </label>
+                          {selectedPhotos.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                              {selectedPhotos.map((file, index) => (
+                                <div key={`${file.name}-${file.size}-${file.lastModified}-${index}`} className="flex items-center justify-between gap-3 text-xs">
+                                  <span className="flex min-w-0 items-center gap-2"><ImagePlus size={14} className="shrink-0 text-bronze-500" /><span className="truncate">{file.name}</span></span>
+                                  <span className="shrink-0 font-mono text-[10px] text-neutral-400">{formatBytes(file.size)}</span>
+                                </div>
+                              ))}
+                              <button type="button" onClick={() => { setSelectedFiles((current) => current.filter((file) => !file.type.startsWith('image/'))); if (imageInputRef.current) imageInputRef.current.value = ''; }} className="pt-1 font-mono text-[9px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-red-500">{t.removeFiles}</button>
                             </div>
-                          ))}
-                          <button type="button" onClick={() => { setSelectedFiles([]); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="pt-1 font-mono text-[9px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-red-500">{t.removeFiles}</button>
-                        </div>
-                      )}
+                          )}
+                        </section>
+
+                        <section className="border border-dashed border-neutral-300 bg-neutral-50/80 p-4 dark:border-white/15 dark:bg-white/[0.03]">
+                          <div className="mb-3 flex items-center gap-2">
+                            <FileText size={16} className="text-bronze-500" />
+                            <h3 className="font-mono text-[10px] uppercase tracking-widest">{t.progressFiles}</h3>
+                          </div>
+                          {editingUpdateId && existingDocuments.length > 0 && (
+                            <div className="mb-4 space-y-2">
+                              <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">{t.existingAttachments}</p>
+                              {existingDocuments.map((attachment) => (
+                                <div key={attachment.path} className="flex items-center gap-3 border border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-neutral-900">
+                                  <FileText size={18} className="mx-1 shrink-0 text-bronze-500" />
+                                  <a href={attachment.downloadUrl ?? attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs hover:text-bronze-600">{attachment.name}</a>
+                                  <button type="button" onClick={() => setEditingAttachments((current) => current.filter((item) => item.path !== attachment.path))} aria-label={`${t.removeAttachment}: ${attachment.name}`} title={t.removeAttachment} className="flex h-8 w-8 shrink-0 items-center justify-center text-neutral-400 hover:text-red-500">
+                                    <X size={15} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 border border-neutral-200 bg-white px-4 py-5 text-center transition-colors hover:border-bronze-500 dark:border-white/10 dark:bg-neutral-900">
+                            <Upload size={19} className="text-bronze-500" />
+                            <span className="text-xs font-medium">{t.chooseProgressFiles}</span>
+                            <span className="max-w-sm text-[10px] leading-5 text-neutral-500">{t.documentHint}</span>
+                            <input type="file" ref={documentInputRef} multiple accept={ACCEPTED_DOCUMENTS} className="sr-only" onChange={(event) => handleProgressFileSelection(event, 'document')} />
+                          </label>
+                          {selectedDocuments.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                              {selectedDocuments.map((file, index) => (
+                                <div key={`${file.name}-${file.size}-${file.lastModified}-${index}`} className="flex items-center justify-between gap-3 text-xs">
+                                  <span className="flex min-w-0 items-center gap-2"><FileText size={14} className="shrink-0 text-bronze-500" /><span className="truncate">{file.name}</span></span>
+                                  <span className="shrink-0 font-mono text-[10px] text-neutral-400">{formatBytes(file.size)}</span>
+                                </div>
+                              ))}
+                              <button type="button" onClick={() => { setSelectedFiles((current) => current.filter((file) => file.type.startsWith('image/'))); if (documentInputRef.current) documentInputRef.current.value = ''; }} className="pt-1 font-mono text-[9px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-red-500">{t.removeFiles}</button>
+                            </div>
+                          )}
+                        </section>
+                      </div>
                     </div>
                     <button disabled={busy || projects.length === 0} className="flex w-full items-center justify-between bg-neutral-900 px-5 py-4 font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-60 dark:bg-white dark:text-neutral-950">
                       {busy ? (language === 'ID' ? 'Mengunggah...' : language === 'CN' ? '正在上传...' : 'Uploading...') : editingUpdateId ? t.saveChanges : t.publish} <ArrowUpRight size={17} />
@@ -1046,7 +1139,8 @@ const PortalAdmin: React.FC = () => {
                             setSelectedFiles([]);
                             setError('');
                             setNotice('');
-                            if (fileInputRef.current) fileInputRef.current.value = '';
+                            if (imageInputRef.current) imageInputRef.current.value = '';
+                            if (documentInputRef.current) documentInputRef.current.value = '';
                             document.getElementById('progress-update-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                           }}
                           className="shrink-0 border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 hover:text-bronze-600 disabled:opacity-50 dark:border-white/15"

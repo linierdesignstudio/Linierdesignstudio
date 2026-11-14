@@ -26,7 +26,7 @@ const copy = {
     loading: 'Memuat portal...',
     complete: 'Selesai',
     inProgress: 'Sedang berjalan',
-    files: 'Lampiran progress',
+    files: 'File progress',
     viewFile: 'Buka file',
     photo: 'Foto progress',
     forgotPassword: 'Lupa password?',
@@ -72,7 +72,7 @@ const copy = {
     loading: 'Loading portal...',
     complete: 'Complete',
     inProgress: 'In progress',
-    files: 'Progress attachments',
+    files: 'Progress files',
     viewFile: 'Open file',
     photo: 'Progress photo',
     forgotPassword: 'Forgot password?',
@@ -118,7 +118,7 @@ const copy = {
     loading: '正在加载门户...',
     complete: '已完成',
     inProgress: '进行中',
-    files: '进度附件',
+    files: '进度文件',
     viewFile: '打开文件',
     photo: '进度照片',
     forgotPassword: '忘记密码？',
@@ -411,34 +411,46 @@ const ClientPortal: React.FC = () => {
                         <h3 className="font-display text-xl font-semibold">{update.title}</h3>
                         <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-neutral-600 dark:text-neutral-400">{update.description}</p>
                         {update.attachments.length > 0 && (
-                          <div className="mt-6 border-t border-neutral-100 pt-5 dark:border-white/10">
-                            <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-500">{t.files}</p>
-                            <div className="grid gap-3 sm:grid-cols-2">
-                              {update.attachments.map((attachment) => attachment.contentType.startsWith('image/') ? (
-                                <div key={attachment.path} className="group relative aspect-[16/10] overflow-hidden bg-neutral-100 dark:bg-white/5">
-                                  <a href={attachment.url} target="_blank" rel="noreferrer" className="block h-full w-full">
-                                    <img src={attachment.url} alt={`${t.photo}: ${attachment.name}`} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
-                                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8 text-xs text-white">{attachment.name}</span>
-                                  </a>
-                                  <a
-                                    href={attachment.downloadUrl ?? attachment.url}
-                                    aria-label={`${t.downloadPhoto}: ${attachment.name}`}
-                                    title={t.downloadPhoto}
-                                    className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center bg-black/65 text-white transition-colors hover:bg-bronze-600"
-                                  >
-                                    <Download size={16} />
-                                  </a>
+                          <div className="mt-6 space-y-5 border-t border-neutral-100 pt-5 dark:border-white/10">
+                            {update.attachments.some((attachment) => attachment.contentType.startsWith('image/')) && (
+                              <section>
+                                <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-500">{t.photo}</p>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                  {update.attachments.filter((attachment) => attachment.contentType.startsWith('image/')).map((attachment) => (
+                                    <div key={attachment.path} className="group relative aspect-[16/10] overflow-hidden bg-neutral-100 dark:bg-white/5">
+                                      <a href={attachment.url} target="_blank" rel="noreferrer" className="block h-full w-full">
+                                        <img src={attachment.url} alt={`${t.photo}: ${attachment.name}`} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                                        <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8 text-xs text-white">{attachment.name}</span>
+                                      </a>
+                                      <a
+                                        href={attachment.downloadUrl ?? attachment.url}
+                                        aria-label={`${t.downloadPhoto}: ${attachment.name}`}
+                                        title={t.downloadPhoto}
+                                        className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center bg-black/65 text-white transition-colors hover:bg-bronze-600"
+                                      >
+                                        <Download size={16} />
+                                      </a>
+                                    </div>
+                                  ))}
                                 </div>
-                              ) : (
-                                <a key={attachment.path} href={attachment.downloadUrl ?? attachment.url} className="flex min-w-0 items-center justify-between gap-3 border border-neutral-200 px-4 py-3 transition-colors hover:border-bronze-500 dark:border-white/10">
-                                  <span className="flex min-w-0 items-center gap-3">
-                                    <FileText size={17} className="shrink-0 text-bronze-500" />
-                                    <span className="truncate text-xs">{attachment.name}</span>
-                                  </span>
-                                  <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-neutral-500"><Download size={13} /> {t.viewFile}</span>
-                                </a>
-                              ))}
-                            </div>
+                              </section>
+                            )}
+                            {update.attachments.some((attachment) => !attachment.contentType.startsWith('image/')) && (
+                              <section>
+                                <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-500">{t.files}</p>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                  {update.attachments.filter((attachment) => !attachment.contentType.startsWith('image/')).map((attachment) => (
+                                    <a key={attachment.path} href={attachment.downloadUrl ?? attachment.url} className="flex min-w-0 items-center justify-between gap-3 border border-neutral-200 px-4 py-3 transition-colors hover:border-bronze-500 dark:border-white/10">
+                                      <span className="flex min-w-0 items-center gap-3">
+                                        <FileText size={17} className="shrink-0 text-bronze-500" />
+                                        <span className="truncate text-xs">{attachment.name}</span>
+                                      </span>
+                                      <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-neutral-500"><Download size={13} /> {t.viewFile}</span>
+                                    </a>
+                                  ))}
+                                </div>
+                              </section>
+                            )}
                           </div>
                         )}
                       </div>
