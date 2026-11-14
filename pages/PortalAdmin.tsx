@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, Bell, Building2, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, MessageCircle, Moon, Plus, RefreshCw, Send, Sun, Upload } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, MessageCircle, Moon, Plus, RefreshCw, Send, Sun, Upload } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { portalRequest, type PasswordResetRequest, type PortalAttachment, type PortalProject } from '../lib/portalApi';
 import { Language } from '../types';
@@ -202,6 +202,7 @@ const copy = {
 
 const ACCEPTED_FILES = '.jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xlsx,.txt,.csv';
 const heroImage = new URL('../1.jpeg', import.meta.url).href;
+const logoImage = new URL('../LInier-logo-transparent.png', import.meta.url).href;
 
 interface IssuedPassword {
   password: string;
@@ -524,10 +525,11 @@ const PortalAdmin: React.FC = () => {
         <aside className="z-40 bg-[#171819] text-white lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-56 lg:flex-col">
           <div className="border-b border-white/10 px-5 py-5 sm:px-7 lg:px-6 lg:py-7">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-bronze-400/40 text-bronze-300"><Building2 size={18} /></span>
+              <span className="relative h-14 w-14 shrink-0 overflow-hidden">
+                <img src={logoImage} alt="Linier Studio" className="absolute left-1/2 top-1/2 h-40 w-40 max-w-none -translate-x-1/2 -translate-y-1/2 object-contain" />
+              </span>
               <div>
-                <p className="font-display text-sm font-semibold uppercase leading-tight tracking-wide">Linier Studio</p>
-                <p className="mt-1 font-mono text-[8px] uppercase tracking-[0.18em] text-white/45">Nusakarya Perkasa</p>
+                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/65">Nusakarya Perkasa</p>
               </div>
             </div>
           </div>
