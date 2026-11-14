@@ -4,6 +4,7 @@ create table if not exists public.client_projects (
   project_name text not null,
   client_name text not null,
   location text not null default '',
+  start_date date,
   status text not null default 'Berjalan',
   progress_percent integer not null default 0 check (progress_percent between 0 and 100),
   password_salt text not null,
@@ -11,6 +12,9 @@ create table if not exists public.client_projects (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.client_projects
+  add column if not exists start_date date;
 
 create table if not exists public.project_updates (
   id uuid primary key default gen_random_uuid(),
@@ -35,9 +39,23 @@ create table if not exists public.project_login_attempts (
   window_started_at timestamptz not null default now()
 );
 
+create table if not exists public.project_password_reset_requests (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.client_projects(id) on delete cascade,
+  whatsapp_number text not null,
+  status text not null default 'pending' check (status in ('pending', 'processed')),
+  created_at timestamptz not null default now(),
+  processed_at timestamptz
+);
+
+create unique index if not exists project_password_reset_one_pending_idx
+  on public.project_password_reset_requests (project_id)
+  where status = 'pending';
+
 alter table public.client_projects enable row level security;
 alter table public.project_updates enable row level security;
 alter table public.project_login_attempts enable row level security;
+alter table public.project_password_reset_requests enable row level security;
 
 create or replace function public.portal_allow_login_attempt(
   p_project_id uuid,
@@ -126,15 +144,73 @@ begin
 end;
 $$;
 
+create or replace function public.portal_resolve_password_reset(
+  p_request_id uuid,
+  p_password_salt text,
+  p_password_hash text
+)
+returns table (
+  request_id uuid,
+  project_id uuid,
+  project_code text,
+  project_name text,
+  client_name text,
+  whatsapp_number text
+)
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  target_project_id uuid;
+begin
+  select reset_request.project_id
+    into target_project_id
+    from public.project_password_reset_requests as reset_request
+    where reset_request.id = p_request_id
+      and reset_request.status = 'pending'
+    for update;
+
+  if not found then
+    return;
+  end if;
+
+  update public.client_projects
+    set password_salt = p_password_salt,
+        password_hash = p_password_hash,
+        updated_at = now()
+    where id = target_project_id;
+
+  update public.project_password_reset_requests
+    set status = 'processed',
+        processed_at = now()
+    where id = p_request_id;
+
+  return query
+    select reset_request.id,
+           project.id,
+           project.project_code,
+           project.project_name,
+           project.client_name,
+           reset_request.whatsapp_number
+      from public.project_password_reset_requests as reset_request
+      join public.client_projects as project on project.id = reset_request.project_id
+      where reset_request.id = p_request_id;
+end;
+$$;
+
 revoke all on function public.portal_allow_login_attempt(uuid, boolean) from public, anon, authenticated;
 revoke all on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) from public, anon, authenticated;
+revoke all on function public.portal_resolve_password_reset(uuid, text, text) from public, anon, authenticated;
 grant execute on function public.portal_allow_login_attempt(uuid, boolean) to service_role;
 grant execute on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) to service_role;
+grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
 
-revoke all on public.client_projects, public.project_updates, public.project_login_attempts from anon, authenticated;
+revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests from anon, authenticated;
 grant select, insert on public.client_projects to service_role;
 grant select, insert, update, delete on public.project_updates to service_role;
 grant select, insert, update, delete on public.project_login_attempts to service_role;
+grant select, insert, update on public.project_password_reset_requests to service_role;
 grant update on public.client_projects to service_role;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

@@ -8,6 +8,7 @@ interface AdminProject {
   project_name: string;
   client_name: string;
   location: string;
+  start_date: string | null;
   status: string;
   progress_percent: number;
   created_at: string;
@@ -20,9 +21,28 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
     if (request.method === 'GET') {
       const projects = await supabaseRequest<AdminProject[]>(
-        'client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,created_at&order=created_at.desc'
+        'client_projects?select=id,project_code,project_name,client_name,location,start_date,status,progress_percent,created_at&order=created_at.desc'
       );
       sendJson(response, 200, { projects });
+      return;
+    }
+
+    if (request.method === 'PATCH') {
+      const body = await readJson(request);
+      const projectId = typeof body.projectId === 'string' ? body.projectId : '';
+      const startDate = typeof body.startDate === 'string' ? body.startDate : '';
+      if (!isUuid(projectId)) throw new HttpError(400, 'Pilih proyek yang valid.');
+      if (!isValidDate(startDate)) throw new HttpError(400, 'Tanggal mulai tidak valid.');
+      const updated = await supabaseRequest<AdminProject[]>(
+        `client_projects?id=eq.${encodeURIComponent(projectId)}&select=id,project_code,project_name,client_name,location,start_date,status,progress_percent,created_at`,
+        {
+          method: 'PATCH',
+          headers: { Prefer: 'return=representation' },
+          body: JSON.stringify({ start_date: startDate }),
+        }
+      );
+      if (!updated[0]) throw new HttpError(404, 'Proyek tidak ditemukan.');
+      sendJson(response, 200, { project: updated[0] });
       return;
     }
 
@@ -32,6 +52,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const projectName = text(body.projectName);
     const clientName = text(body.clientName);
     const location = text(body.location);
+    const startDate = typeof body.startDate === 'string' ? body.startDate : '';
     const password = typeof body.password === 'string' ? body.password : '';
 
     if (!/^[A-Z0-9_-]{3,32}$/.test(projectCode)) {
@@ -46,13 +67,16 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     if (location.length > 120) {
       throw new HttpError(400, 'Lokasi maksimal 120 karakter.');
     }
+    if (!isValidDate(startDate)) {
+      throw new HttpError(400, 'Tanggal mulai tidak valid.');
+    }
     if (password.length < 12 || password.length > 256) {
       throw new HttpError(400, 'Password klien harus terdiri dari minimal 12 karakter.');
     }
 
     const credentials = createPasswordHash(password);
     const created = await supabaseRequest<AdminProject[]>(
-      'client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,created_at',
+      'client_projects?select=id,project_code,project_name,client_name,location,start_date,status,progress_percent,created_at',
       {
         method: 'POST',
         headers: { Prefer: 'return=representation' },
@@ -61,6 +85,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
           project_name: projectName,
           client_name: clientName,
           location,
+          start_date: startDate,
           status: 'Berjalan',
           progress_percent: 0,
           password_salt: credentials.salt,
@@ -76,4 +101,14 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
 function text(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function isValidDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }

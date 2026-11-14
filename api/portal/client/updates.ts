@@ -25,6 +25,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       attachments: await Promise.all((update.attachments ?? []).map(async (attachment) => ({
         ...attachment,
         url: await createStorageDownloadUrl(attachment.path),
+        downloadUrl: await createStorageDownloadUrl(attachment.path, attachment.name),
       }))),
     })));
     sendJson(response, 200, { updates });

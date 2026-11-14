@@ -25,6 +25,7 @@ export interface ProjectRecord {
   location: string;
   status: string;
   progress_percent: number;
+  start_date: string | null;
 }
 
 interface SupabaseError {
@@ -139,12 +140,14 @@ export async function createStorageUploadUrl(path: string): Promise<string> {
   return absoluteStorageUrl(result.signedURL ?? result.url);
 }
 
-export async function createStorageDownloadUrl(path: string): Promise<string> {
+export async function createStorageDownloadUrl(path: string, download: string | boolean = false): Promise<string> {
   const result = await storageRequest<{ signedURL?: string; url?: string }>(
     `object/sign/${STORAGE_BUCKET}/${encodeStoragePath(path)}`,
     { method: 'POST', body: JSON.stringify({ expiresIn: 3600 }) }
   );
-  return absoluteStorageUrl(result.signedURL ?? result.url);
+  const signedUrl = new URL(absoluteStorageUrl(result.signedURL ?? result.url));
+  if (download) signedUrl.searchParams.set('download', download === true ? '' : download);
+  return signedUrl.toString();
 }
 
 export async function deleteStorageObjects(paths: string[]): Promise<void> {
@@ -203,7 +206,7 @@ function absoluteStorageUrl(path: string | undefined): string {
 
 export async function getProjectById(id: string): Promise<ProjectRecord | null> {
   const projects = await supabaseRequest<ProjectRecord[]>(
-    `client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent&id=eq.${encodeURIComponent(id)}&limit=1`
+    `client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,start_date&id=eq.${encodeURIComponent(id)}&limit=1`
   );
   return projects[0] ?? null;
 }

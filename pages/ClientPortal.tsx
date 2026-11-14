@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, CheckCircle2, Clock3, Download, FileText, LockKeyhole, LogOut, MapPin, ShieldCheck } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, CalendarDays, CheckCircle2, Clock3, Download, FileText, LockKeyhole, LogOut, MapPin, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { portalRequest, type PortalProject, type PortalUpdate } from '../lib/portalApi';
 
@@ -29,6 +29,17 @@ const copy = {
     files: 'Lampiran progress',
     viewFile: 'Buka file',
     photo: 'Foto progress',
+    forgotPassword: 'Lupa password?',
+    resetTitle: 'Minta reset password',
+    whatsapp: 'Nomor WhatsApp',
+    whatsappHint: 'Gunakan kode negara, contoh: +62 812 3456 7890',
+    sendReset: 'Kirim permintaan',
+    backToSignIn: 'Kembali ke login',
+    resetSent: 'Jika ID proyek terdaftar, tim studio akan memverifikasi permintaan dan menghubungi Anda lewat WhatsApp.',
+    duration: 'Durasi pembangunan',
+    durationNotSet: 'Tanggal mulai belum diatur oleh tim studio.',
+    notStarted: 'Belum dimulai',
+    downloadPhoto: 'Unduh foto',
   },
   EN: {
     eyebrow: 'LINIER STUDIO / CLIENT PORTAL',
@@ -54,6 +65,17 @@ const copy = {
     files: 'Progress attachments',
     viewFile: 'Open file',
     photo: 'Progress photo',
+    forgotPassword: 'Forgot password?',
+    resetTitle: 'Request a password reset',
+    whatsapp: 'WhatsApp number',
+    whatsappHint: 'Include your country code, e.g. +1 555 123 4567',
+    sendReset: 'Send request',
+    backToSignIn: 'Back to sign in',
+    resetSent: 'If the project ID is registered, the studio will verify the request and contact you via WhatsApp.',
+    duration: 'Construction duration',
+    durationNotSet: 'The studio has not set a start date yet.',
+    notStarted: 'Not started yet',
+    downloadPhoto: 'Download photo',
   },
   CN: {
     eyebrow: 'LINIER STUDIO / 客户门户',
@@ -79,6 +101,17 @@ const copy = {
     files: '进度附件',
     viewFile: '打开文件',
     photo: '进度照片',
+    forgotPassword: '忘记密码？',
+    resetTitle: '申请重置密码',
+    whatsapp: 'WhatsApp 号码',
+    whatsappHint: '请加国家代码，例如：+86 138 0000 0000',
+    sendReset: '发送申请',
+    backToSignIn: '返回登录',
+    resetSent: '如果项目编号已注册，工作室将核实请求并通过 WhatsApp 联系您。',
+    duration: '施工时长',
+    durationNotSet: '工作室尚未设置开始日期。',
+    notStarted: '尚未开始',
+    downloadPhoto: '下载照片',
   },
 } as const;
 
@@ -92,6 +125,9 @@ const ClientPortal: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [resetMode, setResetMode] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [resetNotice, setResetNotice] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -131,6 +167,24 @@ const ClientPortal: React.FC = () => {
       setPassword('');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Tidak dapat masuk ke portal.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const requestPasswordReset = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError('');
+    setResetNotice('');
+    try {
+      await portalRequest<{ accepted: boolean }>('/api/portal/client/password-reset-requests', {
+        method: 'POST',
+        body: JSON.stringify({ projectCode, whatsappNumber }),
+      });
+      setResetNotice(t.resetSent);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Permintaan reset tidak dapat dikirim.');
     } finally {
       setSubmitting(false);
     }
@@ -177,7 +231,7 @@ const ClientPortal: React.FC = () => {
 
             {error && <ErrorBanner message={error} />}
 
-            <div className="grid gap-5 py-5 md:grid-cols-[1.4fr_0.8fr]">
+            <div className="grid gap-5 py-5 md:grid-cols-[1.25fr_0.8fr_0.8fr]">
               <div className="border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-6 flex items-end justify-between gap-4">
                   <div>
@@ -203,6 +257,16 @@ const ClientPortal: React.FC = () => {
                   </div>
                 </div>
                 <p className="mt-8 border-t border-neutral-100 pt-4 font-mono text-[9px] uppercase tracking-[0.15em] text-neutral-400">{project.project_code}</p>
+              </div>
+              <div className="flex flex-col justify-between border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                <div>
+                  <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-500">{t.duration}</p>
+                  <div className="flex items-start gap-3 text-lg">
+                    <CalendarDays size={18} className="mt-1 shrink-0 text-bronze-500" />
+                    <span>{project.start_date ? formatDuration(project.start_date, language) : t.durationNotSet}</span>
+                  </div>
+                </div>
+                {project.start_date && <p className="mt-8 border-t border-neutral-100 pt-4 font-mono text-[9px] uppercase tracking-[0.15em] text-neutral-400">{formatDate(project.start_date, language)}</p>}
               </div>
             </div>
 
@@ -237,12 +301,22 @@ const ClientPortal: React.FC = () => {
                             <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-500">{t.files}</p>
                             <div className="grid gap-3 sm:grid-cols-2">
                               {update.attachments.map((attachment) => attachment.contentType.startsWith('image/') ? (
-                                <a key={attachment.path} href={attachment.url} target="_blank" rel="noreferrer" className="group relative block aspect-[16/10] overflow-hidden bg-neutral-100 dark:bg-white/5">
-                                  <img src={attachment.url} alt={`${t.photo}: ${attachment.name}`} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
-                                  <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8 text-xs text-white">{attachment.name}</span>
-                                </a>
+                                <div key={attachment.path} className="group relative aspect-[16/10] overflow-hidden bg-neutral-100 dark:bg-white/5">
+                                  <a href={attachment.url} target="_blank" rel="noreferrer" className="block h-full w-full">
+                                    <img src={attachment.url} alt={`${t.photo}: ${attachment.name}`} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8 text-xs text-white">{attachment.name}</span>
+                                  </a>
+                                  <a
+                                    href={attachment.downloadUrl ?? attachment.url}
+                                    aria-label={`${t.downloadPhoto}: ${attachment.name}`}
+                                    title={t.downloadPhoto}
+                                    className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center bg-black/65 text-white transition-colors hover:bg-bronze-600"
+                                  >
+                                    <Download size={16} />
+                                  </a>
+                                </div>
                               ) : (
-                                <a key={attachment.path} href={attachment.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center justify-between gap-3 border border-neutral-200 px-4 py-3 transition-colors hover:border-bronze-500 dark:border-white/10">
+                                <a key={attachment.path} href={attachment.downloadUrl ?? attachment.url} className="flex min-w-0 items-center justify-between gap-3 border border-neutral-200 px-4 py-3 transition-colors hover:border-bronze-500 dark:border-white/10">
                                   <span className="flex min-w-0 items-center gap-3">
                                     <FileText size={17} className="shrink-0 text-bronze-500" />
                                     <span className="truncate text-xs">{attachment.name}</span>
@@ -273,12 +347,12 @@ const ClientPortal: React.FC = () => {
               </Link>
             </div>
 
-            <form onSubmit={signIn} className="flex flex-col justify-center border border-neutral-200 bg-white p-6 shadow-sm sm:p-10 dark:border-white/10 dark:bg-neutral-900">
+            <form onSubmit={resetMode ? requestPasswordReset : signIn} className="flex flex-col justify-center border border-neutral-200 bg-white p-6 shadow-sm sm:p-10 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-8 flex h-12 w-12 items-center justify-center border border-bronze-500/40 text-bronze-500">
                 <LockKeyhole size={20} />
               </div>
               <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.2em] text-bronze-600 dark:text-bronze-400">CLIENT ACCESS</p>
-              <h2 className="mb-8 font-display text-2xl font-semibold uppercase">{t.signIn}</h2>
+              <h2 className="mb-8 font-display text-2xl font-semibold uppercase">{resetMode ? t.resetTitle : t.signIn}</h2>
               <label className="mb-7 block">
                 <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{t.projectId}</span>
                 <input
@@ -291,23 +365,52 @@ const ClientPortal: React.FC = () => {
                   className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none transition-colors focus:border-bronze-500 dark:border-white/20"
                 />
               </label>
-              <label className="mb-8 block">
-                <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{t.password}</span>
-                <input
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
-                  maxLength={256}
-                  className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none transition-colors focus:border-bronze-500 dark:border-white/20"
-                />
-              </label>
+              {resetMode ? (
+                <label className="mb-8 block">
+                  <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{t.whatsapp}</span>
+                  <input
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="+6281234567890"
+                    value={whatsappNumber}
+                    onChange={(event) => setWhatsappNumber(event.target.value)}
+                    required
+                    maxLength={24}
+                    className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none transition-colors focus:border-bronze-500 dark:border-white/20"
+                  />
+                  <span className="mt-2 block text-[10px] text-neutral-500">{t.whatsappHint}</span>
+                </label>
+              ) : (
+                <label className="mb-8 block">
+                  <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{t.password}</span>
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                    maxLength={256}
+                    className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none transition-colors focus:border-bronze-500 dark:border-white/20"
+                  />
+                </label>
+              )}
               {error && <ErrorBanner message={error} />}
+              {resetNotice && <p role="status" className="mb-4 border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-xs leading-5 text-emerald-700 dark:text-emerald-300">{resetNotice}</p>}
               <button disabled={submitting} className="mt-5 flex w-full items-center justify-between bg-neutral-900 px-5 py-4 text-left font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950">
-                {submitting ? t.signingIn : t.signIn} <ArrowUpRight size={17} />
+                {submitting ? t.signingIn : resetMode ? t.sendReset : t.signIn} <ArrowUpRight size={17} />
               </button>
-              <p className="mt-6 flex items-start gap-2 text-xs leading-6 text-neutral-500"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-bronze-500" />{t.secure}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setResetMode((current) => !current);
+                  setError('');
+                  setResetNotice('');
+                }}
+                className="mt-5 w-fit font-mono text-[10px] uppercase tracking-widest text-neutral-500 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-bronze-500"
+              >
+                {resetMode ? t.backToSignIn : t.forgotPassword}
+              </button>
+              {!resetMode && <p className="mt-6 flex items-start gap-2 text-xs leading-6 text-neutral-500"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-bronze-500" />{t.secure}</p>}
             </form>
           </div>
         )}
@@ -323,6 +426,32 @@ function ErrorBanner({ message }: { message: string }) {
 function formatDate(value: string, language: string): string {
   const locale = language === 'ID' ? 'id-ID' : language === 'CN' ? 'zh-CN' : 'en-US';
   return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
+}
+
+function formatDuration(startDate: string, language: keyof typeof copy): string {
+  const [year, month, day] = startDate.split('-').map(Number);
+  const start = new Date(Date.UTC(year, month - 1, day));
+  const now = new Date();
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  if (start.getTime() > today) return copy[language].notStarted;
+
+  let months = (now.getUTCFullYear() - year) * 12 + now.getUTCMonth() - (month - 1);
+  let anchor = dateAfterMonths(year, month - 1, day, months);
+  if (anchor > today) {
+    months -= 1;
+    anchor = dateAfterMonths(year, month - 1, day, months);
+  }
+  const weeks = Math.floor((today - anchor) / (7 * 24 * 60 * 60 * 1000));
+
+  if (language === 'ID') return `${months} bulan ${weeks} minggu`;
+  if (language === 'CN') return `${months} 个月 ${weeks} 周`;
+  return `${months} months ${weeks} weeks`;
+}
+
+function dateAfterMonths(year: number, month: number, day: number, months: number): number {
+  const target = new Date(Date.UTC(year, month + months, 1));
+  const finalDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  return Date.UTC(target.getUTCFullYear(), target.getUTCMonth(), Math.min(day, finalDay));
 }
 
 export default ClientPortal;

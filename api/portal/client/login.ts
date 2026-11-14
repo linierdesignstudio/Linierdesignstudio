@@ -26,7 +26,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     const projects = await supabaseRequest<LoginProject[]>(
-      `client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,password_salt,password_hash&project_code=eq.${encodeURIComponent(projectCode)}&limit=1`
+      `client_projects?select=id,project_code,project_name,client_name,location,status,progress_percent,start_date,password_salt,password_hash&project_code=eq.${encodeURIComponent(projectCode)}&limit=1`
     );
     const project = projects[0];
     if (!project) throw new HttpError(401, 'ID proyek atau password tidak sesuai.');
@@ -57,6 +57,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
         location: project.location,
         status: project.status,
         progress_percent: project.progress_percent,
+        start_date: project.start_date,
       },
     });
   } catch (error) {

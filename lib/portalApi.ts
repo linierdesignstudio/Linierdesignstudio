@@ -6,6 +6,7 @@ export interface PortalProject {
   location: string;
   status: string;
   progress_percent: number;
+  start_date: string | null;
   created_at?: string;
 }
 
@@ -25,6 +26,17 @@ export interface PortalAttachment {
   contentType: string;
   size: number;
   url?: string;
+  downloadUrl?: string;
+}
+
+export interface PasswordResetRequest {
+  id: string;
+  project_id: string;
+  project_code: string;
+  project_name: string;
+  client_name: string;
+  whatsapp_number: string;
+  created_at: string;
 }
 
 export async function portalRequest<T>(path: string, init?: RequestInit): Promise<T> {

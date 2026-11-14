@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, Check, ClipboardList, FileText, ImagePlus, KeyRound, Layers, LogOut, Plus, Send, Upload } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, CalendarDays, Check, ClipboardList, Copy, FileText, ImagePlus, KeyRound, Layers, LogOut, MessageCircle, Plus, RefreshCw, Send, Upload } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type PortalAttachment, type PortalProject } from '../lib/portalApi';
+import { portalRequest, type PasswordResetRequest, type PortalAttachment, type PortalProject } from '../lib/portalApi';
 
 const copy = {
   ID: {
@@ -34,6 +34,20 @@ const copy = {
     workspace: 'Ruang kerja studio',
     projectCount: 'Total proyek',
     activeProjects: 'Proyek berjalan',
+    startDate: 'Mulai pembangunan',
+    saveDate: 'Simpan tanggal',
+    savedDate: 'Tanggal mulai proyek berhasil disimpan.',
+    resetRequests: 'Permintaan lupa password',
+    refreshRequests: 'Perbarui daftar',
+    noResetRequests: 'Belum ada permintaan reset password.',
+    processReset: 'Buat password baru',
+    temporaryPassword: 'Password baru',
+    copyPassword: 'Salin password',
+    passwordCopied: 'Password disalin.',
+    copyFailed: 'Tidak dapat menyalin. Pilih password secara manual.',
+    sendWhatsapp: 'Buka chat WhatsApp',
+    verifyClient: 'Pastikan identitas klien sebelum mengirim password ini.',
+    duration: 'Durasi pembangunan',
     attachmentLabel: 'Foto & file progress',
     attachmentHint: 'Maks. 5 file · 20 MB per file · JPG, PNG, WEBP, PDF, DOC, DOCX, XLSX, TXT, CSV',
     removeFiles: 'Hapus pilihan',
@@ -67,6 +81,20 @@ const copy = {
     workspace: 'Studio workspace',
     projectCount: 'Total projects',
     activeProjects: 'Active projects',
+    startDate: 'Construction start date',
+    saveDate: 'Save date',
+    savedDate: 'Project start date saved.',
+    resetRequests: 'Password reset requests',
+    refreshRequests: 'Refresh list',
+    noResetRequests: 'No password reset requests.',
+    processReset: 'Create new password',
+    temporaryPassword: 'New password',
+    copyPassword: 'Copy password',
+    passwordCopied: 'Password copied.',
+    copyFailed: 'Could not copy. Select the password manually.',
+    sendWhatsapp: 'Open WhatsApp chat',
+    verifyClient: 'Verify the client before sharing this password.',
+    duration: 'Construction duration',
     attachmentLabel: 'Progress photos & files',
     attachmentHint: 'Up to 5 files · 20 MB each · JPG, PNG, WEBP, PDF, DOC, DOCX, XLSX, TXT, CSV',
     removeFiles: 'Clear selection',
@@ -100,6 +128,20 @@ const copy = {
     workspace: '工作室工作区',
     projectCount: '项目总数',
     activeProjects: '进行中的项目',
+    startDate: '施工开始日期',
+    saveDate: '保存日期',
+    savedDate: '项目开始日期已保存。',
+    resetRequests: '密码重置请求',
+    refreshRequests: '刷新列表',
+    noResetRequests: '暂无密码重置请求。',
+    processReset: '生成新密码',
+    temporaryPassword: '新密码',
+    copyPassword: '复制密码',
+    passwordCopied: '密码已复制。',
+    copyFailed: '无法复制，请手动选择密码。',
+    sendWhatsapp: '打开 WhatsApp 聊天',
+    verifyClient: '发送密码前请先核实客户身份。',
+    duration: '施工时长',
     attachmentLabel: '进度照片和文件',
     attachmentHint: '最多 5 个文件 · 每个 20 MB · JPG、PNG、WEBP、PDF、DOC、DOCX、XLSX、TXT、CSV',
     removeFiles: '清除所选文件',
@@ -108,6 +150,25 @@ const copy = {
 
 const ACCEPTED_FILES = '.jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xlsx,.txt,.csv';
 
+interface IssuedPassword {
+  password: string;
+  resetRequest: {
+    request_id: string;
+    project_code: string;
+    project_name: string;
+    client_name: string;
+    whatsapp_number: string;
+  };
+}
+
+async function loadAdminData(): Promise<{ projects: PortalProject[]; requests: PasswordResetRequest[] }> {
+  const [projectResult, requestResult] = await Promise.all([
+    portalRequest<{ projects: PortalProject[] }>('/api/portal/admin/projects'),
+    portalRequest<{ requests: PasswordResetRequest[] }>('/api/portal/admin/password-reset-requests'),
+  ]);
+  return { projects: projectResult.projects, requests: requestResult.requests };
+}
+
 const PortalAdmin: React.FC = () => {
   const { language } = useLanguage();
   const t = copy[language];
@@ -115,6 +176,8 @@ const PortalAdmin: React.FC = () => {
   const [checking, setChecking] = useState(true);
   const [adminPassword, setAdminPassword] = useState('');
   const [projects, setProjects] = useState<PortalProject[]>([]);
+  const [passwordRequests, setPasswordRequests] = useState<PasswordResetRequest[]>([]);
+  const [issuedPassword, setIssuedPassword] = useState<IssuedPassword | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -126,9 +189,10 @@ const PortalAdmin: React.FC = () => {
     let active = true;
     portalRequest('/api/portal/admin/session')
       .then(async () => {
-        const result = await portalRequest<{ projects: PortalProject[] }>('/api/portal/admin/projects');
+        const result = await loadAdminData();
         if (active) {
           setProjects(result.projects);
+          setPasswordRequests(result.requests);
           setSelectedProjectId(result.projects[0]?.id ?? '');
           setAuthenticated(true);
         }
@@ -153,8 +217,9 @@ const PortalAdmin: React.FC = () => {
         method: 'POST',
         body: JSON.stringify({ password: adminPassword }),
       });
-      const result = await portalRequest<{ projects: PortalProject[] }>('/api/portal/admin/projects');
+      const result = await loadAdminData();
       setProjects(result.projects);
+      setPasswordRequests(result.requests);
       setSelectedProjectId(result.projects[0]?.id ?? '');
       setAuthenticated(true);
       setAdminPassword('');
@@ -170,6 +235,7 @@ const PortalAdmin: React.FC = () => {
       await portalRequest('/api/portal/logout', { method: 'POST' });
       setAuthenticated(false);
       setProjects([]);
+      setPasswordRequests([]);
       setSelectedProjectId('');
       setSelectedFiles([]);
       setError('');
@@ -193,6 +259,7 @@ const PortalAdmin: React.FC = () => {
           projectName: form.get('projectName'),
           clientName: form.get('clientName'),
           location: form.get('location'),
+          startDate: form.get('startDate'),
           password: form.get('clientPassword'),
         }),
       });
@@ -205,6 +272,76 @@ const PortalAdmin: React.FC = () => {
       setError(cause instanceof Error ? cause.message : 'Proyek tidak dapat dibuat.');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const saveProjectStartDate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const result = await portalRequest<{ project: PortalProject }>('/api/portal/admin/projects', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          projectId: form.get('projectId'),
+          startDate: form.get('startDate'),
+        }),
+      });
+      setProjects((current) => current.map((project) => project.id === result.project.id ? result.project : project));
+      setNotice(t.savedDate);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Tanggal mulai proyek tidak dapat disimpan.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const processPasswordReset = async (request: PasswordResetRequest) => {
+    const confirmed = window.confirm(
+      `${t.verifyClient}\n\n${request.client_name} — ${request.project_code}\n${request.whatsapp_number}`
+    );
+    if (!confirmed) return;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    setIssuedPassword(null);
+    try {
+      const result = await portalRequest<IssuedPassword>('/api/portal/admin/password-reset-requests', {
+        method: 'POST',
+        body: JSON.stringify({ requestId: request.id }),
+      });
+      setPasswordRequests((current) => current.filter((item) => item.id !== request.id));
+      setIssuedPassword(result);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Password sementara tidak dapat dibuat.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const refreshPasswordRequests = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      const result = await portalRequest<{ requests: PasswordResetRequest[] }>('/api/portal/admin/password-reset-requests');
+      setPasswordRequests(result.requests);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Permintaan reset tidak dapat dimuat.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const copyIssuedPassword = async () => {
+    if (!issuedPassword) return;
+    try {
+      await navigator.clipboard.writeText(issuedPassword.password);
+      setError('');
+      setNotice(t.passwordCopied);
+    } catch {
+      setError(t.copyFailed);
     }
   };
 
@@ -342,6 +479,60 @@ const PortalAdmin: React.FC = () => {
               <Metric icon={<Send size={17} />} label={t.activeProjects} value={projects.filter((project) => project.progress_percent < 100).length.toString().padStart(2, '0')} />
               <Metric icon={<ClipboardList size={17} />} label={t.progress} value={`${projects.length ? Math.round(projects.reduce((sum, project) => sum + project.progress_percent, 0) / projects.length) : 0}%`} />
             </div>
+            <section className="mb-5 border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+              <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
+                <KeyRound size={17} className="text-bronze-500" />
+                <div>
+                  <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">SECURITY / ACCESS</p>
+                  <h2 className="mt-1 font-mono text-xs uppercase tracking-widest">{t.resetRequests}</h2>
+                </div>
+                <span className="ml-auto font-mono text-xs text-neutral-500">{passwordRequests.length.toString().padStart(2, '0')}</span>
+                <button type="button" disabled={busy} onClick={refreshPasswordRequests} aria-label={t.refreshRequests} title={t.refreshRequests} className="flex h-8 w-8 items-center justify-center border border-neutral-200 text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-500 disabled:opacity-50 dark:border-white/15">
+                  <RefreshCw size={14} />
+                </button>
+              </div>
+              {passwordRequests.length === 0 ? (
+                <p className="text-sm text-neutral-500">{t.noResetRequests}</p>
+              ) : (
+                <ul className="divide-y divide-neutral-100 dark:divide-white/10">
+                  {passwordRequests.map((request) => (
+                    <li key={request.id} className="flex flex-col justify-between gap-4 py-4 sm:flex-row sm:items-center">
+                      <div>
+                        <p className="font-medium">{request.client_name}<span className="mx-2 text-neutral-300">/</span><span className="font-mono text-xs text-bronze-600 dark:text-bronze-400">{request.project_code}</span></p>
+                        <p className="mt-1 text-xs text-neutral-500">{request.project_name} <span className="mx-1">·</span>{request.whatsapp_number}</p>
+                        <p className="mt-1 font-mono text-[9px] uppercase tracking-widest text-neutral-400">{formatAdminDate(request.created_at, language)}</p>
+                      </div>
+                      <button type="button" disabled={busy} onClick={() => processPasswordReset(request)} className="inline-flex items-center justify-center gap-2 bg-neutral-900 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-50 dark:bg-white dark:text-neutral-950">
+                        <KeyRound size={14} /> {t.processReset}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            {issuedPassword && (
+              <section role="status" className="mb-5 border border-emerald-500/30 bg-emerald-500/5 p-6 sm:p-8">
+                <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">{t.temporaryPassword} / {issuedPassword.resetRequest.project_code}</p>
+                <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{issuedPassword.resetRequest.client_name} — {t.verifyClient}</p>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <code className="block min-w-0 flex-1 select-all break-all border border-emerald-500/20 bg-white px-4 py-3 font-mono text-lg dark:bg-neutral-950">{issuedPassword.password}</code>
+                  <button type="button" onClick={copyIssuedPassword} className="inline-flex items-center justify-center gap-2 border border-emerald-700 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-emerald-800 transition-colors hover:bg-emerald-700 hover:text-white dark:text-emerald-300">
+                    <Copy size={14} /> {t.copyPassword}
+                  </button>
+                </div>
+                <a
+                  href={`https://wa.me/${issuedPassword.resetRequest.whatsapp_number.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 inline-flex items-center gap-2 bg-emerald-700 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-white transition-colors hover:bg-emerald-600"
+                >
+                  <MessageCircle size={15} /> {t.sendWhatsapp} <ArrowUpRight size={14} />
+                </a>
+                <button type="button" onClick={() => setIssuedPassword(null)} className="ml-4 font-mono text-[9px] uppercase tracking-widest text-neutral-500 hover:text-neutral-900 dark:hover:text-white">
+                  {language === 'ID' ? 'Tutup' : language === 'CN' ? '关闭' : 'Dismiss'}
+                </button>
+              </section>
+            )}
             <div className="grid items-start gap-5 lg:grid-cols-[0.92fr_1.08fr]">
             <section className="border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-8 flex items-start gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
@@ -356,6 +547,7 @@ const PortalAdmin: React.FC = () => {
                 <Field name="projectName" label={t.projectName} required maxLength={120} />
                 <Field name="clientName" label={t.clientName} required maxLength={120} />
                 <Field name="location" label={t.location} maxLength={120} />
+                <Field name="startDate" label={t.startDate} type="date" defaultValue={today()} required />
                 <Field name="clientPassword" label={t.clientPassword} type="password" required minLength={12} maxLength={256} autoComplete="new-password" />
                 <button disabled={busy} className="mt-2 flex w-full items-center justify-between bg-neutral-900 px-5 py-4 font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-60 dark:bg-white dark:text-neutral-950">
                   {t.create} <ArrowUpRight size={17} />
@@ -455,12 +647,22 @@ const PortalAdmin: React.FC = () => {
                 {projects.length === 0 ? <p className="text-sm text-neutral-500">{t.emptyProjects}</p> : (
                   <ul className="divide-y divide-neutral-200 dark:divide-white/10">
                     {projects.map((project) => (
-                      <li key={project.id} className="flex items-center justify-between gap-4 py-4 text-sm">
-                        <span className="min-w-0"><strong className="font-mono text-[10px] text-bronze-600 dark:text-bronze-400">{project.project_code}</strong><span className="mx-2 text-neutral-300">/</span><span className="font-medium">{project.project_name}</span><span className="mt-1 block text-xs text-neutral-500">{project.client_name}</span></span>
-                        <span className="w-24 shrink-0">
-                          <span className="mb-1 block text-right font-mono text-[10px] text-neutral-500">{project.progress_percent}%</span>
-                          <span className="block h-1 bg-neutral-100 dark:bg-white/10"><span className="block h-full bg-bronze-500" style={{ width: `${project.progress_percent}%` }} /></span>
-                        </span>
+                      <li key={`${project.id}-${project.start_date ?? ''}`} className="py-4 text-sm">
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="min-w-0"><strong className="font-mono text-[10px] text-bronze-600 dark:text-bronze-400">{project.project_code}</strong><span className="mx-2 text-neutral-300">/</span><span className="font-medium">{project.project_name}</span><span className="mt-1 block text-xs text-neutral-500">{project.client_name}</span></span>
+                          <span className="w-24 shrink-0">
+                            <span className="mb-1 block text-right font-mono text-[10px] text-neutral-500">{project.progress_percent}%</span>
+                            <span className="block h-1 bg-neutral-100 dark:bg-white/10"><span className="block h-full bg-bronze-500" style={{ width: `${project.progress_percent}%` }} /></span>
+                          </span>
+                        </div>
+                        <form onSubmit={saveProjectStartDate} className="mt-4 flex flex-wrap items-end gap-3 border-t border-neutral-100 pt-4 dark:border-white/10">
+                          <input type="hidden" name="projectId" value={project.id} />
+                          <label className="min-w-[180px] flex-1">
+                            <span className="mb-2 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-neutral-500"><CalendarDays size={12} />{t.startDate}</span>
+                            <input name="startDate" type="date" defaultValue={project.start_date ?? ''} required className="w-full border-b border-neutral-200 bg-transparent py-2 text-xs outline-none focus:border-bronze-500 dark:border-white/15 dark:[color-scheme:dark]" />
+                          </label>
+                          <button disabled={busy} className="border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15">{t.saveDate}</button>
+                        </form>
                       </li>
                     ))}
                   </ul>
@@ -505,6 +707,16 @@ function ErrorBanner({ message }: { message: string }) {
 
 function formatBytes(bytes: number): string {
   return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatAdminDate(value: string, language: string): string {
+  const locale = language === 'ID' ? 'id-ID' : language === 'CN' ? 'zh-CN' : 'en-US';
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(value));
 }
 
 function today(): string {
