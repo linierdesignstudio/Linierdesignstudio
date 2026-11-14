@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, MessageCircle, Moon, Plus, RefreshCw, Send, Sun, Trash2, Upload, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Send, Sun, Trash2, Upload, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { portalRequest, type PasswordResetRequest, type PortalAttachment, type PortalProject, type PortalUpdate } from '../lib/portalApi';
 import { Language } from '../types';
@@ -12,6 +12,8 @@ const copy = {
     subtitle: 'Masuk untuk membuat akses klien dan membagikan update harian.',
     email: 'Email admin',
     password: 'Password admin',
+    contact: 'Kontak',
+    services: 'Jenis layanan',
     signIn: 'Masuk',
     signOut: 'Keluar',
     projects: 'Daftar proyek',
@@ -105,6 +107,8 @@ const copy = {
     subtitle: 'Sign in to create client access and share daily updates.',
     email: 'Admin email',
     password: 'Admin password',
+    contact: 'Contact',
+    services: 'Our services',
     signIn: 'Sign in',
     signOut: 'Sign out',
     projects: 'Projects',
@@ -198,6 +202,8 @@ const copy = {
     subtitle: '登录以创建客户访问权限并发布每日更新。',
     email: '管理员邮箱',
     password: '管理员密码',
+    contact: '联系我们',
+    services: '服务类型',
     signIn: '登录',
     signOut: '退出',
     projects: '项目列表',
@@ -328,7 +334,7 @@ async function loadAdminUpdates(projectId: string): Promise<PortalUpdate[]> {
 }
 
 const PortalAdmin: React.FC = () => {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t: siteT } = useLanguage();
   const t = copy[language];
   const [authenticated, setAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -1269,6 +1275,46 @@ const PortalAdmin: React.FC = () => {
             </section>}
           </div>
           </>
+        )}
+        {!authenticated && !checking && (
+          <section className="mx-auto mt-10 max-w-5xl border-t border-neutral-300 pt-8 dark:border-white/10 sm:mt-14 sm:pt-10">
+            <div className="grid gap-8 md:grid-cols-2 md:gap-12">
+              <div>
+                <h2 className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">{t.contact}</h2>
+                <div className="space-y-5">
+                  <div className="flex items-start gap-3">
+                    <MapPin size={16} className="mt-0.5 shrink-0 text-bronze-600 dark:text-bronze-400" />
+                    <div className="text-sm leading-6 text-neutral-600 dark:text-neutral-300">
+                      <p>{siteT.common.address_line1}</p>
+                      <p>{siteT.common.address_line2}</p>
+                      <p>{siteT.common.address_country}</p>
+                    </div>
+                  </div>
+                  <a href="https://wa.me/6281775030638" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-bronze-600 dark:text-neutral-300 dark:hover:text-bronze-400">
+                    <Phone size={16} className="shrink-0 text-bronze-600 dark:text-bronze-400" />
+                    +62 817 7503 0638
+                  </a>
+                  <a href="mailto:hello@linierstudio.com" className="flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-bronze-600 dark:text-neutral-300 dark:hover:text-bronze-400">
+                    <Mail size={16} className="shrink-0 text-bronze-600 dark:text-bronze-400" />
+                    hello@linierstudio.com
+                  </a>
+                </div>
+              </div>
+              <div>
+                <h2 className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">{t.services}</h2>
+                <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {siteT.services.list.map((service) => (
+                    <li key={service.id} className="border border-neutral-200 px-3 py-2.5 text-xs leading-5 text-neutral-600 dark:border-white/10 dark:text-neutral-300">
+                      {service.title}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="mt-8 border-t border-neutral-300 pt-4 font-mono text-[9px] uppercase tracking-widest text-neutral-500 dark:border-white/10 sm:mt-10">
+              © {new Date().getFullYear()} PT. LINIER NUSAKARYA PERSADA. {siteT.footer.rights}
+            </div>
+          </section>
         )}
       </div>
     </div>
