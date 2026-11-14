@@ -10,6 +10,7 @@ const copy = {
     eyebrow: 'LINIER STUDIO / ADMIN',
     title: 'Kelola progress proyek.',
     subtitle: 'Masuk untuk membuat akses klien dan membagikan update harian.',
+    email: 'Email admin',
     password: 'Password admin',
     signIn: 'Masuk',
     signOut: 'Keluar',
@@ -102,6 +103,7 @@ const copy = {
     eyebrow: 'LINIER STUDIO / ADMIN',
     title: 'Manage project progress.',
     subtitle: 'Sign in to create client access and share daily updates.',
+    email: 'Admin email',
     password: 'Admin password',
     signIn: 'Sign in',
     signOut: 'Sign out',
@@ -194,6 +196,7 @@ const copy = {
     eyebrow: 'LINIER STUDIO / 管理',
     title: '管理项目进度。',
     subtitle: '登录以创建客户访问权限并发布每日更新。',
+    email: '管理员邮箱',
     password: '管理员密码',
     signIn: '登录',
     signOut: '退出',
@@ -329,6 +332,7 @@ const PortalAdmin: React.FC = () => {
   const t = copy[language];
   const [authenticated, setAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [projects, setProjects] = useState<PortalProject[]>([]);
   const [passwordRequests, setPasswordRequests] = useState<PasswordResetRequest[]>([]);
@@ -408,13 +412,14 @@ const PortalAdmin: React.FC = () => {
     try {
       await portalRequest('/api/portal/admin/login', {
         method: 'POST',
-        body: JSON.stringify({ password: adminPassword }),
+        body: JSON.stringify({ email: adminEmail, password: adminPassword }),
       });
       const result = await loadAdminData();
       setProjects(result.projects);
       setPasswordRequests(result.requests);
       setSelectedProjectId(result.projects[0]?.id ?? '');
       setAuthenticated(true);
+      setAdminEmail('');
       setAdminPassword('');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Tidak dapat masuk ke admin.');
@@ -858,8 +863,12 @@ const PortalAdmin: React.FC = () => {
           <form onSubmit={signIn} className="mx-auto max-w-xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-10 dark:border-white/10 dark:bg-neutral-900">
             <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-full border border-bronze-500/40 text-bronze-500"><KeyRound size={20} /></div>
             <label className="mb-8 block">
+              <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{t.email}</span>
+              <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none focus:border-bronze-500 dark:border-white/20" />
+            </label>
+            <label className="mb-8 block">
               <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-neutral-500">{t.password}</span>
-              <input type="password" autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none focus:border-bronze-500 dark:border-white/20" />
+              <input name="password" type="password" autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full border-b border-neutral-300 bg-transparent py-3 text-lg outline-none focus:border-bronze-500 dark:border-white/20" />
             </label>
             <button disabled={busy} className="flex w-full items-center justify-between bg-neutral-900 px-5 py-4 font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-60 dark:bg-white dark:text-neutral-950">
               {busy ? '...' : t.signIn} <ArrowUpRight size={17} />

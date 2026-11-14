@@ -211,14 +211,24 @@ export async function getProjectById(id: string): Promise<ProjectRecord | null> 
   return projects[0] ?? null;
 }
 
-export function createAdminSession(password: string): boolean {
+export function createAdminSession(email: string, password: string): boolean {
+  const configuredEmail = process.env.PORTAL_ADMIN_EMAIL?.trim().toLowerCase();
   const configuredPassword = process.env.PORTAL_ADMIN_PASSWORD;
-  if (!configuredPassword || configuredPassword.length < 16) {
-    throw new HttpError(503, 'Password admin belum dikonfigurasi dengan aman.');
+  if (!configuredEmail || !isValidEmail(configuredEmail) || !configuredPassword || configuredPassword.length < 16) {
+    throw new HttpError(503, 'Email dan password admin belum dikonfigurasi dengan aman.');
   }
-  const expected = createHmac('sha256', sessionSecret()).update(configuredPassword).digest();
-  const actual = createHmac('sha256', sessionSecret()).update(password).digest();
-  return timingSafeEqual(expected, actual);
+  const secret = sessionSecret();
+  const expectedEmail = createHmac('sha256', secret).update(configuredEmail).digest();
+  const actualEmail = createHmac('sha256', secret).update(email.trim().toLowerCase()).digest();
+  const expectedPassword = createHmac('sha256', secret).update(configuredPassword).digest();
+  const actualPassword = createHmac('sha256', secret).update(password).digest();
+  const emailMatches = timingSafeEqual(expectedEmail, actualEmail);
+  const passwordMatches = timingSafeEqual(expectedPassword, actualPassword);
+  return emailMatches && passwordMatches;
+}
+
+function isValidEmail(value: string): boolean {
+  return value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 function sign(payload: string): string {
