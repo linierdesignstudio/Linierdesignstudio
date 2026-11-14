@@ -29,6 +29,7 @@ const copy = {
     clientPassword: 'Password ID proyek (min. 12 karakter)',
     clientLoginPassword: 'Password akun email klien',
     accountPasswordHint: 'Akun email baru perlu password minimal 12 karakter. Semua proyek dengan email yang sama memakai password email ini; password ID proyek tetap terpisah.',
+    clientEmailEditHint: 'Password akun email tidak berubah. Email yang sudah terhubung ke akun dengan password berbeda tidak dapat dipakai.',
     saveClientAccount: 'Simpan akun klien',
     savedClientAccount: 'Akun email klien berhasil disimpan.',
     create: 'Buat proyek',
@@ -135,6 +136,7 @@ const copy = {
     clientPassword: 'Project ID password (min. 12 characters)',
     clientLoginPassword: 'Client email account password',
     accountPasswordHint: 'New email accounts need a password of at least 12 characters. All projects with the same email use this email password; Project ID passwords remain separate.',
+    clientEmailEditHint: 'The email account password stays unchanged. An email linked to an account with a different password cannot be used.',
     saveClientAccount: 'Save client account',
     savedClientAccount: 'Client email login saved.',
     create: 'Create project',
@@ -241,6 +243,7 @@ const copy = {
     clientPassword: '项目编号密码（至少 12 个字符）',
     clientLoginPassword: '客户邮箱账号密码',
     accountPasswordHint: '新邮箱账号密码至少 12 个字符。同一邮箱的所有项目共用此邮箱密码；项目编号密码保持独立。',
+    clientEmailEditHint: '邮箱账号密码保持不变。目标邮箱若已关联不同密码的账号，则无法使用。',
     saveClientAccount: '保存客户账号',
     savedClientAccount: '客户邮箱登录已保存。',
     create: '创建项目',
@@ -564,13 +567,10 @@ const PortalAdmin: React.FC = () => {
         body: JSON.stringify({
           projectId: form.get('projectId'),
           clientEmail: form.get('clientEmail'),
-          clientLoginPassword: form.get('clientLoginPassword'),
         }),
       });
       setProjects((current) => current.map((project) => project.id === result.project.id ? result.project : project));
       setNotice(t.savedClientAccount);
-      const passwordInput = formElement.elements.namedItem('clientLoginPassword');
-      if (passwordInput instanceof HTMLInputElement) passwordInput.value = '';
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Akun email klien tidak dapat disimpan.');
     } finally {
@@ -1359,13 +1359,12 @@ const PortalAdmin: React.FC = () => {
                           </label>
                           <button disabled={busy} className="border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15">{t.saveDate}</button>
                         </form>
-                        <form onSubmit={saveClientAccount} className="mt-4 grid gap-3 border-t border-neutral-100 pt-4 dark:border-white/10 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                        <form onSubmit={saveClientAccount} className="mt-4 grid gap-3 border-t border-neutral-100 pt-4 dark:border-white/10 sm:grid-cols-[1fr_auto] sm:items-end">
                           <input type="hidden" name="projectId" value={project.id} />
                           <Field name="clientEmail" label={t.clientEmail} type="email" defaultValue={project.client_email ?? ''} required maxLength={254} autoCapitalize="none" />
-                          <Field name="clientLoginPassword" label={t.clientLoginPassword} type="password" required minLength={8} maxLength={256} autoComplete="new-password" />
                           <button disabled={busy} className="border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15">{t.saveClientAccount}</button>
                         </form>
-                        <p className="mt-2 text-[10px] leading-5 text-neutral-500">{t.accountPasswordHint}</p>
+                        <p className="mt-2 text-[10px] leading-5 text-neutral-500">{t.clientEmailEditHint}</p>
                           </>
                         )}
                       </li>
