@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, MessageCircle, Moon, Plus, RefreshCw, Send, Sun, Upload, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, MessageCircle, Moon, Plus, RefreshCw, Send, Sun, Trash2, Upload, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { portalRequest, type PasswordResetRequest, type PortalAttachment, type PortalProject, type PortalUpdate } from '../lib/portalApi';
 import { Language } from '../types';
@@ -33,6 +33,13 @@ const copy = {
     savedEdit: 'Update berhasil diperbarui.',
     refreshFailed: 'Update tersimpan, tetapi daftar gagal dimuat ulang. Muat ulang halaman.',
     fileCleanupWarning: 'Update tersimpan, tetapi file yang dihapus dari daftar gagal dibersihkan dari penyimpanan.',
+    deleteUpdate: 'Hapus update',
+    deletingUpdate: 'Menghapus...',
+    confirmDeleteUpdate: 'Hapus update progress ini beserta semua foto dan file lampirannya? Tindakan ini tidak dapat dibatalkan.',
+    deletedUpdate: 'Update progress dan lampirannya berhasil dihapus.',
+    deleteFailed: 'Update progress tidak dapat dihapus.',
+    deleteRefreshFailed: 'Update sudah dihapus, tetapi daftar proyek gagal dimuat ulang. Muat ulang halaman.',
+    deleteFileCleanupWarning: 'Update terhapus, tetapi sebagian file lampiran gagal dibersihkan dari penyimpanan.',
     editUpdate: 'Edit update',
     editingUpdate: 'Sedang mengedit',
     cancelEdit: 'Batalkan edit',
@@ -118,6 +125,13 @@ const copy = {
     savedEdit: 'Update saved.',
     refreshFailed: 'The update was saved, but the list could not be refreshed. Reload the page.',
     fileCleanupWarning: 'The update was saved, but a removed file could not be deleted from storage.',
+    deleteUpdate: 'Delete update',
+    deletingUpdate: 'Deleting...',
+    confirmDeleteUpdate: 'Delete this progress update and all its attached photos and files? This cannot be undone.',
+    deletedUpdate: 'Progress update and its attachments deleted.',
+    deleteFailed: 'The progress update could not be deleted.',
+    deleteRefreshFailed: 'The update was deleted, but project data could not be refreshed. Reload the page.',
+    deleteFileCleanupWarning: 'The update was deleted, but some attachments could not be removed from storage.',
     editUpdate: 'Edit update',
     editingUpdate: 'Editing',
     cancelEdit: 'Cancel edit',
@@ -203,6 +217,13 @@ const copy = {
     savedEdit: '更新已保存。',
     refreshFailed: '更新已保存，但列表无法刷新。请重新加载页面。',
     fileCleanupWarning: '更新已保存，但已移除的文件无法从存储中清理。',
+    deleteUpdate: '删除更新',
+    deletingUpdate: '正在删除...',
+    confirmDeleteUpdate: '删除此进度更新及其所有照片和文件附件？此操作无法撤销。',
+    deletedUpdate: '进度更新及其附件已删除。',
+    deleteFailed: '无法删除此进度更新。',
+    deleteRefreshFailed: '更新已删除，但项目数据无法刷新。请重新加载页面。',
+    deleteFileCleanupWarning: '更新已删除，但部分附件无法从存储中清理。',
     editUpdate: '编辑更新',
     editingUpdate: '正在编辑',
     cancelEdit: '取消编辑',
@@ -669,6 +690,46 @@ const PortalAdmin: React.FC = () => {
     setSelectedFiles(combinedFiles);
   };
 
+  const deleteProgressUpdate = async (update: PortalUpdate) => {
+    if (!window.confirm(t.confirmDeleteUpdate)) return;
+
+    setBusy(true);
+    setError('');
+    setNotice('');
+    let deletionCompleted = false;
+    try {
+      const result = await portalRequest<{ deleted: boolean; cleanupFailed: boolean }>('/api/portal/admin/updates', {
+        method: 'DELETE',
+        body: JSON.stringify({ updateId: update.id }),
+      });
+      if (!result.deleted) throw new Error(t.deleteFailed);
+      deletionCompleted = true;
+      setNotice(t.deletedUpdate);
+
+      if (editingUpdateId === update.id) {
+        setEditingUpdateId('');
+        setEditingAttachments([]);
+        setSelectedFiles([]);
+        if (imageInputRef.current) imageInputRef.current.value = '';
+        if (documentInputRef.current) documentInputRef.current.value = '';
+      }
+
+      const [projectResult, updates] = await Promise.all([
+        portalRequest<{ projects: PortalProject[] }>('/api/portal/admin/projects'),
+        loadAdminUpdates(selectedProjectId),
+      ]);
+      setProjects(projectResult.projects);
+      setAdminUpdates(updates);
+      if (result.cleanupFailed) setError(t.deleteFileCleanupWarning);
+    } catch (cause) {
+      setError(deletionCompleted
+        ? t.deleteRefreshFailed
+        : cause instanceof Error ? cause.message : t.deleteFailed);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const selectedProject = projects.find((project) => project.id === selectedProjectId);
   const selectedUpdate = adminUpdates.find((update) => update.id === editingUpdateId);
   const existingPhotos = editingAttachments.filter((attachment) => attachment.contentType.startsWith('image/'));
@@ -1129,24 +1190,35 @@ const PortalAdmin: React.FC = () => {
                             {formatAdminDate(update.update_date, language)} · {update.progress_percent}% · {update.attachments.length} {t.attachmentsCount}
                           </p>
                         </div>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          aria-pressed={editingUpdateId === update.id}
-                          onClick={() => {
-                            setEditingUpdateId(update.id);
-                            setEditingAttachments(update.attachments);
-                            setSelectedFiles([]);
-                            setError('');
-                            setNotice('');
-                            if (imageInputRef.current) imageInputRef.current.value = '';
-                            if (documentInputRef.current) documentInputRef.current.value = '';
-                            document.getElementById('progress-update-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                          }}
-                          className="shrink-0 border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 hover:text-bronze-600 disabled:opacity-50 dark:border-white/15"
-                        >
-                          {editingUpdateId === update.id ? t.editingUpdate : t.editUpdate}
-                        </button>
+                        <div className="flex shrink-0 gap-2">
+                          <button
+                            type="button"
+                            disabled={busy}
+                            aria-pressed={editingUpdateId === update.id}
+                            onClick={() => {
+                              setEditingUpdateId(update.id);
+                              setEditingAttachments(update.attachments);
+                              setSelectedFiles([]);
+                              setError('');
+                              setNotice('');
+                              if (imageInputRef.current) imageInputRef.current.value = '';
+                              if (documentInputRef.current) documentInputRef.current.value = '';
+                              document.getElementById('progress-update-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }}
+                            className="border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 hover:text-bronze-600 disabled:opacity-50 dark:border-white/15"
+                          >
+                            {editingUpdateId === update.id ? t.editingUpdate : t.editUpdate}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => deleteProgressUpdate(update)}
+                            className="inline-flex items-center gap-2 border border-red-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-red-600 transition-colors hover:border-red-500 hover:bg-red-50 disabled:opacity-50 dark:border-red-400/20 dark:text-red-400 dark:hover:bg-red-500/10"
+                          >
+                            <Trash2 size={13} />
+                            {busy ? t.deletingUpdate : t.deleteUpdate}
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>

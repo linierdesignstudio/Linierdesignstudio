@@ -1,6 +1,6 @@
 import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from '../../_lib/http.js';
-import { createStorageDownloadUrl, getSession, requireRole, supabaseRequest, type PortalAttachment } from '../../_lib/portal.js';
+import { createStorageDownloadUrl, deleteStorageObjects, getSession, requireRole, supabaseRequest, type PortalAttachment } from '../../_lib/portal.js';
 
 interface ProjectUpdateRecord {
   id: string;
@@ -55,6 +55,35 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       });
       if (!updates[0]) throw new HttpError(404, 'Update tidak ditemukan.');
       sendJson(response, 200, { update: updates[0] });
+      return;
+    }
+
+    if (request.method === 'DELETE') {
+      const body = await readJson(request);
+      const updateId = typeof body.updateId === 'string' ? body.updateId : '';
+      if (!isUuid(updateId)) throw new HttpError(400, 'Pilih update yang valid.');
+      const deletedUpdates = await supabaseRequest<ProjectUpdateRecord[]>('rpc/portal_delete_project_update', {
+        method: 'POST',
+        body: JSON.stringify({ p_update_id: updateId }),
+      });
+      const deletedUpdate = deletedUpdates[0];
+      if (!deletedUpdate) throw new HttpError(404, 'Update tidak ditemukan.');
+
+      const attachments = deletedUpdate.attachments ?? [];
+      const paths = attachments.map((attachment) => attachment?.path);
+      const safePaths = paths.filter((path): path is string =>
+        isStoredAttachmentPath(path, deletedUpdate.project_id)
+      );
+      let cleanupFailed = safePaths.length !== attachments.length;
+      if (safePaths.length > 0) {
+        try {
+          await deleteStorageObjects(safePaths);
+        } catch {
+          cleanupFailed = true;
+        }
+      }
+
+      sendJson(response, 200, { deleted: true, cleanupFailed });
       return;
     }
 
@@ -140,6 +169,13 @@ function text(value: unknown): string {
 
 function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function isStoredAttachmentPath(path: unknown, projectId: string): path is string {
+  const prefix = `${projectId}/`;
+  return typeof path === 'string' &&
+    path.startsWith(prefix) &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(jpg|png|webp|pdf|doc|docx|xlsx|txt|csv)$/i.test(path.slice(prefix.length));
 }
 
 function isValidDate(value: string): boolean {

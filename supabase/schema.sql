@@ -208,6 +208,61 @@ begin
 end;
 $$;
 
+create or replace function public.portal_delete_project_update(
+  p_update_id uuid
+)
+returns setof public.project_updates
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  target_project_id uuid;
+  deleted_update public.project_updates;
+  latest_progress integer;
+begin
+  select project_id
+    into target_project_id
+    from public.project_updates
+    where id = p_update_id
+    for update;
+
+  if not found then
+    raise exception 'Update not found';
+  end if;
+
+  perform 1
+    from public.client_projects
+    where id = target_project_id
+    for update;
+
+  if not found then
+    raise exception 'Project not found';
+  end if;
+
+  delete from public.project_updates
+    where id = p_update_id
+    returning * into deleted_update;
+
+  select progress_percent
+    into latest_progress
+    from public.project_updates
+    where project_id = target_project_id
+    order by update_date desc, created_at desc
+    limit 1;
+
+  latest_progress := coalesce(latest_progress, 0);
+
+  update public.client_projects
+    set progress_percent = latest_progress,
+        status = case when latest_progress = 100 then 'Selesai' else 'Berjalan' end,
+        updated_at = now()
+    where id = target_project_id;
+
+  return next deleted_update;
+end;
+$$;
+
 create or replace function public.portal_resolve_password_reset(
   p_request_id uuid,
   p_password_salt text,
@@ -291,11 +346,13 @@ $$;
 revoke all on function public.portal_allow_login_attempt(uuid, boolean) from public, anon, authenticated;
 revoke all on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) from public, anon, authenticated;
 revoke all on function public.portal_update_project_update(uuid, text, text, integer, date, jsonb) from public, anon, authenticated;
+revoke all on function public.portal_delete_project_update(uuid) from public, anon, authenticated;
 revoke all on function public.portal_resolve_password_reset(uuid, text, text) from public, anon, authenticated;
 revoke all on function public.portal_change_client_password(uuid, text, text, text, text) from public, anon, authenticated;
 grant execute on function public.portal_allow_login_attempt(uuid, boolean) to service_role;
 grant execute on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) to service_role;
 grant execute on function public.portal_update_project_update(uuid, text, text, integer, date, jsonb) to service_role;
+grant execute on function public.portal_delete_project_update(uuid) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
 grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
 
