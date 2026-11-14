@@ -362,7 +362,7 @@ const ClientPortal: React.FC = () => {
                   <span>{t.status}: {project.progress_percent === 100 ? t.complete : t.inProgress}</span>
                 </div>
               </div>
-              <div className="flex flex-col justify-between border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+              <div className="order-3 flex flex-col justify-between border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 md:order-2 dark:border-white/10 dark:bg-neutral-900">
                 <div>
                   <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-500">{t.location}</p>
                   <div className="flex items-start gap-3 text-lg">
@@ -372,15 +372,15 @@ const ClientPortal: React.FC = () => {
                 </div>
                 <p className="mt-8 border-t border-neutral-100 pt-4 font-mono text-[9px] uppercase tracking-[0.15em] text-neutral-400">{project.project_code}</p>
               </div>
-              <div className="flex flex-col justify-between border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+              <div className="order-2 flex min-h-[190px] flex-col justify-between border border-white/10 bg-[#171819] p-6 text-white shadow-sm sm:min-h-0 sm:border-neutral-200 sm:bg-white sm:p-8 sm:text-neutral-900 md:order-3 dark:border-white/10 dark:bg-neutral-900 dark:text-white">
                 <div>
-                  <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-500">{t.duration}</p>
-                  <div className="flex items-start gap-3 text-lg">
-                    <CalendarDays size={18} className="mt-1 shrink-0 text-bronze-500" />
+                  <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 sm:text-neutral-500 dark:text-neutral-400">{t.duration}</p>
+                  <div className="flex items-start gap-3 text-lg text-white sm:text-neutral-900 dark:text-white">
+                    <CalendarDays size={18} className="mt-1 shrink-0 text-lime-400 sm:text-bronze-500 dark:text-lime-400" />
                     <span>{project.start_date ? formatDuration(project.start_date, language) : t.durationNotSet}</span>
                   </div>
                 </div>
-                {project.start_date && <p className="mt-8 border-t border-neutral-100 pt-4 font-mono text-[9px] uppercase tracking-[0.15em] text-neutral-400">{formatDate(project.start_date, language)}</p>}
+                {project.start_date && <p className="mt-8 border-t border-white/15 pt-4 font-mono text-[9px] uppercase tracking-[0.15em] text-white/50 sm:border-neutral-100 sm:text-neutral-400 dark:border-white/10 dark:text-neutral-400">{formatDate(project.start_date, language)}</p>}
               </div>
             </div>
 
