@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, MessageCircle, Moon, Plus, RefreshCw, Send, Sun, Upload } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, MessageCircle, Moon, Plus, RefreshCw, Send, Sun, Upload, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type PasswordResetRequest, type PortalAttachment, type PortalProject } from '../lib/portalApi';
+import { portalRequest, type PasswordResetRequest, type PortalAttachment, type PortalProject, type PortalUpdate } from '../lib/portalApi';
 import { Language } from '../types';
 
 const copy = {
@@ -30,6 +30,18 @@ const copy = {
     publish: 'Terbitkan update',
     savedProject: 'Proyek berhasil dibuat. Catat password klien yang Anda masukkan; password tidak dapat ditampilkan kembali.',
     savedUpdate: 'Update berhasil diterbitkan.',
+    savedEdit: 'Update berhasil diperbarui.',
+    refreshFailed: 'Update tersimpan, tetapi daftar gagal dimuat ulang. Muat ulang halaman.',
+    fileCleanupWarning: 'Update tersimpan, tetapi file yang dihapus dari daftar gagal dibersihkan dari penyimpanan.',
+    editUpdate: 'Edit update',
+    editingUpdate: 'Sedang mengedit',
+    cancelEdit: 'Batalkan edit',
+    saveChanges: 'Simpan perubahan',
+    previousUpdates: 'Riwayat update',
+    noPreviousUpdates: 'Belum ada update untuk proyek ini.',
+    existingAttachments: 'File pada update ini',
+    removeAttachment: 'Hapus file',
+    attachmentsCount: 'file',
     emptyProjects: 'Belum ada proyek. Buat akses proyek terlebih dahulu.',
     back: 'Portal klien',
     workspace: 'Ruang kerja studio',
@@ -94,6 +106,18 @@ const copy = {
     publish: 'Publish update',
     savedProject: 'Project created. Keep a record of the client password you entered; it cannot be shown again.',
     savedUpdate: 'Update published.',
+    savedEdit: 'Update saved.',
+    refreshFailed: 'The update was saved, but the list could not be refreshed. Reload the page.',
+    fileCleanupWarning: 'The update was saved, but a removed file could not be deleted from storage.',
+    editUpdate: 'Edit update',
+    editingUpdate: 'Editing',
+    cancelEdit: 'Cancel edit',
+    saveChanges: 'Save changes',
+    previousUpdates: 'Update history',
+    noPreviousUpdates: 'There are no updates for this project yet.',
+    existingAttachments: 'Files on this update',
+    removeAttachment: 'Remove file',
+    attachmentsCount: 'files',
     emptyProjects: 'No projects yet. Create project access first.',
     back: 'Client portal',
     workspace: 'Studio workspace',
@@ -158,6 +182,18 @@ const copy = {
     publish: '发布更新',
     savedProject: '项目已创建。请记录您输入的客户密码；密码无法再次显示。',
     savedUpdate: '更新已发布。',
+    savedEdit: '更新已保存。',
+    refreshFailed: '更新已保存，但列表无法刷新。请重新加载页面。',
+    fileCleanupWarning: '更新已保存，但已移除的文件无法从存储中清理。',
+    editUpdate: '编辑更新',
+    editingUpdate: '正在编辑',
+    cancelEdit: '取消编辑',
+    saveChanges: '保存更改',
+    previousUpdates: '更新记录',
+    noPreviousUpdates: '此项目暂无更新。',
+    existingAttachments: '此更新中的文件',
+    removeAttachment: '删除文件',
+    attachmentsCount: '个文件',
     emptyProjects: '暂无项目。请先创建项目访问权限。',
     back: '客户门户',
     workspace: '工作室工作区',
@@ -223,6 +259,13 @@ async function loadAdminData(): Promise<{ projects: PortalProject[]; requests: P
   return { projects: projectResult.projects, requests: requestResult.requests };
 }
 
+async function loadAdminUpdates(projectId: string): Promise<PortalUpdate[]> {
+  const result = await portalRequest<{ updates: PortalUpdate[] }>(
+    `/api/portal/admin/updates?projectId=${encodeURIComponent(projectId)}`
+  );
+  return result.updates;
+}
+
 const PortalAdmin: React.FC = () => {
   const { language, setLanguage } = useLanguage();
   const t = copy[language];
@@ -233,6 +276,9 @@ const PortalAdmin: React.FC = () => {
   const [passwordRequests, setPasswordRequests] = useState<PasswordResetRequest[]>([]);
   const [issuedPassword, setIssuedPassword] = useState<IssuedPassword | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [adminUpdates, setAdminUpdates] = useState<PortalUpdate[]>([]);
+  const [editingUpdateId, setEditingUpdateId] = useState('');
+  const [editingAttachments, setEditingAttachments] = useState<PortalAttachment[]>([]);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
@@ -277,6 +323,25 @@ const PortalAdmin: React.FC = () => {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    if (!authenticated || !selectedProjectId) {
+      setAdminUpdates([]);
+      return () => { active = false; };
+    }
+
+    loadAdminUpdates(selectedProjectId)
+      .then((updates) => {
+        if (active) setAdminUpdates(updates);
+      })
+      .catch((cause: unknown) => {
+        if (active) {
+          setError(cause instanceof Error ? cause.message : 'Riwayat update tidak dapat dimuat.');
+        }
+      });
+    return () => { active = false; };
+  }, [authenticated, selectedProjectId]);
+
   const signIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setBusy(true);
@@ -306,6 +371,9 @@ const PortalAdmin: React.FC = () => {
       setProjects([]);
       setPasswordRequests([]);
       setSelectedProjectId('');
+      setAdminUpdates([]);
+      setEditingUpdateId('');
+      setEditingAttachments([]);
       setSelectedFiles([]);
       setError('');
     } catch (cause) {
@@ -334,6 +402,8 @@ const PortalAdmin: React.FC = () => {
       });
       setProjects((current) => [result.project, ...current]);
       setSelectedProjectId(result.project.id);
+      setEditingUpdateId('');
+      setEditingAttachments([]);
       setSelectedFiles([]);
       setNotice(t.savedProject);
       formElement.reset();
@@ -414,17 +484,30 @@ const PortalAdmin: React.FC = () => {
     }
   };
 
-  const publishUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
+  const submitProgressUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formElement = event.currentTarget;
+    const updateToEdit = editingUpdateId
+      ? adminUpdates.find((update) => update.id === editingUpdateId)
+      : undefined;
+    if (editingUpdateId && !updateToEdit) {
+      setError('Update yang dipilih tidak lagi tersedia. Muat ulang riwayat update.');
+      return;
+    }
+
     setBusy(true);
     setError('');
     setNotice('');
     const form = new FormData(formElement);
     const uploadedPaths: string[] = [];
-    let updatePublished = false;
+    const removedPaths = (updateToEdit?.attachments ?? [])
+      .filter((attachment) => !editingAttachments.some((item) => item.path === attachment.path))
+      .map((attachment) => attachment.path);
+    let updateSaved = false;
     try {
-      const attachments: PortalAttachment[] = [];
+      const attachments: PortalAttachment[] = updateToEdit
+        ? editingAttachments.map(({ path, name, contentType, size }) => ({ path, name, contentType, size }))
+        : [];
       if (selectedFiles.length > 0) {
         const { uploads } = await portalRequest<{
           uploads: Array<PortalAttachment & { uploadUrl: string }>;
@@ -461,8 +544,9 @@ const PortalAdmin: React.FC = () => {
       }
 
       await portalRequest('/api/portal/admin/updates', {
-        method: 'POST',
+        method: updateToEdit ? 'PATCH' : 'POST',
         body: JSON.stringify({
+          ...(updateToEdit ? { updateId: updateToEdit.id } : {}),
           projectId: selectedProjectId,
           title: form.get('title'),
           description: form.get('description'),
@@ -471,17 +555,37 @@ const PortalAdmin: React.FC = () => {
           attachments,
         }),
       });
-      updatePublished = true;
-      const result = await portalRequest<{ projects: PortalProject[] }>('/api/portal/admin/projects');
-      setProjects(result.projects);
-      setNotice(t.savedUpdate);
+      updateSaved = true;
+      if (removedPaths.length > 0) {
+        try {
+          await portalRequest('/api/portal/admin/uploads', {
+            method: 'DELETE',
+            body: JSON.stringify({ paths: removedPaths }),
+          });
+        } catch {
+          setError(t.fileCleanupWarning);
+        }
+      }
+
+      const [projectResult, updates] = await Promise.all([
+        portalRequest<{ projects: PortalProject[] }>('/api/portal/admin/projects'),
+        loadAdminUpdates(selectedProjectId),
+      ]);
+      setProjects(projectResult.projects);
+      setAdminUpdates(updates);
+      setNotice(updateToEdit ? t.savedEdit : t.savedUpdate);
       formElement.reset();
       setSelectedFiles([]);
+      setEditingUpdateId('');
+      setEditingAttachments([]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       const dateInput = formElement.elements.namedItem('updateDate');
       if (dateInput instanceof HTMLInputElement) dateInput.value = today();
     } catch (cause) {
       let message = cause instanceof Error ? cause.message : 'Update tidak dapat diterbitkan.';
-      if (!updatePublished && uploadedPaths.length > 0) {
+      if (updateSaved) {
+        message = t.refreshFailed;
+      } else if (uploadedPaths.length > 0) {
         try {
           await portalRequest('/api/portal/admin/uploads', {
             method: 'DELETE',
@@ -498,6 +602,7 @@ const PortalAdmin: React.FC = () => {
   };
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId);
+  const selectedUpdate = adminUpdates.find((update) => update.id === editingUpdateId);
   const averageProgress = projects.length
     ? Math.round(projects.reduce((sum, project) => sum + project.progress_percent, 0) / projects.length)
     : 0;
@@ -659,6 +764,9 @@ const PortalAdmin: React.FC = () => {
                           type="button"
                           onClick={() => {
                             setSelectedFiles([]);
+                            setEditingUpdateId('');
+                            setEditingAttachments([]);
+                            setAdminUpdates([]);
                             setSelectedProjectId(project.id);
                           }}
                           className={`w-full border-l-2 px-4 py-3 text-left transition-colors ${selectedProjectId === project.id ? 'border-bronze-500 bg-bronze-500/[0.06]' : 'border-neutral-200 hover:border-bronze-300 hover:bg-neutral-50 dark:border-white/15 dark:hover:bg-white/[0.03]'}`}
@@ -804,28 +912,63 @@ const PortalAdmin: React.FC = () => {
                 {projects.length === 0 ? (
                   <p className="text-sm leading-6 text-neutral-500">{t.emptyProjects}</p>
                 ) : (
-                  <form key={selectedProjectId} onSubmit={publishUpdate} className="space-y-5">
+                  <form id="progress-update-form" key={`${selectedProjectId}-${editingUpdateId || 'new'}`} onSubmit={submitProgressUpdate} className="space-y-5">
                     <label className="block">
                       <span className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-neutral-500">{t.projects}</span>
-                      <select value={selectedProjectId} onChange={(event) => { setSelectedFiles([]); setSelectedProjectId(event.target.value); }} required className="w-full border-b border-neutral-300 bg-transparent py-3 text-sm outline-none focus:border-bronze-500 dark:border-white/20 dark:[color-scheme:dark]">
+                      <select value={selectedProjectId} onChange={(event) => { setSelectedFiles([]); setEditingUpdateId(''); setEditingAttachments([]); setAdminUpdates([]); setSelectedProjectId(event.target.value); }} required className="w-full border-b border-neutral-300 bg-transparent py-3 text-sm outline-none focus:border-bronze-500 dark:border-white/20 dark:[color-scheme:dark]">
                         <option value="">{t.chooseProject}</option>
                         {projects.map((project) => <option key={project.id} value={project.id}>{project.project_code} — {project.project_name}</option>)}
                       </select>
                     </label>
-                    <Field name="title" label={t.titleField} required maxLength={120} />
+                    {selectedUpdate && (
+                      <div className="flex flex-wrap items-center justify-between gap-3 border border-bronze-500/30 bg-bronze-500/5 px-4 py-3 text-xs">
+                        <span>{t.editingUpdate}: <strong>{selectedUpdate.title}</strong></span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingUpdateId('');
+                            setEditingAttachments([]);
+                            setSelectedFiles([]);
+                            if (fileInputRef.current) fileInputRef.current.value = '';
+                          }}
+                          className="font-mono text-[9px] uppercase tracking-widest text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+                        >
+                          {t.cancelEdit}
+                        </button>
+                      </div>
+                    )}
+                    <Field name="title" label={t.titleField} required maxLength={120} defaultValue={selectedUpdate?.title ?? ''} />
                     <label className="block">
                       <span className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-neutral-500">{t.description}</span>
-                      <textarea name="description" required minLength={2} maxLength={5000} rows={4} className="w-full resize-y border-b border-neutral-300 bg-transparent py-3 text-sm leading-6 outline-none focus:border-bronze-500 dark:border-white/20" />
+                      <textarea name="description" defaultValue={selectedUpdate?.description ?? ''} required minLength={2} maxLength={5000} rows={4} className="w-full resize-y border-b border-neutral-300 bg-transparent py-3 text-sm leading-6 outline-none focus:border-bronze-500 dark:border-white/20" />
                     </label>
                     <div className="grid gap-5 sm:grid-cols-2">
-                      <Field name="progressPercent" label={t.progress} type="number" min={0} max={100} defaultValue={selectedProject?.progress_percent ?? 0} required />
-                      <Field name="updateDate" label={t.date} type="date" defaultValue={today()} required />
+                      <Field name="progressPercent" label={t.progress} type="number" min={0} max={100} defaultValue={selectedUpdate?.progress_percent ?? selectedProject?.progress_percent ?? 0} required />
+                      <Field name="updateDate" label={t.date} type="date" defaultValue={selectedUpdate?.update_date ?? today()} required />
                     </div>
                     <div className="border border-dashed border-neutral-300 bg-neutral-50/80 p-4 dark:border-white/15 dark:bg-white/[0.03]">
                       <div className="mb-3 flex items-center gap-2">
                         <ImagePlus size={16} className="text-bronze-500" />
                         <span className="font-mono text-[10px] uppercase tracking-widest">{t.attachmentLabel}</span>
                       </div>
+                      {editingUpdateId && editingAttachments.length > 0 && (
+                        <div className="mb-4 space-y-2">
+                          <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">{t.existingAttachments}</p>
+                          {editingAttachments.map((attachment) => (
+                            <div key={attachment.path} className="flex items-center gap-3 border border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-neutral-900">
+                              {attachment.contentType.startsWith('image/') && attachment.url ? (
+                                <img src={attachment.url} alt={attachment.name} className="h-14 w-20 shrink-0 object-cover" />
+                              ) : (
+                                <FileText size={18} className="mx-7 shrink-0 text-bronze-500" />
+                              )}
+                              <a href={attachment.downloadUrl ?? attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs hover:text-bronze-600">{attachment.name}</a>
+                              <button type="button" onClick={() => setEditingAttachments((current) => current.filter((item) => item.path !== attachment.path))} aria-label={`${t.removeAttachment}: ${attachment.name}`} title={t.removeAttachment} className="flex h-8 w-8 shrink-0 items-center justify-center text-neutral-400 hover:text-red-500">
+                                <X size={15} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <label className="flex cursor-pointer flex-col items-center justify-center gap-2 border border-neutral-200 bg-white px-4 py-5 text-center transition-colors hover:border-bronze-500 dark:border-white/10 dark:bg-neutral-900">
                         <Upload size={19} className="text-bronze-500" />
                         <span className="text-xs font-medium">{language === 'ID' ? 'Pilih foto atau dokumen' : language === 'CN' ? '选择照片或文档' : 'Choose photos or documents'}</span>
@@ -838,7 +981,7 @@ const PortalAdmin: React.FC = () => {
                           className="sr-only"
                           onChange={(event) => {
                             const files = Array.from(event.currentTarget.files ?? []);
-                            if (files.length > 5) {
+                            if (files.length + editingAttachments.length > 5) {
                               setError(language === 'ID' ? 'Maksimal 5 file untuk satu update.' : language === 'CN' ? '每次更新最多上传 5 个文件。' : 'Choose no more than 5 files per update.');
                               event.currentTarget.value = '';
                               return;
@@ -867,9 +1010,52 @@ const PortalAdmin: React.FC = () => {
                       )}
                     </div>
                     <button disabled={busy || projects.length === 0} className="flex w-full items-center justify-between bg-neutral-900 px-5 py-4 font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-60 dark:bg-white dark:text-neutral-950">
-                      {busy ? (language === 'ID' ? 'Mengunggah...' : language === 'CN' ? '正在上传...' : 'Uploading...') : t.publish} <ArrowUpRight size={17} />
+                      {busy ? (language === 'ID' ? 'Mengunggah...' : language === 'CN' ? '正在上传...' : 'Uploading...') : editingUpdateId ? t.saveChanges : t.publish} <ArrowUpRight size={17} />
                     </button>
                   </form>
+                )}
+              </div>
+
+              <div className="border border-neutral-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-neutral-900">
+                <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
+                  <ClipboardList size={17} className="text-bronze-500" />
+                  <div>
+                    <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">EDIT / JOURNAL</p>
+                    <h2 className="mt-1 font-mono text-xs uppercase tracking-widest">{t.previousUpdates}</h2>
+                  </div>
+                </div>
+                {adminUpdates.length === 0 ? (
+                  <p className="text-sm text-neutral-500">{t.noPreviousUpdates}</p>
+                ) : (
+                  <ul className="divide-y divide-neutral-200 dark:divide-white/10">
+                    {adminUpdates.map((update) => (
+                      <li key={update.id} className="flex flex-col justify-between gap-3 py-4 sm:flex-row sm:items-center">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">{update.title}</p>
+                          <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-neutral-400">
+                            {formatAdminDate(update.update_date, language)} · {update.progress_percent}% · {update.attachments.length} {t.attachmentsCount}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          aria-pressed={editingUpdateId === update.id}
+                          onClick={() => {
+                            setEditingUpdateId(update.id);
+                            setEditingAttachments(update.attachments);
+                            setSelectedFiles([]);
+                            setError('');
+                            setNotice('');
+                            if (fileInputRef.current) fileInputRef.current.value = '';
+                            document.getElementById('progress-update-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }}
+                          className="shrink-0 border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 hover:text-bronze-600 disabled:opacity-50 dark:border-white/15"
+                        >
+                          {editingUpdateId === update.id ? t.editingUpdate : t.editUpdate}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
 

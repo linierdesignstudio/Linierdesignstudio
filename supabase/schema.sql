@@ -144,6 +144,70 @@ begin
 end;
 $$;
 
+create or replace function public.portal_update_project_update(
+  p_update_id uuid,
+  p_title text,
+  p_description text,
+  p_progress_percent integer,
+  p_update_date date,
+  p_attachments jsonb default '[]'::jsonb
+)
+returns setof public.project_updates
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  target_project_id uuid;
+  latest_progress integer;
+begin
+  if p_progress_percent < 0 or p_progress_percent > 100 then
+    raise exception 'Progress must be between 0 and 100';
+  end if;
+
+  select project_id
+    into target_project_id
+    from public.project_updates
+    where id = p_update_id
+    for update;
+
+  if not found then
+    raise exception 'Update not found';
+  end if;
+
+  perform 1
+    from public.client_projects
+    where id = target_project_id
+    for update;
+
+  update public.project_updates
+    set title = p_title,
+        description = p_description,
+        progress_percent = p_progress_percent,
+        update_date = p_update_date,
+        attachments = p_attachments
+    where id = p_update_id;
+
+  return query
+    select *
+      from public.project_updates
+      where id = p_update_id;
+
+  select progress_percent
+    into latest_progress
+    from public.project_updates
+    where project_id = target_project_id
+    order by update_date desc, created_at desc
+    limit 1;
+
+  update public.client_projects
+    set progress_percent = latest_progress,
+        status = case when latest_progress = 100 then 'Selesai' else 'Berjalan' end,
+        updated_at = now()
+    where id = target_project_id;
+end;
+$$;
+
 create or replace function public.portal_resolve_password_reset(
   p_request_id uuid,
   p_password_salt text,
@@ -226,10 +290,12 @@ $$;
 
 revoke all on function public.portal_allow_login_attempt(uuid, boolean) from public, anon, authenticated;
 revoke all on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) from public, anon, authenticated;
+revoke all on function public.portal_update_project_update(uuid, text, text, integer, date, jsonb) from public, anon, authenticated;
 revoke all on function public.portal_resolve_password_reset(uuid, text, text) from public, anon, authenticated;
 revoke all on function public.portal_change_client_password(uuid, text, text, text, text) from public, anon, authenticated;
 grant execute on function public.portal_allow_login_attempt(uuid, boolean) to service_role;
 grant execute on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) to service_role;
+grant execute on function public.portal_update_project_update(uuid, text, text, integer, date, jsonb) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
 grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
 
