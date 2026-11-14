@@ -57,6 +57,35 @@ const AnimatedRoutes = () => {
   );
 };
 
+const RouteAppShell: React.FC<{ scrollLocked: boolean }> = ({ scrollLocked }) => {
+  const { pathname } = useLocation();
+  const isAdminPortal = pathname === '/portal/admin';
+
+  return (
+    <>
+      {!isAdminPortal && <div className="hidden md:block"><CustomCursor /></div>}
+      {!isAdminPortal && <Navbar />}
+      <div
+        className={`
+          text-neutral-900 dark:text-neutral-100
+          selection:bg-bronze-500 selection:text-white
+          transition-colors duration-500
+          ${scrollLocked ? 'h-screen overflow-hidden' : ''}
+        `}
+      >
+        <div className="flex flex-col min-h-screen relative z-10 bg-white dark:bg-neutral-950 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <main className="flex-grow">
+            <AnimatedRoutes />
+          </main>
+        </div>
+      </div>
+      {!isAdminPortal && <StickyFooterWrapper />}
+      <CookieBanner />
+      {!isAdminPortal && <AudioPlayer />}
+    </>
+  );
+};
+
 const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [scrollLocked, setScrollLocked] = useState(true);
@@ -102,32 +131,7 @@ const App: React.FC = () => {
             This ensures no "paint flash" or layout shift when Preloader vanishes.
         */}
         
-        {/* Fixed Elements */}
-        <div className="hidden md:block">
-           <CustomCursor />
-        </div>
-        
-        {/* Main Wrapper */}
-        <div 
-          className={`
-            text-neutral-900 dark:text-neutral-100 
-            selection:bg-bronze-500 selection:text-white 
-            transition-colors duration-500
-            ${scrollLocked ? 'h-screen overflow-hidden' : ''}
-          `}
-        >
-            <Navbar />
-            <div className="flex flex-col min-h-screen relative z-10 bg-white dark:bg-neutral-950 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-              <main className="flex-grow">
-                <AnimatedRoutes />
-              </main>
-            </div>
-            
-            <StickyFooterWrapper />
-
-            <CookieBanner />
-            <AudioPlayer />
-        </div>
+        <RouteAppShell scrollLocked={scrollLocked} />
       </HashRouter>
     </LanguageProvider>
   );

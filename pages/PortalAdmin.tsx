@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, CalendarDays, Check, ClipboardList, Copy, FileText, ImagePlus, KeyRound, Layers, LogOut, MessageCircle, Plus, RefreshCw, Send, Upload } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Bell, Building2, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, MessageCircle, Moon, Plus, RefreshCw, Send, Sun, Upload } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { portalRequest, type PasswordResetRequest, type PortalAttachment, type PortalProject } from '../lib/portalApi';
+import { Language } from '../types';
 
 const copy = {
   ID: {
@@ -51,6 +52,23 @@ const copy = {
     attachmentLabel: 'Foto & file progress',
     attachmentHint: 'Maks. 5 file · 20 MB per file · JPG, PNG, WEBP, PDF, DOC, DOCX, XLSX, TXT, CSV',
     removeFiles: 'Hapus pilihan',
+    dashboard: 'Dashboard',
+    projectProgress: 'Progress proyek',
+    clientAccess: 'Akses proyek',
+    passwordRequestsNav: 'Reset password',
+    overview: 'Ringkasan proyek',
+    projectStatus: 'Status proyek',
+    completedProjects: 'Proyek selesai',
+    inProgress: 'Berjalan',
+    completed: 'Selesai',
+    timeline: 'Timeline proyek',
+    photoPreview: 'Preview foto progress',
+    noPhotoPreview: 'Foto yang dipilih untuk update akan tampil di sini.',
+    noDate: 'Tanggal mulai belum diatur',
+    adminDashboard: 'Dashboard admin',
+    studioAdmin: 'Admin studio',
+    navigation: 'Navigasi',
+    viewAllProjects: 'Lihat semua proyek',
   },
   EN: {
     eyebrow: 'LINIER STUDIO / ADMIN',
@@ -98,6 +116,23 @@ const copy = {
     attachmentLabel: 'Progress photos & files',
     attachmentHint: 'Up to 5 files · 20 MB each · JPG, PNG, WEBP, PDF, DOC, DOCX, XLSX, TXT, CSV',
     removeFiles: 'Clear selection',
+    dashboard: 'Dashboard',
+    projectProgress: 'Project progress',
+    clientAccess: 'Project access',
+    passwordRequestsNav: 'Password resets',
+    overview: 'Project overview',
+    projectStatus: 'Project status',
+    completedProjects: 'Completed projects',
+    inProgress: 'In progress',
+    completed: 'Completed',
+    timeline: 'Project timeline',
+    photoPreview: 'Progress photo preview',
+    noPhotoPreview: 'Photos selected for the update will appear here.',
+    noDate: 'Start date not set',
+    adminDashboard: 'Admin dashboard',
+    studioAdmin: 'Studio admin',
+    navigation: 'Navigation',
+    viewAllProjects: 'View all projects',
   },
   CN: {
     eyebrow: 'LINIER STUDIO / 管理',
@@ -145,10 +180,28 @@ const copy = {
     attachmentLabel: '进度照片和文件',
     attachmentHint: '最多 5 个文件 · 每个 20 MB · JPG、PNG、WEBP、PDF、DOC、DOCX、XLSX、TXT、CSV',
     removeFiles: '清除所选文件',
+    dashboard: '仪表板',
+    projectProgress: '项目进度',
+    clientAccess: '项目访问',
+    passwordRequestsNav: '密码重置',
+    overview: '项目概览',
+    projectStatus: '项目状态',
+    completedProjects: '已完成项目',
+    inProgress: '进行中',
+    completed: '已完成',
+    timeline: '项目时间线',
+    photoPreview: '进度照片预览',
+    noPhotoPreview: '所选更新照片将在此显示。',
+    noDate: '未设置开始日期',
+    adminDashboard: '管理员仪表板',
+    studioAdmin: '工作室管理员',
+    navigation: '导航',
+    viewAllProjects: '查看所有项目',
   },
 } as const;
 
 const ACCEPTED_FILES = '.jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xlsx,.txt,.csv';
+const heroImage = new URL('../1.jpeg', import.meta.url).href;
 
 interface IssuedPassword {
   password: string;
@@ -170,7 +223,7 @@ async function loadAdminData(): Promise<{ projects: PortalProject[]; requests: P
 }
 
 const PortalAdmin: React.FC = () => {
-  const { language } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const t = copy[language];
   const [authenticated, setAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -183,7 +236,22 @@ const PortalAdmin: React.FC = () => {
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewFiles, setPreviewFiles] = useState<Array<{ name: string; url: string }>>([]);
+  const [activeSection, setActiveSection] = useState('admin-dashboard');
+  const [isDark, setIsDark] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'));
+  }, []);
+
+  useEffect(() => {
+    const previews = selectedFiles
+      .filter((file) => file.type.startsWith('image/'))
+      .map((file) => ({ name: file.name, url: URL.createObjectURL(file) }));
+    setPreviewFiles(previews);
+    return () => previews.forEach(({ url }) => URL.revokeObjectURL(url));
+  }, [selectedFiles]);
 
   useEffect(() => {
     let active = true;
@@ -429,30 +497,112 @@ const PortalAdmin: React.FC = () => {
   };
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId);
+  const averageProgress = projects.length
+    ? Math.round(projects.reduce((sum, project) => sum + project.progress_percent, 0) / projects.length)
+    : 0;
+  const completedProjectCount = projects.filter((project) => project.progress_percent === 100).length;
+  const scrollToSection = (sectionId: string) => {
+    setActiveSection(sectionId);
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const toggleTheme = () => {
+    const nextIsDark = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', nextIsDark);
+    localStorage.setItem('theme', nextIsDark ? 'dark' : 'light');
+    setIsDark(nextIsDark);
+  };
+  const navigation = [
+    { id: 'admin-dashboard', label: t.dashboard, icon: <LayoutDashboard size={17} /> },
+    { id: 'admin-progress', label: t.projectProgress, icon: <ChartNoAxesColumn size={17} /> },
+    { id: 'admin-access', label: t.clientAccess, icon: <FolderOpen size={17} /> },
+    { id: 'admin-resets', label: t.passwordRequestsNav, icon: <KeyRound size={17} /> },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#f4f1ea] pt-32 pb-24 text-neutral-900 dark:bg-neutral-950 dark:text-white md:pt-40">
-      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
-        <header className="relative mb-8 overflow-hidden bg-neutral-900 p-7 text-white sm:p-10 lg:p-12">
+    <div className={authenticated ? 'min-h-screen bg-[#f3f4f6] text-neutral-900 dark:bg-neutral-950 dark:text-white' : 'min-h-screen bg-[#f4f1ea] px-5 pt-20 pb-24 text-neutral-900 dark:bg-neutral-950 dark:text-white md:pt-24'}>
+      {authenticated && !checking && (
+        <aside className="z-40 bg-[#171819] text-white lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-56 lg:flex-col">
+          <div className="border-b border-white/10 px-5 py-5 sm:px-7 lg:px-6 lg:py-7">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-bronze-400/40 text-bronze-300"><Building2 size={18} /></span>
+              <div>
+                <p className="font-display text-sm font-semibold uppercase leading-tight tracking-wide">Linier Studio</p>
+                <p className="mt-1 font-mono text-[8px] uppercase tracking-[0.18em] text-white/45">Nusakarya Perkasa</p>
+              </div>
+            </div>
+          </div>
+          <p className="hidden px-6 pb-3 pt-7 font-mono text-[9px] uppercase tracking-[0.2em] text-white/35 lg:block">{t.navigation}</p>
+          <nav aria-label={t.navigation} className="flex gap-2 overflow-x-auto px-4 py-3 lg:block lg:space-y-1 lg:overflow-visible lg:px-3 lg:py-0">
+            {navigation.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => scrollToSection(item.id)}
+                className={`flex shrink-0 items-center gap-3 border-l-2 px-3 py-3 text-left text-xs transition-colors lg:w-full ${activeSection === item.id ? 'border-bronze-400 bg-white/10 text-white' : 'border-transparent text-white/55 hover:bg-white/5 hover:text-white'}`}
+              >
+                {item.icon}<span>{item.label}</span>
+                {item.id === 'admin-resets' && passwordRequests.length > 0 && <span className="ml-auto rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{passwordRequests.length}</span>}
+              </button>
+            ))}
+          </nav>
+          <div className="mt-auto hidden border-t border-white/10 p-4 lg:block">
+            <Link to="/portal" className="mb-2 flex items-center gap-3 px-3 py-3 text-xs text-white/55 transition-colors hover:text-white"><ArrowDownLeft size={16} />{t.back}</Link>
+            <button type="button" onClick={signOut} className="flex w-full items-center gap-3 px-3 py-3 text-xs text-white/55 transition-colors hover:text-white"><LogOut size={16} />{t.signOut}</button>
+          </div>
+        </aside>
+      )}
+      <div className={authenticated && !checking ? 'lg:pl-56' : ''}>
+        {authenticated && !checking && (
+          <header className="sticky top-0 z-30 flex min-h-[72px] items-center justify-between gap-4 border-b border-neutral-200 bg-white/95 px-4 text-neutral-900 backdrop-blur dark:border-white/10 dark:bg-neutral-900/95 dark:text-white sm:px-7 lg:px-10">
+            <div className="min-w-0">
+              <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{t.eyebrow}</p>
+              <h1 className="mt-1 font-display text-sm font-semibold uppercase leading-tight tracking-wide sm:text-lg">{t.adminDashboard}</h1>
+            </div>
+            <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+              <div className="hidden items-center gap-2 border-r border-neutral-200 pr-3 dark:border-white/15 sm:flex">
+                {([Language.ID, Language.EN, Language.CN] as const).map((option) => (
+                  <button key={option} type="button" onClick={() => setLanguage(option)} className={`font-mono text-[9px] uppercase tracking-wider transition-colors ${language === option ? 'text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'}`}>{option}</button>
+                ))}
+              </div>
+              <button type="button" onClick={toggleTheme} aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'} className="flex h-10 w-10 items-center justify-center border border-neutral-200 text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/15 dark:text-neutral-300">
+                {isDark ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+              <button type="button" onClick={() => scrollToSection('admin-resets')} aria-label={t.passwordRequestsNav} title={t.passwordRequestsNav} className="relative flex h-10 w-10 items-center justify-center border border-neutral-200 text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/15 dark:text-neutral-300">
+                <Bell size={17} />
+                {passwordRequests.length > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 font-mono text-[8px] text-white">{passwordRequests.length}</span>}
+              </button>
+              <span className="hidden h-9 w-9 items-center justify-center rounded-full bg-neutral-900 font-mono text-[10px] text-white sm:flex dark:bg-white dark:text-neutral-900">LS</span>
+              <span className="hidden text-xs font-medium sm:block">{t.studioAdmin}</span>
+              <Link to="/portal" aria-label={t.back} className="inline-flex items-center gap-1 border-l border-neutral-200 pl-3 text-[10px] font-mono uppercase tracking-wider text-neutral-500 transition-colors hover:text-neutral-900 dark:border-white/15 dark:text-neutral-300 sm:pl-4"><span className="hidden sm:inline">{t.back}</span><ArrowUpRight size={13} /></Link>
+              <button type="button" onClick={signOut} aria-label={t.signOut} title={t.signOut} className="flex h-10 w-10 items-center justify-center border border-neutral-200 text-neutral-600 transition-colors hover:border-red-400 hover:text-red-600 dark:border-white/15 dark:text-neutral-300 lg:hidden"><LogOut size={16} /></button>
+            </div>
+          </header>
+        )}
+        <div className={`mx-auto w-full ${authenticated ? 'max-w-[1600px] px-4 py-6 sm:px-7 lg:px-10' : 'max-w-7xl px-0 sm:px-3 lg:px-0'}`}>
+        <header id="admin-dashboard" className="relative mb-8 scroll-mt-24 overflow-hidden bg-neutral-900 p-7 text-white sm:p-10 lg:p-12">
+          <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-40" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-900/80 to-neutral-900/25" />
           <div className="pointer-events-none absolute -right-12 -top-32 h-80 w-80 rounded-full border border-white/10" />
           <div className="pointer-events-none absolute -right-2 -top-20 h-60 w-60 rounded-full border border-bronze-500/30" />
           <div className="relative flex items-center justify-between gap-4">
-            <Link to="/portal" className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55 transition-colors hover:text-white">
-              <ArrowDownLeft size={14} /> {t.back}
-            </Link>
-            {authenticated && (
-              <button onClick={signOut} className="inline-flex shrink-0 items-center gap-2 border border-white/20 px-3 py-2 font-mono text-[10px] uppercase tracking-widest transition-colors hover:border-bronze-500 hover:text-bronze-300">
-                <LogOut size={14} /><span className="hidden sm:inline">{t.signOut}</span>
-              </button>
+            {!authenticated && (
+              <Link to="/portal" className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55 transition-colors hover:text-white">
+                <ArrowDownLeft size={14} /> {t.back}
+              </Link>
             )}
           </div>
           <div className="relative mt-12 max-w-3xl sm:mt-16">
-            <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.24em] text-bronze-300">{t.eyebrow}</p>
-            <h1 className="font-display text-4xl font-semibold uppercase leading-[0.95] tracking-tight sm:text-6xl">{t.title}</h1>
-            <p className="mt-5 max-w-xl text-sm leading-6 text-white/60 sm:text-base">{t.subtitle}</p>
+            <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.24em] text-bronze-300">{authenticated && selectedProject ? `${t.overview} / ${selectedProject.project_code}` : t.eyebrow}</p>
+            <h1 className="font-display text-4xl font-semibold uppercase leading-[0.95] tracking-tight sm:text-6xl">{authenticated && selectedProject ? selectedProject.project_name : t.title}</h1>
+            <p className="mt-5 max-w-xl text-sm leading-6 text-white/70 sm:text-base">
+              {authenticated && selectedProject
+                ? [selectedProject.client_name, selectedProject.location].filter(Boolean).join(' / ')
+                : t.subtitle}
+            </p>
           </div>
           <div className="relative mt-10 flex items-center gap-3 border-t border-white/10 pt-5 font-mono text-[9px] uppercase tracking-[0.2em] text-white/45">
             <span className="h-1.5 w-1.5 rounded-full bg-bronze-400" /> {t.workspace}
+            {authenticated && selectedProject && <span className="ml-auto border border-white/15 px-3 py-1 text-white/75">{selectedProject.progress_percent === 100 ? t.completed : t.inProgress} · {selectedProject.progress_percent}%</span>}
           </div>
         </header>
 
@@ -474,12 +624,86 @@ const PortalAdmin: React.FC = () => {
           </form>
         ) : (
           <>
-            <div className="mb-8 grid gap-3 sm:grid-cols-3">
+            <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <Metric icon={<Layers size={17} />} label={t.projectCount} value={projects.length.toString().padStart(2, '0')} />
               <Metric icon={<Send size={17} />} label={t.activeProjects} value={projects.filter((project) => project.progress_percent < 100).length.toString().padStart(2, '0')} />
-              <Metric icon={<ClipboardList size={17} />} label={t.progress} value={`${projects.length ? Math.round(projects.reduce((sum, project) => sum + project.progress_percent, 0) / projects.length) : 0}%`} />
+              <Metric icon={<CheckCircle2 size={17} />} label={t.completedProjects} value={completedProjectCount.toString().padStart(2, '0')} />
+              <Metric icon={<ClipboardList size={17} />} label={t.progress} value={`${averageProgress}%`} />
             </div>
-            <section className="mb-5 border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+            <div className="mb-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+              <section className="border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
+                <div className="mb-5 flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-white/10">
+                  <div className="flex items-center gap-3">
+                    <CalendarDays size={17} className="text-bronze-500" />
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{t.overview}</p>
+                      <h2 className="mt-1 font-display text-lg font-semibold">{t.timeline}</h2>
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => scrollToSection('admin-access')} className="font-mono text-[9px] uppercase tracking-wider text-neutral-500 transition-colors hover:text-bronze-600">{t.viewAllProjects}<ArrowUpRight size={12} className="ml-1 inline" /></button>
+                </div>
+                {projects.length === 0 ? (
+                  <p className="py-5 text-sm text-neutral-500">{t.emptyProjects}</p>
+                ) : (
+                  <ol className="space-y-2">
+                    {projects.map((project) => (
+                      <li key={project.id}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFiles([]);
+                            setSelectedProjectId(project.id);
+                          }}
+                          className={`w-full border-l-2 px-4 py-3 text-left transition-colors ${selectedProjectId === project.id ? 'border-bronze-500 bg-bronze-500/[0.06]' : 'border-neutral-200 hover:border-bronze-300 hover:bg-neutral-50 dark:border-white/15 dark:hover:bg-white/[0.03]'}`}
+                        >
+                          <span className="flex items-start justify-between gap-3">
+                            <span className="min-w-0">
+                              <span className="block truncate text-sm font-medium">{project.project_name}</span>
+                              <span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-neutral-400">{project.project_code} · {project.start_date ? formatAdminDate(project.start_date, language) : t.noDate}</span>
+                            </span>
+                            <span className="shrink-0 text-right">
+                              <span className={`block text-[9px] font-medium ${project.progress_percent === 100 ? 'text-emerald-600' : 'text-bronze-600'}`}>{project.progress_percent === 100 ? t.completed : t.inProgress}</span>
+                              <span className="mt-1 block font-mono text-xs">{project.progress_percent}%</span>
+                            </span>
+                          </span>
+                          <span className="mt-3 block h-1 bg-neutral-100 dark:bg-white/10">
+                            <span className="block h-full bg-bronze-500" style={{ width: `${project.progress_percent}%` }} />
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
+              <section className="border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
+                <div className="mb-5 flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-white/10">
+                  <div className="flex items-center gap-3">
+                    <ImagePlus size={17} className="text-bronze-500" />
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{selectedProject?.project_name ?? t.chooseProject}</p>
+                      <h2 className="mt-1 font-display text-lg font-semibold">{t.photoPreview}</h2>
+                    </div>
+                  </div>
+                  {selectedFiles.length > 0 && <span className="font-mono text-[9px] uppercase tracking-wider text-neutral-400">{selectedFiles.length} / 5</span>}
+                </div>
+                {previewFiles.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {previewFiles.map((file) => (
+                      <div key={file.url} className="group relative aspect-[4/3] overflow-hidden bg-neutral-100 dark:bg-white/5">
+                        <img src={file.url} alt={file.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/75 to-transparent px-2 pb-2 pt-6 text-[9px] text-white">{file.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex min-h-40 flex-col items-center justify-center border border-dashed border-neutral-300 px-6 text-center dark:border-white/15">
+                    <ImagePlus size={22} className="mb-3 text-neutral-400" />
+                    <p className="max-w-xs text-xs leading-5 text-neutral-500">{t.noPhotoPreview}</p>
+                  </div>
+                )}
+              </section>
+            </div>
+            <section id="admin-resets" className="mb-5 scroll-mt-24 border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                 <KeyRound size={17} className="text-bronze-500" />
                 <div>
@@ -533,8 +757,8 @@ const PortalAdmin: React.FC = () => {
                 </button>
               </section>
             )}
-            <div className="grid items-start gap-5 lg:grid-cols-[0.92fr_1.08fr]">
-            <section className="border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+            <div className="grid scroll-mt-24 items-start gap-5 lg:grid-cols-[0.92fr_1.08fr]">
+            <section id="admin-access" className="scroll-mt-24 border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-8 flex items-start gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                 <Plus size={19} className="text-bronze-500" />
                 <div>
@@ -555,7 +779,7 @@ const PortalAdmin: React.FC = () => {
               </form>
             </section>
 
-            <section className="space-y-5">
+            <section id="admin-progress" className="scroll-mt-24 space-y-5">
               <div className="border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-7 flex items-start gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                   <Send size={18} className="text-bronze-500" />
@@ -674,6 +898,7 @@ const PortalAdmin: React.FC = () => {
         )}
       </div>
     </div>
+    </div>
   );
 };
 
@@ -694,9 +919,9 @@ function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; 
     <div className="flex items-center justify-between border border-neutral-200 bg-white px-5 py-4 shadow-sm dark:border-white/10 dark:bg-neutral-900">
       <div>
         <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">{label}</p>
-        <p className="mt-2 font-display text-2xl font-semibold">{value}</p>
+        <p className="mt-2 font-display text-3xl font-semibold tracking-tight">{value}</p>
       </div>
-      <span className="flex h-9 w-9 items-center justify-center border border-bronze-500/30 text-bronze-500">{icon}</span>
+      <span className="flex h-10 w-10 items-center justify-center bg-neutral-50 text-neutral-600 dark:bg-white/5 dark:text-neutral-300">{icon}</span>
     </div>
   );
 }
