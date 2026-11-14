@@ -2,7 +2,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import logoImage from '../LInier-logo-transparent.png';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, ArrowUp } from 'lucide-react';
+import { ArrowUpRight, ArrowUp, Instagram } from 'lucide-react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { NAV_ITEMS } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -14,6 +14,16 @@ interface WorldClockProps {
   label: string;
   zone: string;
   time: Date;
+}
+
+interface FooterSocialLink {
+  name: string;
+  href: string;
+  target?: string;
+  rel?: string;
+  onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+  handle?: string;
+  featured?: boolean;
 }
 
 const WorldClock: React.FC<WorldClockProps> = ({ label, zone, time }) => {
@@ -72,11 +82,11 @@ const Footer: React.FC = () => {
     { label: 'New York', zone: 'America/New_York' },
   ];
 
-  const socialLinks = [
+  const socialLinks: FooterSocialLink[] = [
     { name: 'WhatsApp', href: 'https://wa.me/6281775030638', target: '_blank', rel: 'noopener noreferrer' },
     { name: 'WeChat', href: '#', onClick: (e) => { e.preventDefault(); navigator.clipboard.writeText('Linierstudio'); const el = e.currentTarget.querySelector('span'); if(el) { const original = el.innerText; el.innerText = 'COPIED!'; setTimeout(() => el.innerText = original, 2000); } } },
     { name: 'Instagram', href: 'https://www.instagram.com/linierstudio/', target: '_blank', rel: 'noopener noreferrer' },
-    { name: 'Instagram Interior', href: 'https://www.instagram.com/linierinteriorid?utm_source=ig_web_button_share_sheet&mdxt=ZDNlZDc0MzIxNw==', target: '_blank', rel: 'noopener noreferrer' },
+    { name: 'Instagram Interior', handle: '@linierinteriorid', featured: true, href: 'https://www.instagram.com/linierinteriorid?utm_source=ig_web_button_share_sheet&mdxt=ZDNlZDc0MzIxNw==', target: '_blank', rel: 'noopener noreferrer' },
     { name: 'Behance', href: 'https://www.behance.net/linierstudio', target: '_blank', rel: 'noopener noreferrer' },
     { name: 'Facebook', href: 'https://www.facebook.com/linierstudio', target: '_blank', rel: 'noopener noreferrer' },
   ];
@@ -186,9 +196,23 @@ const Footer: React.FC = () => {
                         <ul className="space-y-4">
                             {socialLinks.map((social) => (
                                 <li key={social.name}>
-                                    <a href={social.href} target={social.target} rel={social.rel} onClick={social.onClick} className="flex items-center justify-between text-sm font-bold uppercase text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white group border-b border-transparent hover:border-neutral-900/20 dark:hover:border-neutral-300 dark:border-white/20 pb-1 transition-all cursor-hover">
-                                        <span>{social.name}</span>
-                                        <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                                    <a
+                                      href={social.href}
+                                      target={social.target}
+                                      rel={social.rel}
+                                      onClick={social.onClick}
+                                      className={`group flex items-center justify-between transition-all cursor-hover ${social.featured
+                                        ? 'gap-3 border border-bronze-500/40 bg-bronze-500/5 px-4 py-3 text-neutral-900 hover:border-bronze-500 hover:bg-bronze-500/10 dark:text-white dark:border-[#B7FF00]/30 dark:bg-[#B7FF00]/5 dark:hover:bg-[#B7FF00]/10'
+                                        : 'border-b border-transparent pb-1 text-sm font-bold uppercase text-neutral-500 hover:border-neutral-900/20 hover:text-neutral-900 dark:border-white/20 dark:text-neutral-400 dark:hover:border-neutral-300 dark:hover:text-white'}`}
+                                    >
+                                        <span className="flex min-w-0 items-center gap-3">
+                                          {social.featured && <Instagram size={17} className="shrink-0 text-bronze-600 dark:text-[#B7FF00]" />}
+                                          <span className="min-w-0">
+                                            <span className={`block truncate ${social.featured ? 'text-xs font-bold uppercase tracking-wider' : 'text-sm font-bold uppercase'}`}>{social.name}</span>
+                                            {social.handle && <span className="mt-1 block font-mono text-[9px] font-normal normal-case tracking-[0.12em] text-neutral-500 dark:text-neutral-400">{social.handle}</span>}
+                                          </span>
+                                        </span>
+                                        <ArrowUpRight size={social.featured ? 15 : 12} className={social.featured ? 'shrink-0 text-bronze-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 dark:text-[#B7FF00]' : 'shrink-0 -translate-x-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100'} />
                                     </a>
                                 </li>
                             ))}
