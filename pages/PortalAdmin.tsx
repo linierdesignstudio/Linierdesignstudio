@@ -23,11 +23,11 @@ const copy = {
     projectCode: 'ID Proyek',
     projectName: 'Nama proyek',
     clientName: 'Nama klien',
-    clientEmail: 'Email klien',
+    clientEmail: 'Email klien (opsional)',
     noClientEmail: 'Email login belum diatur',
     location: 'Lokasi',
     clientLoginPassword: 'Password akun',
-    accountPasswordHint: 'Akun email baru perlu password minimal 12 karakter. Semua proyek dengan email yang sama memakai satu password ini, baik login dengan email maupun ID proyek.',
+    accountPasswordHint: 'Email klien opsional. Jika diisi, semua proyek dengan email yang sama memakai password ini untuk login lewat email atau ID proyek; jika kosong, password hanya untuk login dengan ID proyek. Password baru minimal 12 karakter.',
     clientEmailEditHint: 'Password akun email tidak berubah. Email yang sudah terhubung ke akun dengan password berbeda tidak dapat dipakai.',
     saveClientAccount: 'Simpan akun klien',
     savedClientAccount: 'Akun email klien berhasil disimpan.',
@@ -39,7 +39,7 @@ const copy = {
     progress: 'Progress (%)',
     date: 'Tanggal update',
     publish: 'Terbitkan update',
-    savedProject: 'Proyek berhasil dibuat. Simpan password akun klien secara aman; password tidak dapat ditampilkan kembali.',
+    savedProject: 'Proyek berhasil dibuat. Simpan password klien dengan aman; password tidak dapat ditampilkan kembali.',
     savedUpdate: 'Update berhasil diterbitkan.',
     savedEdit: 'Update berhasil diperbarui.',
     refreshFailed: 'Update tersimpan, tetapi daftar gagal dimuat ulang. Muat ulang halaman.',
@@ -136,11 +136,11 @@ const copy = {
     projectCode: 'Project ID',
     projectName: 'Project name',
     clientName: 'Client name',
-    clientEmail: 'Client email',
+    clientEmail: 'Client email (optional)',
     noClientEmail: 'Email login not set',
     location: 'Location',
     clientLoginPassword: 'Account password',
-    accountPasswordHint: 'New email accounts need a password of at least 12 characters. All projects with the same email use this one password to sign in with either email or Project ID.',
+    accountPasswordHint: 'Client email is optional. If provided, projects with the same email use this password to sign in with either email or Project ID; without an email, it works only with the Project ID. New passwords must be at least 12 characters.',
     clientEmailEditHint: 'The email account password stays unchanged. An email linked to an account with a different password cannot be used.',
     saveClientAccount: 'Save client account',
     savedClientAccount: 'Client email login saved.',
@@ -152,7 +152,7 @@ const copy = {
     progress: 'Progress (%)',
     date: 'Update date',
     publish: 'Publish update',
-    savedProject: 'Project created. Store the client account password securely; it cannot be shown again.',
+    savedProject: 'Project created. Store the client password securely; it cannot be shown again.',
     savedUpdate: 'Update published.',
     savedEdit: 'Update saved.',
     refreshFailed: 'The update was saved, but the list could not be refreshed. Reload the page.',
@@ -249,11 +249,11 @@ const copy = {
     projectCode: '项目编号',
     projectName: '项目名称',
     clientName: '客户名称',
-    clientEmail: '客户邮箱',
+    clientEmail: '客户邮箱（可选）',
     noClientEmail: '尚未设置登录邮箱',
     location: '地点',
     clientLoginPassword: '账号密码',
-    accountPasswordHint: '新邮箱账号密码至少 12 个字符。同一邮箱的所有项目通过邮箱或项目编号登录时均使用此密码。',
+    accountPasswordHint: '客户邮箱为可选项。填写邮箱时，同一邮箱的项目可使用此密码通过邮箱或项目编号登录；不填写邮箱时，只能通过项目编号登录。新密码至少 12 个字符。',
     clientEmailEditHint: '邮箱账号密码保持不变。目标邮箱若已关联不同密码的账号，则无法使用。',
     saveClientAccount: '保存客户账号',
     savedClientAccount: '客户邮箱登录已保存。',
@@ -265,7 +265,7 @@ const copy = {
     progress: '进度（%）',
     date: '更新日期',
     publish: '发布更新',
-    savedProject: '项目已创建。请妥善保存客户账号密码；密码无法再次显示。',
+    savedProject: '项目已创建。请妥善保存客户密码；密码无法再次显示。',
     savedUpdate: '更新已发布。',
     savedEdit: '更新已保存。',
     refreshFailed: '更新已保存，但列表无法刷新。请重新加载页面。',
@@ -1185,7 +1185,7 @@ const PortalAdmin: React.FC = () => {
                 <Field name="projectCode" label={t.projectCode} required maxLength={32} placeholder="LIN-2026-001" autoCapitalize="characters" />
                 <Field name="projectName" label={t.projectName} required maxLength={120} />
                 <Field name="clientName" label={t.clientName} required maxLength={120} />
-                <Field name="clientEmail" label={t.clientEmail} type="email" required maxLength={254} autoCapitalize="none" />
+                <Field name="clientEmail" label={t.clientEmail} type="email" maxLength={254} autoCapitalize="none" />
                 <Field name="location" label={t.location} maxLength={120} />
                 <Field name="startDate" label={t.startDate} type="date" defaultValue={today()} required />
                 <Field name="clientLoginPassword" label={t.clientLoginPassword} type="password" required minLength={8} maxLength={256} autoComplete="new-password" />

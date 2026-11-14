@@ -184,7 +184,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     if (clientName.length < 2 || clientName.length > 120) {
       throw new HttpError(400, 'Nama klien harus terdiri dari 2–120 karakter.');
     }
-    if (!isValidEmail(clientEmail)) {
+    if (clientEmail && !isValidEmail(clientEmail)) {
       throw new HttpError(400, 'Masukkan email klien yang valid.');
     }
     if (location.length > 120) {
@@ -194,28 +194,36 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       throw new HttpError(400, 'Tanggal mulai tidak valid.');
     }
     if (clientLoginPassword.length < 8 || clientLoginPassword.length > 256) {
-      throw new HttpError(400, 'Password akun email harus terdiri dari 8 hingga 256 karakter.');
+      throw new HttpError(400, 'Password klien harus terdiri dari 8 hingga 256 karakter.');
     }
 
-    const existingAccounts = await supabaseRequest<Array<{ client_login_salt: string | null; client_login_hash: string | null }>>(
-      `client_projects?select=client_login_salt,client_login_hash&client_email=eq.${encodeURIComponent(clientEmail)}&order=created_at.asc&limit=1`
-    );
-    if (!existingAccounts[0] && clientLoginPassword.length < 12) {
-      throw new HttpError(400, 'Password akun email baru minimal 12 karakter.');
-    }
-    let accountCredentials: { client_login_salt: string; client_login_hash: string };
-    const existingAccount = existingAccounts[0];
-    if (existingAccount) {
-      const salt = existingAccount.client_login_salt;
-      const hash = existingAccount.client_login_hash;
-      if (!salt || !hash || !verifyPassword(clientLoginPassword, salt, hash)) {
-        throw new HttpError(409, 'Email ini sudah memiliki password akun. Gunakan password email yang sama.');
+    let accountCredentials: { client_login_salt: string; client_login_hash: string } | null = null;
+    if (clientEmail) {
+      const existingAccounts = await supabaseRequest<Array<{ client_login_salt: string | null; client_login_hash: string | null }>>(
+        `client_projects?select=client_login_salt,client_login_hash&client_email=eq.${encodeURIComponent(clientEmail)}&order=created_at.asc&limit=1`
+      );
+      if (!existingAccounts[0] && clientLoginPassword.length < 12) {
+        throw new HttpError(400, 'Password akun email baru minimal 12 karakter.');
       }
-      accountCredentials = { client_login_salt: salt, client_login_hash: hash };
-    } else {
-      const generated = createPasswordHash(clientLoginPassword);
-      accountCredentials = { client_login_salt: generated.salt, client_login_hash: generated.hash };
+      const existingAccount = existingAccounts[0];
+      if (existingAccount) {
+        const salt = existingAccount.client_login_salt;
+        const hash = existingAccount.client_login_hash;
+        if (!salt || !hash || !verifyPassword(clientLoginPassword, salt, hash)) {
+          throw new HttpError(409, 'Email ini sudah memiliki password akun. Gunakan password email yang sama.');
+        }
+        accountCredentials = { client_login_salt: salt, client_login_hash: hash };
+      } else {
+        const generated = createPasswordHash(clientLoginPassword);
+        accountCredentials = { client_login_salt: generated.salt, client_login_hash: generated.hash };
+      }
+    } else if (clientLoginPassword.length < 12) {
+      throw new HttpError(400, 'Password proyek baru minimal 12 karakter.');
     }
+    const projectCredentials = accountCredentials
+      ? { salt: accountCredentials.client_login_salt, hash: accountCredentials.client_login_hash }
+      : createPasswordHash(clientLoginPassword);
+
     const created = await supabaseRequest<AdminProject[]>(
       'client_projects?select=id,project_code,project_name,client_name,client_email,location,start_date,status,progress_percent,created_at',
       {
@@ -225,15 +233,15 @@ export default async function handler(request: ApiRequest, response: ApiResponse
           project_code: projectCode,
           project_name: projectName,
           client_name: clientName,
-          client_email: clientEmail,
-          client_login_salt: accountCredentials.client_login_salt,
-          client_login_hash: accountCredentials.client_login_hash,
+          client_email: clientEmail || null,
+          client_login_salt: accountCredentials?.client_login_salt ?? null,
+          client_login_hash: accountCredentials?.client_login_hash ?? null,
           location,
           start_date: startDate,
           status: 'Berjalan',
           progress_percent: 0,
-          password_salt: accountCredentials.client_login_salt,
-          password_hash: accountCredentials.client_login_hash,
+          password_salt: projectCredentials.salt,
+          password_hash: projectCredentials.hash,
         }),
       }
     );
