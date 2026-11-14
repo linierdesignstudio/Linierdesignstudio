@@ -26,9 +26,8 @@ const copy = {
     clientEmail: 'Email klien',
     noClientEmail: 'Email login belum diatur',
     location: 'Lokasi',
-    clientPassword: 'Password ID proyek (min. 12 karakter)',
     clientLoginPassword: 'Password akun email klien',
-    accountPasswordHint: 'Akun email baru perlu password minimal 12 karakter. Semua proyek dengan email yang sama memakai password email ini; password ID proyek tetap terpisah.',
+    accountPasswordHint: 'Akun email baru perlu password minimal 12 karakter. Semua proyek dengan email yang sama memakai satu password ini, baik login dengan email maupun ID proyek.',
     clientEmailEditHint: 'Password akun email tidak berubah. Email yang sudah terhubung ke akun dengan password berbeda tidak dapat dipakai.',
     saveClientAccount: 'Simpan akun klien',
     savedClientAccount: 'Akun email klien berhasil disimpan.',
@@ -40,7 +39,7 @@ const copy = {
     progress: 'Progress (%)',
     date: 'Tanggal update',
     publish: 'Terbitkan update',
-    savedProject: 'Proyek berhasil dibuat. Simpan password ID proyek dan password akun email secara aman; keduanya tidak dapat ditampilkan kembali.',
+    savedProject: 'Proyek berhasil dibuat. Simpan password akun klien secara aman; password tidak dapat ditampilkan kembali.',
     savedUpdate: 'Update berhasil diterbitkan.',
     savedEdit: 'Update berhasil diperbarui.',
     refreshFailed: 'Update tersimpan, tetapi daftar gagal dimuat ulang. Muat ulang halaman.',
@@ -140,9 +139,8 @@ const copy = {
     clientEmail: 'Client email',
     noClientEmail: 'Email login not set',
     location: 'Location',
-    clientPassword: 'Project ID password (min. 12 characters)',
     clientLoginPassword: 'Client email account password',
-    accountPasswordHint: 'New email accounts need a password of at least 12 characters. All projects with the same email use this email password; Project ID passwords remain separate.',
+    accountPasswordHint: 'New email accounts need a password of at least 12 characters. All projects with the same email use this one password to sign in with either email or Project ID.',
     clientEmailEditHint: 'The email account password stays unchanged. An email linked to an account with a different password cannot be used.',
     saveClientAccount: 'Save client account',
     savedClientAccount: 'Client email login saved.',
@@ -154,7 +152,7 @@ const copy = {
     progress: 'Progress (%)',
     date: 'Update date',
     publish: 'Publish update',
-    savedProject: 'Project created. Store the Project ID password and email account password securely; they cannot be shown again.',
+    savedProject: 'Project created. Store the client account password securely; it cannot be shown again.',
     savedUpdate: 'Update published.',
     savedEdit: 'Update saved.',
     refreshFailed: 'The update was saved, but the list could not be refreshed. Reload the page.',
@@ -254,9 +252,8 @@ const copy = {
     clientEmail: '客户邮箱',
     noClientEmail: '尚未设置登录邮箱',
     location: '地点',
-    clientPassword: '项目编号密码（至少 12 个字符）',
     clientLoginPassword: '客户邮箱账号密码',
-    accountPasswordHint: '新邮箱账号密码至少 12 个字符。同一邮箱的所有项目共用此邮箱密码；项目编号密码保持独立。',
+    accountPasswordHint: '新邮箱账号密码至少 12 个字符。同一邮箱的所有项目通过邮箱或项目编号登录时均使用此密码。',
     clientEmailEditHint: '邮箱账号密码保持不变。目标邮箱若已关联不同密码的账号，则无法使用。',
     saveClientAccount: '保存客户账号',
     savedClientAccount: '客户邮箱登录已保存。',
@@ -268,7 +265,7 @@ const copy = {
     progress: '进度（%）',
     date: '更新日期',
     publish: '发布更新',
-    savedProject: '项目已创建。请妥善保存项目编号密码和邮箱账号密码；密码无法再次显示。',
+    savedProject: '项目已创建。请妥善保存客户账号密码；密码无法再次显示。',
     savedUpdate: '更新已发布。',
     savedEdit: '更新已保存。',
     refreshFailed: '更新已保存，但列表无法刷新。请重新加载页面。',
@@ -534,7 +531,6 @@ const PortalAdmin: React.FC = () => {
           clientEmail: form.get('clientEmail'),
           location: form.get('location'),
           startDate: form.get('startDate'),
-          projectPassword: form.get('clientPassword'),
           clientLoginPassword: form.get('clientLoginPassword'),
         }),
       });
@@ -1192,7 +1188,6 @@ const PortalAdmin: React.FC = () => {
                 <Field name="clientEmail" label={t.clientEmail} type="email" required maxLength={254} autoCapitalize="none" />
                 <Field name="location" label={t.location} maxLength={120} />
                 <Field name="startDate" label={t.startDate} type="date" defaultValue={today()} required />
-                <Field name="clientPassword" label={t.clientPassword} type="password" required minLength={12} maxLength={256} autoComplete="new-password" />
                 <Field name="clientLoginPassword" label={t.clientLoginPassword} type="password" required minLength={8} maxLength={256} autoComplete="new-password" />
                 <p className="-mt-3 text-xs leading-5 text-neutral-500">{t.accountPasswordHint}</p>
                 <button disabled={busy} className="mt-2 flex w-full items-center justify-between bg-neutral-900 px-5 py-4 font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-60 dark:bg-white dark:text-neutral-950">

@@ -173,7 +173,6 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const clientEmail = text(body.clientEmail).toLowerCase();
     const location = text(body.location);
     const startDate = typeof body.startDate === 'string' ? body.startDate : '';
-    const projectPassword = typeof body.projectPassword === 'string' ? body.projectPassword : '';
     const clientLoginPassword = typeof body.clientLoginPassword === 'string' ? body.clientLoginPassword : '';
 
     if (!/^[A-Z0-9_-]{3,32}$/.test(projectCode)) {
@@ -193,9 +192,6 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
     if (!isValidDate(startDate)) {
       throw new HttpError(400, 'Tanggal mulai tidak valid.');
-    }
-    if (projectPassword.length < 12 || projectPassword.length > 256) {
-      throw new HttpError(400, 'Password ID proyek harus terdiri dari 12 hingga 256 karakter.');
     }
     if (clientLoginPassword.length < 8 || clientLoginPassword.length > 256) {
       throw new HttpError(400, 'Password akun email harus terdiri dari 8 hingga 256 karakter.');
@@ -220,8 +216,6 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       const generated = createPasswordHash(clientLoginPassword);
       accountCredentials = { client_login_salt: generated.salt, client_login_hash: generated.hash };
     }
-    const projectCredentials = createPasswordHash(projectPassword);
-
     const created = await supabaseRequest<AdminProject[]>(
       'client_projects?select=id,project_code,project_name,client_name,client_email,location,start_date,status,progress_percent,created_at',
       {
@@ -238,8 +232,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
           start_date: startDate,
           status: 'Berjalan',
           progress_percent: 0,
-          password_salt: projectCredentials.salt,
-          password_hash: projectCredentials.hash,
+          password_salt: accountCredentials.client_login_salt,
+          password_hash: accountCredentials.client_login_hash,
         }),
       }
     );
