@@ -1,6 +1,6 @@
-import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
-import { HttpError, readJson, requireMethod, sendError, sendJson } from '../../_lib/http.js';
-import { createPasswordHash, deleteStorageObjects, getSession, isStoredAttachmentPath, requireAdminPermission, supabaseRequest, verifyPassword } from '../../_lib/portal.js';
+import type { ApiRequest, ApiResponse } from './http.js';
+import { HttpError, readJson, requireMethod, sendError, sendJson } from './http.js';
+import { createPasswordHash, deleteStorageObjects, getSession, isStoredAttachmentPath, requireAdminPermission, supabaseRequest, verifyPassword } from './portal.js';
 
 interface AdminProject {
   id: string;

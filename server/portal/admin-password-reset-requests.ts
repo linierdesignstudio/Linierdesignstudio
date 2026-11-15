@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
-import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
-import { HttpError, readJson, requireMethod, sendError, sendJson } from '../../_lib/http.js';
-import { createPasswordHash, getSession, requireAdminPermission, supabaseRequest } from '../../_lib/portal.js';
+import type { ApiRequest, ApiResponse } from './http.js';
+import { HttpError, readJson, requireMethod, sendError, sendJson } from './http.js';
+import { createPasswordHash, getSession, requireAdminPermission, supabaseRequest } from './portal.js';
 
 interface ResetRequestRecord {
   id: string;

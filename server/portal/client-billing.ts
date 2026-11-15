@@ -1,5 +1,5 @@
-import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
-import { HttpError, readJson, requireMethod, sendError, sendJson } from '../../_lib/http.js';
+import type { ApiRequest, ApiResponse } from './http.js';
+import { HttpError, readJson, requireMethod, sendError, sendJson } from './http.js';
 import {
   createStorageDownloadUrl,
   createStorageObjectPath,
@@ -8,7 +8,7 @@ import {
   getSession,
   requireRole,
   supabaseRequest,
-} from '../../_lib/portal.js';
+} from './portal.js';
 
 interface BillingRecord {
   id: string;

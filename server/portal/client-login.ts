@@ -1,11 +1,11 @@
-import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
-import { HttpError, readJson, requireMethod, sendError, sendJson, setSessionCookie } from '../../_lib/http.js';
+import type { ApiRequest, ApiResponse } from './http.js';
+import { HttpError, readJson, requireMethod, sendError, sendJson, setSessionCookie } from './http.js';
 import {
   createSession,
   supabaseRequest,
   verifyPassword,
   type ProjectRecord,
-} from '../../_lib/portal.js';
+} from './portal.js';
 
 interface LoginProject extends ProjectRecord {
   client_email: string | null;

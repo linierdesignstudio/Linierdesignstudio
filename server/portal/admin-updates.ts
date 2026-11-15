@@ -1,6 +1,6 @@
-import type { ApiRequest, ApiResponse } from '../../_lib/http.js';
-import { HttpError, readJson, requireMethod, sendError, sendJson } from '../../_lib/http.js';
-import { createStorageDownloadUrl, deleteStorageObjects, getSession, isStoredAttachmentPath, requireAdminPermission, supabaseRequest, type PortalAttachment, type PortalSession } from '../../_lib/portal.js';
+import type { ApiRequest, ApiResponse } from './http.js';
+import { HttpError, readJson, requireMethod, sendError, sendJson } from './http.js';
+import { createStorageDownloadUrl, deleteStorageObjects, getSession, isStoredAttachmentPath, requireAdminPermission, supabaseRequest, type PortalAttachment, type PortalSession } from './portal.js';
 
 interface ProjectUpdateRecord {
   id: string;
