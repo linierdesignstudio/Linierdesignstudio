@@ -436,7 +436,7 @@ async function loadAdminData(): Promise<{ projects: PortalProject[]; requests: P
   const [projectResult, requestResult, feedbackResult] = await Promise.all([
     portalRequest<{ projects: PortalProject[] }>('/api/portal/admin/projects'),
     portalRequest<{ requests: PasswordResetRequest[] }>('/api/portal/admin/password-reset-requests'),
-    portalRequest<{ feedback: AdminFeedback[] }>('/api/portal/admin/feedback'),
+    portalRequest<{ feedback: AdminFeedback[] }>('/api/portal/admin/updates?resource=feedback'),
   ]);
   return { projects: projectResult.projects, requests: requestResult.requests, feedback: feedbackResult.feedback };
 }
@@ -698,7 +698,7 @@ const PortalAdmin: React.FC = () => {
     setBusy(true);
     setError('');
     try {
-      const result = await portalRequest<{ feedback: AdminFeedback[] }>('/api/portal/admin/feedback');
+      const result = await portalRequest<{ feedback: AdminFeedback[] }>('/api/portal/admin/updates?resource=feedback');
       setFeedbackItems(result.feedback);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Feedback tidak dapat dimuat.');
@@ -723,7 +723,7 @@ const PortalAdmin: React.FC = () => {
         reply: string;
         replied_by: 'admin' | 'staff';
         replied_at: string;
-      }>('/api/portal/admin/feedback', {
+      }>('/api/portal/admin/updates?resource=feedback', {
         method: 'POST',
         body: JSON.stringify({ feedbackId: item.id, reply }),
       });

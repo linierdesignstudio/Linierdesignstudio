@@ -282,7 +282,7 @@ const ClientPortal: React.FC = () => {
     setFeedbackItems([]);
     setFeedbackNotice('');
     setFeedbackError('');
-    portalRequest<{ feedback: ClientFeedback[] }>(`/api/portal/client/feedback?projectId=${encodeURIComponent(project.id)}`)
+    portalRequest<{ feedback: ClientFeedback[] }>(`/api/portal/client/updates?resource=feedback&projectId=${encodeURIComponent(project.id)}`)
       .then(({ feedback }) => {
         if (active) setFeedbackItems(feedback);
       })
@@ -344,7 +344,7 @@ const ClientPortal: React.FC = () => {
     setFeedbackNotice('');
     const values = new FormData(form);
     try {
-      const result = await portalRequest<{ feedback: ClientFeedback }>('/api/portal/client/feedback', {
+      const result = await portalRequest<{ feedback: ClientFeedback }>('/api/portal/client/updates?resource=feedback', {
         method: 'POST',
         body: JSON.stringify({
           projectId: project.id,
