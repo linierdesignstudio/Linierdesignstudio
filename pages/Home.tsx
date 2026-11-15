@@ -76,12 +76,12 @@ const Home: React.FC = () => {
             <img
                 src={heroImage}
                 alt="Linier Studio architecture hero"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover brightness-110"
             />
         </motion.div>
 
-        <div className="absolute inset-0 z-10 bg-black/25 pointer-events-none" />
-        <div className="absolute inset-x-0 bottom-0 z-10 h-2/3 bg-gradient-to-t from-black/65 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 z-10 bg-black/20 pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 z-10 h-2/3 bg-gradient-to-t from-black/55 to-transparent pointer-events-none" />
 
         <div className="absolute top-24 sm:top-28 md:top-32 left-4 sm:left-6 md:left-12 right-4 sm:right-6 md:right-12 z-20 flex items-start justify-between text-white mix-blend-difference pointer-events-none">
             <motion.div
