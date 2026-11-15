@@ -437,20 +437,20 @@ const ClientPortal: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f4f0] pb-20 pt-24 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white md:pt-32">
-      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
-        <Link to="/" className="mb-7 inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-400 hover:text-neutral-950 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:border-white/25 dark:hover:text-white">
+    <div className="min-h-screen overflow-x-clip bg-[#f5f4f0] pb-16 pt-16 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:pb-20 sm:pt-24 md:pt-32">
+      <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
+        <Link to="/" className="mb-5 inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-400 hover:text-neutral-950 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:border-white/25 dark:hover:text-white sm:mb-7">
           <ArrowDownLeft size={15} /> {t.back}
         </Link>
 
         {loading ? (
-          <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center rounded-3xl border border-neutral-200 bg-white p-10 text-center shadow-sm dark:border-white/10 dark:bg-neutral-900">
+          <div className="mx-auto flex min-h-[40vh] max-w-md flex-col items-center justify-center rounded-2xl border border-neutral-200 bg-white p-6 text-center shadow-sm sm:min-h-[50vh] sm:rounded-3xl sm:p-10 dark:border-white/10 dark:bg-neutral-900">
             <span className="mb-5 h-9 w-9 animate-spin rounded-full border-2 border-neutral-200 border-t-[#8c795e] dark:border-white/10 dark:border-t-bronze-400" />
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">{t.loading}</p>
           </div>
         ) : project ? (
           <section>
-            <div className="relative mb-6 overflow-hidden rounded-3xl bg-[#23241f] p-6 text-white shadow-[0_24px_70px_rgba(27,25,20,0.16)] sm:p-9 lg:p-12">
+            <div className="relative mb-5 overflow-hidden rounded-2xl bg-[#23241f] p-5 text-white shadow-[0_24px_70px_rgba(27,25,20,0.16)] sm:mb-6 sm:rounded-3xl sm:p-9 lg:p-12">
               <img src={clientPortalImage} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.13]" />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-black/25 via-transparent to-[#8c795e]/20" />
               <div className="pointer-events-none absolute -right-24 -top-40 h-96 w-96 rounded-full border border-white/[0.08]" />
@@ -460,7 +460,7 @@ const ClientPortal: React.FC = () => {
                   <p className="mb-5 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/60 sm:text-[11px]">
                     <span>{t.eyebrow}</span><span className="text-white/30">/</span><span>{project.project_code}</span>
                   </p>
-                  <h1 className="max-w-3xl break-words font-display text-4xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-5xl lg:text-6xl">{project.project_name}</h1>
+                  <h1 className="max-w-3xl break-words font-display text-3xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-5xl lg:text-6xl">{project.project_name}</h1>
                   <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/70">
                     <span>{project.client_name}</span>
                     <span className="hidden text-white/30 sm:inline">·</span>
@@ -506,7 +506,7 @@ const ClientPortal: React.FC = () => {
                   </button>
                 </div>
               </div>
-              <div className="relative mt-8 flex items-start gap-2.5 border-t border-white/15 pt-5 text-xs leading-5 text-white/60 sm:mt-10 sm:items-center">
+              <div className="relative mt-6 flex items-start gap-2.5 border-t border-white/15 pt-4 text-xs leading-5 text-white/60 sm:mt-10 sm:items-center sm:pt-5">
                 <ShieldCheck size={15} className="mt-0.5 shrink-0 text-white/75 sm:mt-0" /> {t.secure}
               </div>
             </div>
@@ -514,7 +514,7 @@ const ClientPortal: React.FC = () => {
             {error && <ErrorBanner message={error} />}
 
             {passwordChangeOpen && (
-              <form onSubmit={changePassword} className="mb-6 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+              <form onSubmit={changePassword} className="mb-5 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:mb-6 sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-6">
                   <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-bronze-600 dark:text-bronze-400">{t.changePassword}</p>
                   <p className="text-sm text-neutral-500">{t.passwordMinLength}</p>
@@ -537,9 +537,9 @@ const ClientPortal: React.FC = () => {
               </form>
             )}
 
-            <div className="grid gap-4 md:grid-cols-[1.3fr_0.9fr]">
-              <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
-                <div className="mb-6 flex items-end justify-between gap-4">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-[1.3fr_0.9fr]">
+              <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
                   <div>
                     <p className="mb-3 text-xs font-medium text-neutral-500">{t.latest}</p>
                     <span className="font-display text-5xl font-semibold tracking-tight sm:text-6xl">{project.progress_percent}<span className="ml-0.5 text-2xl text-[#8c795e] dark:text-bronze-400">%</span></span>
@@ -564,7 +564,7 @@ const ClientPortal: React.FC = () => {
                   <span>{t.status}: {project.progress_percent === 100 ? t.complete : t.inProgress}</span>
                 </div>
               </div>
-              <div className="flex min-h-[190px] flex-col justify-between rounded-2xl border border-neutral-200 bg-[#eeece6] p-6 text-neutral-900 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900 dark:text-white">
+              <div className="flex min-h-[160px] flex-col justify-between rounded-2xl border border-neutral-200 bg-[#eeece6] p-4 text-neutral-900 shadow-sm sm:min-h-[190px] sm:p-8 dark:border-white/10 dark:bg-neutral-900 dark:text-white">
                 <div>
                   <p className="mb-5 text-xs font-medium text-neutral-500 dark:text-neutral-400">{t.duration}</p>
                   <div className="flex items-start gap-3 text-lg font-medium leading-snug tracking-tight">
@@ -576,8 +576,8 @@ const ClientPortal: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-12">
-              <div className="mb-6 flex items-end justify-between gap-4 border-b border-neutral-300 pb-5 dark:border-white/10">
+            <div className="mt-9 sm:mt-12">
+              <div className="mb-5 flex items-end justify-between gap-3 border-b border-neutral-300 pb-4 dark:border-white/10 sm:mb-6 sm:gap-4 sm:pb-5">
                 <div>
                   <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-500">{t.journal}</p>
                   <h2 className="font-display text-2xl font-medium tracking-tight sm:text-3xl">{t.updated}</h2>
@@ -593,7 +593,7 @@ const ClientPortal: React.FC = () => {
               ) : (
                 <ol className="space-y-4">
                   {updates.map((update) => (
-                    <li key={update.id} className="grid gap-5 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:grid-cols-[160px_1fr] sm:gap-8 sm:p-7 dark:border-white/10 dark:bg-neutral-900">
+                    <li key={update.id} className="grid min-w-0 gap-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:grid-cols-[160px_1fr] sm:gap-8 sm:p-7 dark:border-white/10 dark:bg-neutral-900">
                       <div className="flex items-center justify-between gap-3 sm:block">
                         <time className="text-xs leading-5 text-neutral-500">
                           {formatDate(update.update_date, language)}
@@ -653,7 +653,7 @@ const ClientPortal: React.FC = () => {
               )}
             </div>
             {feedbackChatOpen && (
-              <div id="client-feedback-chat" role="dialog" aria-modal="true" aria-labelledby="client-feedback-title" className="fixed inset-x-3 bottom-24 z-50 flex h-[min(600px,74vh)] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_80px_rgba(27,25,20,0.22)] dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/40 sm:inset-x-auto sm:right-6 sm:w-[420px]">
+              <div id="client-feedback-chat" role="dialog" aria-modal="true" aria-labelledby="client-feedback-title" className="fixed inset-x-3 bottom-20 z-50 flex h-[min(600px,calc(100dvh-7rem))] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_80px_rgba(27,25,20,0.22)] dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/40 sm:inset-x-auto sm:right-6 sm:bottom-24 sm:h-[min(600px,74vh)] sm:w-[420px]">
                 <header className="flex items-center gap-3 bg-[#272925] px-4 py-4 text-white">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-bronze-300"><MessageCircle size={18} /></span>
                   <div className="min-w-0 flex-1">
@@ -715,21 +715,21 @@ const ClientPortal: React.FC = () => {
             </button>
           </section>
         ) : (
-          <div className="grid overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-[0_24px_80px_rgba(27,25,20,0.10)] lg:grid-cols-[1.08fr_0.92fr] dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/25">
-            <section className="relative flex min-h-[420px] flex-col justify-between overflow-hidden bg-[#252722] p-7 text-white sm:min-h-[520px] sm:p-10 lg:p-14">
+          <div className="grid min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_80px_rgba(27,25,20,0.10)] sm:rounded-3xl lg:grid-cols-[1.08fr_0.92fr] dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/25">
+            <section className="relative flex min-h-[360px] flex-col justify-between overflow-hidden bg-[#252722] p-5 text-white sm:min-h-[520px] sm:p-10 lg:p-14">
               <img src={clientPortalImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-40" />
               <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/90 via-neutral-900/55 to-neutral-950/75" />
               <div className="pointer-events-none absolute -right-20 top-1/4 h-72 w-72 rounded-full border border-white/10" />
               <div className="pointer-events-none absolute -right-10 top-1/3 h-52 w-52 rounded-full border border-white/10" />
               <div className="relative">
-                <p className="mb-16 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/15 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/75">
+                <p className="mb-10 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/15 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/75 sm:mb-16">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#b39b74]" /> LINIER STUDIO <span className="text-white/35">/</span> CLIENT JOURNAL
                 </p>
                 <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-white/60">{t.eyebrow}</p>
-                <h1 className="max-w-xl font-display text-5xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-6xl">{t.title}</h1>
+                <h1 className="max-w-xl font-display text-4xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-6xl">{t.title}</h1>
                 <p className="mt-6 max-w-md text-sm leading-7 text-white/75 sm:text-base">{t.subtitle}</p>
               </div>
-              <div className="relative flex items-center justify-between gap-4 border-t border-white/25 pt-5">
+              <div className="relative flex flex-col items-start gap-3 border-t border-white/25 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pt-5">
                 <span className="text-xs leading-5 text-white/65">{t.strapline}</span>
                 <Link to="/portal/admin" className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/20 px-3 py-2 text-[11px] font-medium text-white/85 transition-colors hover:border-white/50 hover:bg-white/10 hover:text-white">
                   {t.admin} <ArrowUpRight size={14} />
@@ -737,8 +737,8 @@ const ClientPortal: React.FC = () => {
               </div>
             </section>
 
-            <form onSubmit={resetMode ? requestPasswordReset : signIn} className="flex flex-col justify-center px-6 py-9 sm:px-10 sm:py-12 lg:px-14">
-              <div className="mb-10 flex items-center gap-3">
+            <form onSubmit={resetMode ? requestPasswordReset : signIn} className="flex flex-col justify-center px-5 py-7 sm:px-10 sm:py-12 lg:px-14">
+              <div className="mb-7 flex items-center gap-3 sm:mb-10">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#d9d4c9] bg-[#f7f5f0] text-neutral-700 dark:border-white/15 dark:bg-white/[0.04] dark:text-white">
                   <LockKeyhole size={16} strokeWidth={1.5} />
                 </span>

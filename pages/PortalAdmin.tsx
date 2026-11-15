@@ -1044,10 +1044,10 @@ const PortalAdmin: React.FC = () => {
     : navigation.find((item) => item.id === activeSection)?.label ?? t.adminDashboard;
 
   return (
-    <div className={authenticated ? 'min-h-screen bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'min-h-screen bg-[#f4f3ef] px-5 pt-20 pb-24 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white md:pt-24'}>
+    <div className={authenticated ? 'min-h-screen overflow-x-clip bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'min-h-screen overflow-x-clip bg-[#f4f3ef] px-4 pt-16 pb-20 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:px-5 sm:pt-20 sm:pb-24 md:pt-24'}>
       {authenticated && !checking && (
         <aside className="z-40 bg-[#20211d] text-white shadow-xl shadow-black/10 lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-64 lg:flex-col">
-          <div className="border-b border-white/[0.08] px-5 py-5 sm:px-7 lg:px-6 lg:py-7">
+          <div className="border-b border-white/[0.08] px-4 py-4 sm:px-7 sm:py-5 lg:px-6 lg:py-7">
             <div className="flex items-center gap-3">
               <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
                 <img src={logoImage} alt="Linier Studio" className="absolute left-1/2 top-1/2 h-40 w-40 max-w-none -translate-x-1/2 -translate-y-1/2 object-contain" />
@@ -1059,17 +1059,18 @@ const PortalAdmin: React.FC = () => {
             </div>
           </div>
           <p className="hidden px-6 pb-3 pt-7 font-mono text-[9px] uppercase tracking-[0.2em] text-white/35 lg:block">{t.navigation}</p>
-          <nav aria-label={t.navigation} className="flex gap-2 overflow-x-auto px-4 py-3 lg:block lg:space-y-1.5 lg:overflow-visible lg:px-3 lg:py-0">
+          <nav aria-label={t.navigation} className="grid grid-cols-2 gap-1.5 px-3 py-3 sm:grid-cols-3 lg:block lg:space-y-1.5 lg:px-3 lg:py-0">
             {navigation.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => openAdminPage(item.id)}
-                className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-3 text-left text-xs font-medium transition-colors lg:w-full ${activeSection === item.id ? 'bg-white/10 text-white shadow-inner shadow-white/[0.03]' : 'text-white/55 hover:bg-white/[0.06] hover:text-white'}`}
+                title={item.label}
+                className={`flex min-w-0 w-full items-center gap-2 rounded-xl px-2.5 py-3 text-left text-[11px] font-medium transition-colors lg:gap-3 lg:px-3 lg:text-xs ${activeSection === item.id ? 'bg-white/10 text-white shadow-inner shadow-white/[0.03]' : 'text-white/55 hover:bg-white/[0.06] hover:text-white'}`}
               >
-                <span className={activeSection === item.id ? 'text-bronze-300' : 'text-white/45'}>{item.icon}</span><span>{item.label}</span>
-                {item.id === 'admin-resets' && passwordRequests.length > 0 && <span className="ml-auto rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{passwordRequests.length}</span>}
-                {item.id === 'admin-feedback' && unreadFeedbackCount > 0 && <span className="ml-auto rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{unreadFeedbackCount}</span>}
+                <span className={`shrink-0 ${activeSection === item.id ? 'text-bronze-300' : 'text-white/45'}`}>{item.icon}</span><span className="min-w-0 flex-1 truncate">{item.label}</span>
+                {item.id === 'admin-resets' && passwordRequests.length > 0 && <span className="shrink-0 rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{passwordRequests.length}</span>}
+                {item.id === 'admin-feedback' && unreadFeedbackCount > 0 && <span className="shrink-0 rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{unreadFeedbackCount}</span>}
               </button>
             ))}
           </nav>
@@ -1081,33 +1082,33 @@ const PortalAdmin: React.FC = () => {
       )}
       <div className={authenticated && !checking ? 'lg:pl-64' : ''}>
         {authenticated && !checking && (
-          <header className="sticky top-0 z-30 flex min-h-[76px] items-center justify-between gap-4 border-b border-neutral-200/80 bg-white/90 px-4 text-neutral-900 shadow-sm shadow-neutral-900/[0.02] backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#111210]/90 dark:text-white sm:px-7 lg:px-10">
+          <header className="sticky top-0 z-30 flex min-h-[68px] items-center justify-between gap-2 border-b border-neutral-200/80 bg-white/90 px-3 text-neutral-900 shadow-sm shadow-neutral-900/[0.02] backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#111210]/90 dark:text-white sm:min-h-[76px] sm:gap-4 sm:px-7 lg:px-10">
             <div className="min-w-0">
               <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-400">{t.eyebrow}</p>
               <h1 className="mt-1 font-display text-base font-medium leading-tight tracking-tight sm:text-xl">{activePageTitle}</h1>
             </div>
-            <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+            <div className="flex shrink-0 items-center gap-1 sm:gap-4">
               <div className="hidden items-center gap-2 border-r border-neutral-200 pr-3 dark:border-white/15 sm:flex">
                 {([Language.ID, Language.EN, Language.CN] as const).map((option) => (
                   <button key={option} type="button" onClick={() => setLanguage(option)} className={`rounded-md px-1.5 py-1 font-mono text-[9px] uppercase tracking-wider transition-colors ${language === option ? 'bg-neutral-100 text-neutral-900 dark:bg-white/10 dark:text-white' : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'}`}>{option}</button>
                 ))}
               </div>
-              <button type="button" onClick={toggleTheme} aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'} className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300">
+              <button type="button" onClick={toggleTheme} aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'} className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 sm:h-10 sm:w-10">
                 {isDark ? <Sun size={16} /> : <Moon size={16} />}
               </button>
-              <button type="button" onClick={() => openAdminPage('admin-resets')} aria-label={t.passwordRequestsNav} title={t.passwordRequestsNav} className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300">
+              <button type="button" onClick={() => openAdminPage('admin-resets')} aria-label={t.passwordRequestsNav} title={t.passwordRequestsNav} className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 sm:h-10 sm:w-10">
                 <Bell size={17} />
                 {passwordRequests.length > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 font-mono text-[8px] text-white">{passwordRequests.length}</span>}
               </button>
               <span className="hidden h-9 w-9 items-center justify-center rounded-full bg-[#262722] font-mono text-[10px] font-medium text-white sm:flex dark:bg-white dark:text-neutral-900">LS</span>
               <span className="hidden text-xs font-medium sm:block">{adminRole === 'staff' ? t.studioStaff : t.studioAdmin}</span>
-              <Link to="/portal" aria-label={t.back} className="inline-flex items-center gap-1 border-l border-neutral-200 pl-3 text-[10px] font-mono uppercase tracking-wider text-neutral-500 transition-colors hover:text-neutral-900 dark:border-white/15 dark:text-neutral-300 sm:pl-4"><span className="hidden sm:inline">{t.back}</span><ArrowUpRight size={13} /></Link>
-              <button type="button" onClick={signOut} aria-label={t.signOut} title={t.signOut} className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-red-400 hover:text-red-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 lg:hidden"><LogOut size={16} /></button>
+              <Link to="/portal" aria-label={t.back} className="inline-flex items-center gap-1 border-l border-neutral-200 pl-2 text-[10px] font-mono uppercase tracking-wider text-neutral-500 transition-colors hover:text-neutral-900 dark:border-white/15 dark:text-neutral-300 sm:pl-4"><span className="hidden sm:inline">{t.back}</span><ArrowUpRight size={13} /></Link>
+              <button type="button" onClick={signOut} aria-label={t.signOut} title={t.signOut} className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-red-400 hover:text-red-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 sm:h-10 sm:w-10 lg:hidden"><LogOut size={16} /></button>
             </div>
           </header>
         )}
         <div className={`mx-auto w-full ${authenticated ? 'max-w-[1600px] px-4 py-6 sm:px-7 lg:px-10 lg:py-8' : 'max-w-7xl px-0 sm:px-3 lg:px-0'}`}>
-        {(!authenticated || activeSection === 'admin-dashboard') && <header id="admin-dashboard" className="relative mb-8 scroll-mt-24 overflow-hidden rounded-3xl bg-neutral-900 p-7 text-white shadow-[0_24px_70px_rgba(27,25,20,0.12)] sm:p-10 lg:p-12">
+        {(!authenticated || activeSection === 'admin-dashboard') && <header id="admin-dashboard" className="relative mb-6 scroll-mt-24 overflow-hidden rounded-2xl bg-neutral-900 p-5 text-white shadow-[0_24px_70px_rgba(27,25,20,0.12)] sm:mb-8 sm:rounded-3xl sm:p-10 lg:p-12">
           <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-40" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-900/80 to-neutral-900/25" />
           <div className="pointer-events-none absolute -right-12 -top-32 h-80 w-80 rounded-full border border-white/10" />
@@ -1119,9 +1120,9 @@ const PortalAdmin: React.FC = () => {
               </Link>
             )}
           </div>
-          <div className="relative mt-12 max-w-3xl sm:mt-16">
+          <div className="relative mt-8 max-w-3xl sm:mt-16">
             <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.18em] text-white/65">{authenticated && selectedProject ? `${t.overview} / ${selectedProject.project_code}` : t.eyebrow}</p>
-            <h1 className="font-display text-4xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-6xl">{authenticated && selectedProject ? selectedProject.project_name : t.title}</h1>
+            <h1 className="break-words font-display text-3xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-6xl">{authenticated && selectedProject ? selectedProject.project_name : t.title}</h1>
             <p className="mt-5 max-w-xl text-sm leading-7 text-white/70 sm:text-base">
               {authenticated && selectedProject
                 ? [selectedProject.client_name, selectedProject.location].filter(Boolean).join(' / ')
@@ -1322,7 +1323,7 @@ const PortalAdmin: React.FC = () => {
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div>
                             <p className="font-medium">{item.client_name}<span className="mx-2 text-neutral-300">/</span><span className="font-mono text-[10px] text-bronze-600 dark:text-bronze-400">{item.project_code}</span></p>
-                            <p className="mt-1 text-xs text-neutral-500">{item.project_name}{item.client_email ? ` · ${item.client_email}` : ''}</p>
+                            <p className="mt-1 break-words text-xs text-neutral-500">{item.project_name}{item.client_email ? ` · ${item.client_email}` : ''}</p>
                           </div>
                           <span className={`rounded-full px-3 py-1.5 text-[9px] font-medium ${item.reply ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'}`}>
                             {item.reply ? t.feedbackReplied : t.feedbackWaiting}
@@ -1330,7 +1331,7 @@ const PortalAdmin: React.FC = () => {
                         </div>
                         <div className="mt-4 border-t border-neutral-200 pt-4 dark:border-white/10">
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <h3 className="font-display text-lg font-medium">{item.subject}</h3>
+                            <h3 className="min-w-0 break-words font-display text-lg font-medium">{item.subject}</h3>
                             <time className="font-mono text-[9px] uppercase tracking-widest text-neutral-400">{t.feedbackSubmitted}: {formatAdminDateTime(item.created_at, language)}</time>
                           </div>
                           <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-neutral-600 dark:text-neutral-400">{item.message}</p>
