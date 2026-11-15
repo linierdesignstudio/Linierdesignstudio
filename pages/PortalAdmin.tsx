@@ -628,6 +628,7 @@ const PortalAdmin: React.FC = () => {
   const [passwordRequests, setPasswordRequests] = useState<PasswordResetRequest[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<AdminFeedback[]>([]);
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
+  const [billingAmount, setBillingAmount] = useState('');
   const [changeOrders, setChangeOrders] = useState<ProjectChangeOrder[]>([]);
   const [seenFeedbackIds, setSeenFeedbackIds] = useState<Set<string>>(() => new Set(
     (localStorage.getItem('linier-admin-seen-feedback') ?? '').split(',').filter(Boolean)
@@ -961,12 +962,13 @@ const PortalAdmin: React.FC = () => {
         body: JSON.stringify({
           projectId: selectedProjectId,
           title: values.get('title'),
-          amount: Number(values.get('amount')),
+          amount: Number(String(values.get('amount') ?? '').replace(/\./g, '')),
           dueDate: values.get('dueDate'),
         }),
       });
       setBillingItems((current) => [...current, item].sort((a, b) => a.due_date.localeCompare(b.due_date)));
       form.reset();
+      setBillingAmount('');
       setNotice(t.billingCreated);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Termin pembayaran tidak dapat disimpan.');
@@ -1725,7 +1727,7 @@ const PortalAdmin: React.FC = () => {
                   <h3 className="mb-5 font-display text-lg font-medium">{t.billingAdd}</h3>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block sm:col-span-2"><span className="mb-2 block text-xs font-medium">{t.billingName}</span><input name="title" required maxLength={120} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
-                    <label className="block"><span className="mb-2 block text-xs font-medium">{t.billingAmount}</span><input name="amount" type="number" min={1} step={1} required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
+                    <label className="block"><span className="mb-2 block text-xs font-medium">{t.billingAmount}</span><input name="amount" type="text" inputMode="numeric" autoComplete="off" placeholder="1.000.000" value={billingAmount} onChange={(event) => setBillingAmount(formatAdminIntegerInput(event.target.value))} required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
                     <label className="block"><span className="mb-2 block text-xs font-medium">{t.billingDueDate}</span><input name="dueDate" type="date" required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950 dark:[color-scheme:dark]" /></label>
                   </div>
                   <div className="mt-5 flex justify-end"><button disabled={busy || !selectedProjectId} className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 text-xs font-medium text-white transition-colors hover:bg-bronze-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-neutral-950"><Plus size={14} /> {t.billingSave}</button></div>
@@ -2215,6 +2217,11 @@ function formatAdminDate(value: string, language: string): string {
 function formatAdminCurrency(value: string | number, language: string): string {
   const locale = language === 'ID' ? 'id-ID' : language === 'CN' ? 'zh-CN' : 'en-US';
   return new Intl.NumberFormat(locale, { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value));
+}
+
+function formatAdminIntegerInput(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
 function formatAdminDateTime(value: string, language: string): string {
