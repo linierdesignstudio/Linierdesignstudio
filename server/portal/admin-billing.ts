@@ -1,6 +1,6 @@
 import type { ApiRequest, ApiResponse } from './http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from './http.js';
-import { createStorageDownloadUrl, getSession, requireAdminPermission, supabaseRequest } from './portal.js';
+import { createStorageDownloadUrl, deleteStorageObjects, getSession, requireAdminPermission, supabaseRequest } from './portal.js';
 
 interface BillingRecord {
   id: string;
@@ -94,12 +94,38 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const body = await readJson(request);
     const itemId = typeof body.itemId === 'string' ? body.itemId : '';
     if (!isUuid(itemId)) throw new HttpError(400, 'Termin pembayaran yang dipilih tidak valid.');
+    const items = await supabaseRequest<BillingRecord[]>(
+      `project_billing_items?id=eq.${encodeURIComponent(itemId)}&select=${BILLING_FIELDS}&limit=1`
+    );
+    const item = items[0];
+    if (!item) throw new HttpError(404, 'Termin pembayaran tidak ditemukan.');
+    if (item.payment_proof_path && (!isUuid(item.project_id) || !isStoredProofPath(item.payment_proof_path, item.project_id))) {
+      throw new HttpError(502, 'Lokasi bukti pembayaran tidak valid.');
+    }
+    if (item.status === 'uploading') {
+      const uploadExpiresAt = item.proof_upload_expires_at ? new Date(item.proof_upload_expires_at).getTime() : NaN;
+      if (!Number.isFinite(uploadExpiresAt) || uploadExpiresAt > Date.now()) {
+        throw new HttpError(409, 'Bukti pembayaran sedang diunggah. Tunggu hingga unggahan selesai atau sesi berakhir, lalu hapus kembali.');
+      }
+    }
+    const proofPathFilter = item.payment_proof_path
+      ? `payment_proof_path=eq.${encodeURIComponent(item.payment_proof_path)}`
+      : 'payment_proof_path=is.null';
     const deleted = await supabaseRequest<Array<{ id: string }>>(
-      `project_billing_items?id=eq.${encodeURIComponent(itemId)}&status=eq.unpaid&payment_proof_path=is.null&select=id`,
+      `project_billing_items?id=eq.${encodeURIComponent(itemId)}&project_id=eq.${encodeURIComponent(item.project_id)}&status=eq.${encodeURIComponent(item.status)}&${proofPathFilter}&select=id`,
       { method: 'DELETE', headers: { Prefer: 'return=representation' } }
     );
-    if (!deleted[0]) throw new HttpError(409, 'Hanya termin yang belum memiliki bukti pembayaran dan belum diproses yang dapat dihapus.');
-    sendJson(response, 200, { deleted: true });
+    if (!deleted[0]) throw new HttpError(409, 'Tagihan sedang diperbarui. Muat ulang daftar lalu coba lagi.');
+    let cleanupFailed = false;
+    if (item.payment_proof_path) {
+      try {
+        await deleteStorageObjects([item.payment_proof_path]);
+      } catch (error) {
+        console.error('Payment proof cleanup failed after deleting billing item:', error);
+        cleanupFailed = true;
+      }
+    }
+    sendJson(response, 200, { deleted: true, cleanupFailed });
   } catch (error) {
     sendError(response, error);
   }

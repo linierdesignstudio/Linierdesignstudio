@@ -160,12 +160,13 @@ const copy = {
     billingReviewNote: 'Catatan untuk klien',
     billingApproveProof: 'Tandai lunas',
     billingRejectProof: 'Minta unggah ulang',
-    billingDelete: 'Hapus termin',
-    billingDeleteConfirm: 'Hapus termin pembayaran yang belum dibayar ini?',
+    billingDelete: 'Hapus tagihan',
+    billingDeleteConfirm: 'Hapus tagihan ini beserta bukti pembayarannya secara permanen? Tindakan ini tidak dapat dibatalkan.',
     billingCreated: 'Termin pembayaran berhasil ditambahkan.',
     billingPaidSaved: 'Pembayaran berhasil ditandai lunas.',
     billingProofRejected: 'Bukti ditolak dan klien dapat mengunggah ulang.',
     billingDeleted: 'Termin pembayaran berhasil dihapus.',
+    billingDeletedCleanupFailed: 'Tagihan sudah dihapus, tetapi file bukti gagal dibersihkan dari penyimpanan.',
     billingOverdue: 'Terlambat',
     billingRefresh: 'Perbarui tagihan',
     changeOrders: 'Perubahan pekerjaan',
@@ -351,12 +352,13 @@ const copy = {
     billingReviewNote: 'Note for the client',
     billingApproveProof: 'Mark as paid',
     billingRejectProof: 'Request new proof',
-    billingDelete: 'Delete installment',
-    billingDeleteConfirm: 'Delete this unpaid payment installment?',
+    billingDelete: 'Delete bill',
+    billingDeleteConfirm: 'Permanently delete this bill and its payment proof? This action cannot be undone.',
     billingCreated: 'Payment installment added.',
     billingPaidSaved: 'Payment marked as paid.',
     billingProofRejected: 'Proof rejected; the client can upload a replacement.',
     billingDeleted: 'Payment installment deleted.',
+    billingDeletedCleanupFailed: 'The bill was deleted, but its proof file could not be removed from storage.',
     billingOverdue: 'Overdue',
     billingRefresh: 'Refresh billing',
     changeOrders: 'Scope changes',
@@ -542,12 +544,13 @@ const copy = {
     billingReviewNote: '给客户的说明',
     billingApproveProof: '标记为已付款',
     billingRejectProof: '要求重新上传',
-    billingDelete: '删除付款阶段',
-    billingDeleteConfirm: '删除此未付款阶段？',
+    billingDelete: '删除账单',
+    billingDeleteConfirm: '永久删除此账单及其付款凭证？此操作无法撤销。',
     billingCreated: '付款阶段已添加。',
     billingPaidSaved: '付款已标记为已付款。',
     billingProofRejected: '凭证已退回，客户可以重新上传。',
     billingDeleted: '付款阶段已删除。',
+    billingDeletedCleanupFailed: '账单已删除，但付款凭证文件未能从存储中清除。',
     billingOverdue: '已逾期',
     billingRefresh: '刷新账单',
     changeOrders: '工程变更',
@@ -1040,12 +1043,12 @@ const PortalAdmin: React.FC = () => {
     setError('');
     setNotice('');
     try {
-      await portalRequest<{ deleted: boolean }>('/api/portal/admin/billing', {
+      const { cleanupFailed } = await portalRequest<{ deleted: boolean; cleanupFailed: boolean }>('/api/portal/admin/billing', {
         method: 'DELETE',
         body: JSON.stringify({ itemId: item.id }),
       });
       setBillingItems((current) => current.filter((entry) => entry.id !== item.id));
-      setNotice(t.billingDeleted);
+      setNotice(cleanupFailed ? t.billingDeletedCleanupFailed : t.billingDeleted);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Termin pembayaran tidak dapat dihapus.');
     } finally {
@@ -1756,11 +1759,9 @@ const PortalAdmin: React.FC = () => {
                               </div>
                             </form>
                           )}
-                          {item.status === 'unpaid' && !item.payment_proof_path && (
-                            <div className="mt-3 flex justify-end">
-                              <button type="button" disabled={busy} onClick={() => void deleteBillingItem(item)} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-red-600 transition-colors hover:bg-red-500/5 disabled:opacity-50 dark:text-red-300"><Trash2 size={13} /> {t.billingDelete}</button>
-                            </div>
-                          )}
+                          <div className="mt-3 flex justify-end">
+                            <button type="button" disabled={busy} onClick={() => void deleteBillingItem(item)} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-red-600 transition-colors hover:bg-red-500/5 disabled:opacity-50 dark:text-red-300"><Trash2 size={13} /> {t.billingDelete}</button>
+                          </div>
                         </li>
                       ))}
                     </ul>
