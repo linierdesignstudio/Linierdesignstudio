@@ -384,8 +384,12 @@ const Home: React.FC = () => {
                   {t.home.next_steps}
                 </p>
                 <h2 className="mt-6 font-display text-5xl font-semibold uppercase leading-[0.9] tracking-tight text-neutral-900 dark:text-white sm:text-6xl md:text-8xl lg:text-[9vw]">
-                  <span className="block">{t.home.have_a}</span>
-                  <span className="block text-bronze-600 dark:text-bronze-500">{t.home.vision}</span>
+                  <span className="block">
+                    <TextReveal delay={0.1}>{t.home.have_a}</TextReveal>
+                  </span>
+                  <span className="block text-bronze-600 dark:text-bronze-500">
+                    <TextReveal delay={0.25}>{t.home.vision}</TextReveal>
+                  </span>
                 </h2>
               </div>
               <Link
