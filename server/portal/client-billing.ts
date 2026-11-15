@@ -125,7 +125,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
         throw new HttpError(409, 'Sesi unggah sudah berakhir. Silakan unggah bukti kembali.');
       }
       const updated = await supabaseRequest<BillingRecord[]>(
-        `project_billing_items?id=eq.${encodeURIComponent(itemId)}&project_id=eq.${encodeURIComponent(projectId)}&status=eq.uploading&payment_proof_path=eq.${encodeURIComponent(current.payment_proof_path)}&proof_upload_expires_at=gt.${encodeURIComponent(current.proof_upload_expires_at)}&select=${BILLING_FIELDS}`,
+        `project_billing_items?id=eq.${encodeURIComponent(itemId)}&project_id=eq.${encodeURIComponent(projectId)}&status=eq.uploading&payment_proof_path=eq.${encodeURIComponent(current.payment_proof_path)}&proof_upload_expires_at=eq.${encodeURIComponent(current.proof_upload_expires_at)}&select=${BILLING_FIELDS}`,
         {
           method: 'PATCH',
           headers: { Prefer: 'return=representation' },
