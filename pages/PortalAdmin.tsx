@@ -151,6 +151,9 @@ const copy = {
     billingRejected: 'Bukti perlu diperbaiki',
     billingPaid: 'Lunas',
     billingProof: 'Bukti pembayaran',
+    billingProofReceived: 'Bukti pembayaran diunggah',
+    billingProofLinkUnavailable: 'Tautan bukti belum tersedia; periksa konfigurasi penyimpanan atau muat ulang.',
+    billingSubmittedAt: 'Dikirim',
     billingNoProof: 'Belum ada bukti pembayaran.',
     billingUploadProof: 'Unggah bukti pembayaran',
     billingProofHint: 'JPG, PNG, WEBP, atau PDF · Maksimal 5 MB.',
@@ -339,6 +342,9 @@ const copy = {
     billingRejected: 'Proof needs changes',
     billingPaid: 'Paid',
     billingProof: 'Payment proof',
+    billingProofReceived: 'Payment proof uploaded',
+    billingProofLinkUnavailable: 'The proof link is unavailable; check storage configuration or refresh.',
+    billingSubmittedAt: 'Submitted',
     billingNoProof: 'No payment proof submitted.',
     billingUploadProof: 'Upload payment proof',
     billingProofHint: 'JPG, PNG, WEBP, or PDF · Up to 5 MB.',
@@ -527,6 +533,9 @@ const copy = {
     billingRejected: '凭证需要修改',
     billingPaid: '已付款',
     billingProof: '付款凭证',
+    billingProofReceived: '付款凭证已上传',
+    billingProofLinkUnavailable: '凭证链接暂不可用，请检查存储配置或刷新。',
+    billingSubmittedAt: '提交时间',
     billingNoProof: '尚未提交付款凭证。',
     billingUploadProof: '上传付款凭证',
     billingProofHint: 'JPG、PNG、WEBP 或 PDF · 最大 5 MB。',
@@ -733,6 +742,32 @@ const PortalAdmin: React.FC = () => {
       });
     return () => { active = false; };
   }, [authenticated, adminRole, selectedProjectId]);
+
+  useEffect(() => {
+    if (!authenticated || adminRole !== 'admin' || !selectedProjectId || activeSection !== 'admin-billing') return;
+    let active = true;
+    let refreshing = false;
+    const refreshBilling = async () => {
+      if (refreshing) return;
+      refreshing = true;
+      try {
+        const { items } = await portalRequest<{ items: BillingItem[] }>(
+          `/api/portal/admin/billing?projectId=${encodeURIComponent(selectedProjectId)}`
+        );
+        if (active) setBillingItems(items);
+      } catch (cause) {
+        if (active) setError(cause instanceof Error ? cause.message : 'Tagihan tidak dapat dimuat.');
+      } finally {
+        refreshing = false;
+      }
+    };
+    void refreshBilling();
+    const interval = window.setInterval(() => void refreshBilling(), 30_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [authenticated, adminRole, selectedProjectId, activeSection]);
 
   const signIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -1696,6 +1731,14 @@ const PortalAdmin: React.FC = () => {
                               <FileText size={14} /> {t.billingProof}: {item.payment_proof_name || t.billingProof}
                             </a>
                           )}
+                          {item.payment_proof_submitted_at && (
+                            <p className="mt-3 flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300">
+                              <CheckCircle2 size={14} className="shrink-0" />
+                              <span>{t.billingProofReceived} · {t.billingSubmittedAt}: {formatAdminDateTime(item.payment_proof_submitted_at, language)}</span>
+                            </p>
+                          )}
+                          {item.payment_proof_unavailable && <p role="status" className="mt-3 rounded-lg bg-amber-500/10 p-3 text-xs leading-5 text-amber-800 dark:text-amber-200">{t.billingProofLinkUnavailable}</p>}
+                          {item.status === 'pending_review' && !item.payment_proof_url && !item.payment_proof_unavailable && <p role="alert" className="mt-3 rounded-lg bg-red-500/10 p-3 text-xs leading-5 text-red-700 dark:text-red-200">{t.billingNoProof}</p>}
                           {item.payment_review_note && <p className="mt-3 rounded-lg bg-red-500/5 p-3 text-xs leading-5 text-neutral-600 dark:text-neutral-300">{item.payment_review_note}</p>}
                           {item.status === 'pending_review' && (
                             <form className="mt-4 border-t border-neutral-200 pt-4 dark:border-white/10" onSubmit={(event) => {

@@ -80,6 +80,10 @@ const copy = {
     billingPaid: 'Lunas',
     billingOverdue: 'Terlambat',
     billingProof: 'Bukti pembayaran',
+    billingProofReceived: 'Bukti pembayaran sudah diunggah.',
+    billingProofLinkUnavailable: 'Bukti sudah diterima, tetapi tautan pratinjau belum tersedia. Muat ulang portal atau hubungi studio.',
+    billingSubmittedAt: 'Dikirim',
+    billingOverdueUploadHint: 'Meskipun lewat jatuh tempo, bukti pembayaran tetap dapat diunggah.',
     billingProofHint: 'Format JPG, PNG, WEBP, atau PDF; maksimal 5 MB.',
     billingUpload: 'Unggah bukti pembayaran',
     billingUploadingAction: 'Mengunggah...',
@@ -185,6 +189,10 @@ const copy = {
     billingPaid: 'Paid',
     billingOverdue: 'Overdue',
     billingProof: 'Payment proof',
+    billingProofReceived: 'Payment proof uploaded.',
+    billingProofLinkUnavailable: 'The proof was received, but its preview link is unavailable. Refresh the portal or contact the studio.',
+    billingSubmittedAt: 'Submitted',
+    billingOverdueUploadHint: 'You can still upload payment proof after the due date.',
     billingProofHint: 'JPG, PNG, WEBP, or PDF; up to 5 MB.',
     billingUpload: 'Upload payment proof',
     billingUploadingAction: 'Uploading...',
@@ -290,6 +298,10 @@ const copy = {
     billingPaid: '已付款',
     billingOverdue: '已逾期',
     billingProof: '付款凭证',
+    billingProofReceived: '付款凭证已上传。',
+    billingProofLinkUnavailable: '已收到凭证，但预览链接暂不可用。请刷新门户或联系工作室。',
+    billingSubmittedAt: '提交时间',
+    billingOverdueUploadHint: '即使已过付款期限，仍可上传付款凭证。',
     billingProofHint: 'JPG、PNG、WEBP 或 PDF，最大 5 MB。',
     billingUpload: '上传付款凭证',
     billingUploadingAction: '正在上传...',
@@ -850,10 +862,18 @@ const ClientPortal: React.FC = () => {
                         </span>
                       </div>
                       {item.payment_proof_url && <a href={item.payment_proof_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-bronze-700 underline underline-offset-2 dark:text-bronze-300"><FileText size={14} /> {t.billingProof}: {item.payment_proof_name || t.viewFile}</a>}
+                      {item.payment_proof_submitted_at && item.status !== 'uploading' && item.status !== 'unpaid' && (
+                        <p className="mt-3 flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300">
+                          <CheckCircle2 size={14} className="shrink-0" />
+                          <span>{t.billingProofReceived} · {t.billingSubmittedAt}: {formatDateTime(item.payment_proof_submitted_at, language)}</span>
+                        </p>
+                      )}
+                      {item.payment_proof_unavailable && <p role="status" className="mt-3 rounded-lg bg-amber-500/10 p-3 text-xs leading-5 text-amber-800 dark:text-amber-200">{t.billingProofLinkUnavailable}</p>}
                       {item.payment_review_note && <p className="mt-3 rounded-lg bg-red-500/5 p-3 text-xs leading-5 text-neutral-600 dark:text-neutral-300"><span className="font-medium">{t.billingReviewNote}: </span>{item.payment_review_note}</p>}
                       {(item.status === 'unpaid' || item.status === 'rejected') && (
                         <label className="mt-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-300 bg-white px-4 py-4 text-center transition-colors hover:border-bronze-500 dark:border-white/15 dark:bg-neutral-950">
                           <span className="inline-flex items-center gap-2 text-xs font-medium"><Upload size={15} className="text-bronze-500" />{billingBusyId === item.id ? t.billingUploadingAction : t.billingUpload}</span>
+                          {item.due_date < currentDate() && <span className="text-[10px] leading-5 text-amber-700 dark:text-amber-300">{t.billingOverdueUploadHint}</span>}
                           <span className="text-[10px] leading-5 text-neutral-500">{t.billingProofHint}</span>
                           <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled={Boolean(billingBusyId)} className="sr-only" onChange={(event) => void uploadPaymentProof(event, item)} />
                         </label>

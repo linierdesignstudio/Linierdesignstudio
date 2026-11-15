@@ -137,7 +137,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
         }
       );
       if (!updated[0]) throw new HttpError(409, 'Bukti pembayaran sudah diproses atau sesi unggah sudah berakhir.');
-      sendJson(response, 200, { item: updated[0] });
+      sendJson(response, 200, { item: (await addProofUrls([updated[0]]))[0] });
       return;
     }
 
@@ -222,10 +222,15 @@ async function addProofUrls(items: BillingRecord[]) {
     if (!isStoredProofPath(item.payment_proof_path, item.project_id)) {
       throw new HttpError(502, 'Lokasi bukti pembayaran tidak valid.');
     }
-    return {
-      ...item,
-      payment_proof_url: await createStorageDownloadUrl(item.payment_proof_path, item.payment_proof_name ?? true),
-    };
+    try {
+      return {
+        ...item,
+        payment_proof_url: await createStorageDownloadUrl(item.payment_proof_path, item.payment_proof_name ?? true),
+      };
+    } catch (error) {
+      console.error('Client payment proof link creation failed:', error);
+      return { ...item, payment_proof_unavailable: true };
+    }
   }));
 }
 

@@ -107,14 +107,19 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
 async function addProofUrls(items: BillingRecord[]) {
   return Promise.all(items.map(async (item) => {
-    if (!item.payment_proof_path) return item;
+    if (!item.payment_proof_path || item.status === 'uploading') return item;
     if (!isUuid(item.project_id) || !isStoredProofPath(item.payment_proof_path, item.project_id)) {
       throw new HttpError(502, 'Lokasi bukti pembayaran tidak valid.');
     }
-    return {
-      ...item,
-      payment_proof_url: await createStorageDownloadUrl(item.payment_proof_path, item.payment_proof_name ?? true),
-    };
+    try {
+      return {
+        ...item,
+        payment_proof_url: await createStorageDownloadUrl(item.payment_proof_path, item.payment_proof_name ?? true),
+      };
+    } catch (error) {
+      console.error('Admin payment proof link creation failed:', error);
+      return { ...item, payment_proof_unavailable: true };
+    }
   }));
 }
 

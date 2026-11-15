@@ -73,6 +73,7 @@ export interface BillingItem {
   payment_proof_name: string | null;
   payment_proof_content_type: string | null;
   payment_proof_url?: string;
+  payment_proof_unavailable?: boolean;
   payment_proof_submitted_at: string | null;
   payment_review_note: string | null;
   paid_at: string | null;
