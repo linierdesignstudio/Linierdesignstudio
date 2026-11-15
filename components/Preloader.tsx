@@ -73,6 +73,7 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
       setFinalStage(true);
       await wait(500);
       setPresentVisible(true);
+      await wait(700);
 
       // 7. Count
       let p = 0;
@@ -232,9 +233,9 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
           {presentVisible && (
             <motion.h1
               className="absolute inset-0 z-20 flex items-center justify-center whitespace-nowrap px-6 text-center font-display text-[clamp(2.2rem,8vw,6.5rem)] font-medium leading-none tracking-[-0.045em] text-white"
-              initial={{ x: '-100vw', opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0.18, filter: 'brightness(0.12) blur(10px)', scale: 0.96 }}
+              animate={{ opacity: 1, filter: 'brightness(1) blur(0px)', scale: 1 }}
+              transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
             >
               Linier present
             </motion.h1>
