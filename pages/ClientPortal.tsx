@@ -236,6 +236,24 @@ const ClientPortal: React.FC = () => {
   const feedbackMessagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!resetNotice) return;
+    const timeout = window.setTimeout(() => setResetNotice(''), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [resetNotice]);
+
+  useEffect(() => {
+    if (!passwordChangeNotice) return;
+    const timeout = window.setTimeout(() => setPasswordChangeNotice(''), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [passwordChangeNotice]);
+
+  useEffect(() => {
+    if (!feedbackNotice) return;
+    const timeout = window.setTimeout(() => setFeedbackNotice(''), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [feedbackNotice]);
+
+  useEffect(() => {
     let active = true;
     portalRequest<{ projects: PortalProject[] }>('/api/portal/client/session')
       .then(({ projects: clientProjects }) => {
@@ -659,7 +677,7 @@ const ClientPortal: React.FC = () => {
                         <div className="flex justify-end">
                           <div className="max-w-[88%] rounded-2xl rounded-br-sm bg-neutral-900 px-4 py-3 text-white dark:bg-white dark:text-neutral-950">
                             <p className="whitespace-pre-wrap break-words text-sm leading-6">{item.message}</p>
-                            <time className="mt-2 block text-right font-mono text-[9px] text-white/50 dark:text-neutral-500">{formatDate(item.created_at.slice(0, 10), language)}</time>
+                            <time className="mt-2 block text-right font-mono text-[9px] text-white/50 dark:text-neutral-500">{formatDateTime(item.created_at, language)}</time>
                           </div>
                         </div>
                         {item.reply ? (
@@ -668,7 +686,7 @@ const ClientPortal: React.FC = () => {
                               <p className="whitespace-pre-wrap break-words text-sm leading-6 text-neutral-700 dark:text-neutral-200">{item.reply}</p>
                               <p className="mt-2 text-right font-mono text-[9px] text-neutral-400">
                                 {item.replied_by === 'staff' ? t.feedbackReplyByStaff : t.feedbackReplyByAdmin}
-                                {item.replied_at ? ` · ${formatDate(item.replied_at.slice(0, 10), language)}` : ''}
+                                {item.replied_at ? ` · ${formatDateTime(item.replied_at, language)}` : ''}
                               </p>
                             </div>
                           </div>
@@ -832,6 +850,17 @@ function PasswordField({
 function formatDate(value: string, language: string): string {
   const locale = language === 'ID' ? 'id-ID' : language === 'CN' ? 'zh-CN' : 'en-US';
   return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
+}
+
+function formatDateTime(value: string, language: string): string {
+  const locale = language === 'ID' ? 'id-ID' : language === 'CN' ? 'zh-CN' : 'en-US';
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
 }
 
 function formatDuration(startDate: string, language: keyof typeof copy): string {

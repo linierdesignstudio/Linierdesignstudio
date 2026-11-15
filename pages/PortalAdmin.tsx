@@ -125,7 +125,7 @@ const copy = {
     feedback: 'Feedback',
     feedbackInbox: 'Inbox feedback klien',
     feedbackCount: 'Feedback masuk',
-    pendingFeedback: 'Menunggu balasan',
+    pendingFeedback: 'Feedback belum dibuka',
     noFeedback: 'Belum ada feedback dari klien.',
     refreshFeedback: 'Perbarui feedback',
     feedbackSubmitted: 'Dikirim',
@@ -257,7 +257,7 @@ const copy = {
     feedback: 'Feedback',
     feedbackInbox: 'Client feedback inbox',
     feedbackCount: 'Feedback received',
-    pendingFeedback: 'Awaiting reply',
+    pendingFeedback: 'Unread feedback',
     noFeedback: 'There is no client feedback yet.',
     refreshFeedback: 'Refresh feedback',
     feedbackSubmitted: 'Submitted',
@@ -389,7 +389,7 @@ const copy = {
     feedback: '反馈',
     feedbackInbox: '客户反馈收件箱',
     feedbackCount: '收到的反馈',
-    pendingFeedback: '等待回复',
+    pendingFeedback: '未读反馈',
     noFeedback: '暂无客户反馈。',
     refreshFeedback: '刷新反馈',
     feedbackSubmitted: '提交时间',
@@ -459,6 +459,9 @@ const PortalAdmin: React.FC = () => {
   const [projects, setProjects] = useState<PortalProject[]>([]);
   const [passwordRequests, setPasswordRequests] = useState<PasswordResetRequest[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<AdminFeedback[]>([]);
+  const [seenFeedbackIds, setSeenFeedbackIds] = useState<Set<string>>(() => new Set(
+    (localStorage.getItem('linier-admin-seen-feedback') ?? '').split(',').filter(Boolean)
+  ));
   const [issuedPassword, setIssuedPassword] = useState<IssuedPassword | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [adminUpdates, setAdminUpdates] = useState<PortalUpdate[]>([]);
@@ -477,6 +480,12 @@ const PortalAdmin: React.FC = () => {
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'));
   }, []);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = window.setTimeout(() => setNotice(''), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
 
   useEffect(() => {
     const previews = selectedFiles
@@ -700,11 +709,18 @@ const PortalAdmin: React.FC = () => {
     try {
       const result = await portalRequest<{ feedback: AdminFeedback[] }>('/api/portal/admin/updates?resource=feedback');
       setFeedbackItems(result.feedback);
+      if (activeSection === 'admin-feedback') markFeedbackAsSeen(result.feedback);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Feedback tidak dapat dimuat.');
     } finally {
       setBusy(false);
     }
+  };
+
+  const markFeedbackAsSeen = (items: AdminFeedback[]) => {
+    const seenIds = new Set(items.map((item) => item.id));
+    setSeenFeedbackIds(seenIds);
+    localStorage.setItem('linier-admin-seen-feedback', [...seenIds].join(','));
   };
 
   const submitFeedbackReply = async (event: React.FormEvent<HTMLFormElement>, item: AdminFeedback) => {
@@ -1003,8 +1019,9 @@ const PortalAdmin: React.FC = () => {
     ? Math.round(projects.reduce((sum, project) => sum + project.progress_percent, 0) / projects.length)
     : 0;
   const completedProjectCount = projects.filter((project) => project.progress_percent === 100).length;
-  const pendingFeedbackCount = feedbackItems.filter((item) => !item.reply).length;
+  const unreadFeedbackCount = feedbackItems.filter((item) => !seenFeedbackIds.has(item.id)).length;
   const openAdminPage = (sectionId: string) => {
+    if (sectionId === 'admin-feedback') markFeedbackAsSeen(feedbackItems);
     setActiveSection(sectionId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -1052,7 +1069,7 @@ const PortalAdmin: React.FC = () => {
               >
                 <span className={activeSection === item.id ? 'text-bronze-300' : 'text-white/45'}>{item.icon}</span><span>{item.label}</span>
                 {item.id === 'admin-resets' && passwordRequests.length > 0 && <span className="ml-auto rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{passwordRequests.length}</span>}
-                {item.id === 'admin-feedback' && pendingFeedbackCount > 0 && <span className="ml-auto rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{pendingFeedbackCount}</span>}
+                {item.id === 'admin-feedback' && unreadFeedbackCount > 0 && <span className="ml-auto rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{unreadFeedbackCount}</span>}
               </button>
             ))}
           </nav>
@@ -1160,7 +1177,7 @@ const PortalAdmin: React.FC = () => {
               <Metric icon={<CheckCircle2 size={17} />} label={t.completedProjects} value={completedProjectCount.toString().padStart(2, '0')} />
               <Metric icon={<ClipboardList size={17} />} label={t.progress} value={`${averageProgress}%`} />
               <Metric icon={<Users size={17} />} label={t.clientCount} value={clientDirectory.length.toString().padStart(2, '0')} />
-              <Metric icon={<MessageCircle size={17} />} label={t.pendingFeedback} value={pendingFeedbackCount.toString().padStart(2, '0')} />
+              <Metric icon={<MessageCircle size={17} />} label={t.pendingFeedback} value={unreadFeedbackCount.toString().padStart(2, '0')} />
             </div>
             <div className="mb-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
               <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
@@ -1314,13 +1331,13 @@ const PortalAdmin: React.FC = () => {
                         <div className="mt-4 border-t border-neutral-200 pt-4 dark:border-white/10">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <h3 className="font-display text-lg font-medium">{item.subject}</h3>
-                            <time className="font-mono text-[9px] uppercase tracking-widest text-neutral-400">{t.feedbackSubmitted}: {formatAdminDate(item.created_at, language)}</time>
+                            <time className="font-mono text-[9px] uppercase tracking-widest text-neutral-400">{t.feedbackSubmitted}: {formatAdminDateTime(item.created_at, language)}</time>
                           </div>
                           <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-neutral-600 dark:text-neutral-400">{item.message}</p>
                         </div>
                         {item.reply && item.replied_at && (
                           <p className="mt-4 text-[10px] text-neutral-500">
-                            {item.replied_by === 'staff' ? t.studioStaff : t.studioAdmin} · {formatAdminDate(item.replied_at, language)}
+                            {item.replied_by === 'staff' ? t.studioStaff : t.studioAdmin} · {formatAdminDateTime(item.replied_at, language)}
                           </p>
                         )}
                         <form key={`${item.id}-${item.replied_at ?? 'pending'}`} onSubmit={(event) => submitFeedbackReply(event, item)} className="mt-4 border-t border-neutral-200 pt-4 dark:border-white/10">
@@ -1759,6 +1776,17 @@ function formatAdminDate(value: string, language: string): string {
     month: 'short',
     year: 'numeric',
     timeZone: 'UTC',
+  }).format(new Date(value));
+}
+
+function formatAdminDateTime(value: string, language: string): string {
+  const locale = language === 'ID' ? 'id-ID' : language === 'CN' ? 'zh-CN' : 'en-US';
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   }).format(new Date(value));
 }
 
