@@ -23,12 +23,14 @@ export type AdminPermission =
   | 'delete_updates'
   | 'delete_projects'
   | 'process_resets'
-  | 'manage_client_access';
+  | 'manage_client_access'
+  | 'feedback_manage';
 
 const STAFF_PERMISSIONS = new Set<AdminPermission>([
   'project_read',
   'manage_updates',
   'process_resets',
+  'feedback_manage',
 ]);
 
 export interface ProjectRecord {

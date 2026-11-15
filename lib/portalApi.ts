@@ -42,6 +42,24 @@ export interface PasswordResetRequest {
   created_at: string;
 }
 
+export interface ClientFeedback {
+  id: string;
+  project_id: string;
+  subject: string;
+  message: string;
+  reply: string | null;
+  replied_by: 'admin' | 'staff' | null;
+  created_at: string;
+  replied_at: string | null;
+}
+
+export interface AdminFeedback extends ClientFeedback {
+  project_code: string;
+  project_name: string;
+  client_name: string;
+  client_email: string | null;
+}
+
 export async function portalRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,

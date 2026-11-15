@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Send, Sun, Trash2, Upload, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type PasswordResetRequest, type PortalAttachment, type PortalProject, type PortalUpdate } from '../lib/portalApi';
+import { portalRequest, type AdminFeedback, type PasswordResetRequest, type PortalAttachment, type PortalProject, type PortalUpdate } from '../lib/portalApi';
 import { Language } from '../types';
 
 const copy = {
@@ -118,6 +118,25 @@ const copy = {
     studioStaff: 'Staf studio',
     navigation: 'Navigasi',
     viewAllProjects: 'Lihat semua proyek',
+    clients: 'Klien',
+    clientDirectory: 'Direktori klien',
+    noClients: 'Belum ada data klien.',
+    clientProjects: 'Proyek klien',
+    feedback: 'Feedback',
+    feedbackInbox: 'Inbox feedback klien',
+    feedbackCount: 'Feedback masuk',
+    pendingFeedback: 'Menunggu balasan',
+    noFeedback: 'Belum ada feedback dari klien.',
+    refreshFeedback: 'Perbarui feedback',
+    feedbackSubmitted: 'Dikirim',
+    feedbackReply: 'Balasan untuk klien',
+    feedbackReplyPlaceholder: 'Tulis balasan yang akan dilihat klien di portal...',
+    feedbackSendReply: 'Kirim balasan',
+    feedbackSaveReply: 'Perbarui balasan',
+    feedbackReplySaved: 'Balasan feedback berhasil disimpan.',
+    feedbackWaiting: 'Menunggu balasan',
+    feedbackReplied: 'Sudah dibalas',
+    clientCount: 'Jumlah klien',
   },
   EN: {
     eyebrow: 'LINIER STUDIO / ADMIN',
@@ -231,6 +250,25 @@ const copy = {
     studioStaff: 'Studio staff',
     navigation: 'Navigation',
     viewAllProjects: 'View all projects',
+    clients: 'Clients',
+    clientDirectory: 'Client directory',
+    noClients: 'No client records yet.',
+    clientProjects: 'Client projects',
+    feedback: 'Feedback',
+    feedbackInbox: 'Client feedback inbox',
+    feedbackCount: 'Feedback received',
+    pendingFeedback: 'Awaiting reply',
+    noFeedback: 'There is no client feedback yet.',
+    refreshFeedback: 'Refresh feedback',
+    feedbackSubmitted: 'Submitted',
+    feedbackReply: 'Reply to client',
+    feedbackReplyPlaceholder: 'Write a reply the client can see in the portal...',
+    feedbackSendReply: 'Send reply',
+    feedbackSaveReply: 'Update reply',
+    feedbackReplySaved: 'Feedback reply saved.',
+    feedbackWaiting: 'Awaiting reply',
+    feedbackReplied: 'Replied',
+    clientCount: 'Total clients',
   },
   CN: {
     eyebrow: 'LINIER STUDIO / 管理',
@@ -344,6 +382,25 @@ const copy = {
     studioStaff: '工作室员工',
     navigation: '导航',
     viewAllProjects: '查看所有项目',
+    clients: '客户',
+    clientDirectory: '客户目录',
+    noClients: '暂无客户记录。',
+    clientProjects: '客户项目',
+    feedback: '反馈',
+    feedbackInbox: '客户反馈收件箱',
+    feedbackCount: '收到的反馈',
+    pendingFeedback: '等待回复',
+    noFeedback: '暂无客户反馈。',
+    refreshFeedback: '刷新反馈',
+    feedbackSubmitted: '提交时间',
+    feedbackReply: '回复客户',
+    feedbackReplyPlaceholder: '撰写客户可在门户中查看的回复...',
+    feedbackSendReply: '发送回复',
+    feedbackSaveReply: '更新回复',
+    feedbackReplySaved: '反馈回复已保存。',
+    feedbackWaiting: '等待回复',
+    feedbackReplied: '已回复',
+    clientCount: '客户数量',
   },
 } as const;
 
@@ -375,12 +432,13 @@ interface IssuedPassword {
   };
 }
 
-async function loadAdminData(): Promise<{ projects: PortalProject[]; requests: PasswordResetRequest[] }> {
-  const [projectResult, requestResult] = await Promise.all([
+async function loadAdminData(): Promise<{ projects: PortalProject[]; requests: PasswordResetRequest[]; feedback: AdminFeedback[] }> {
+  const [projectResult, requestResult, feedbackResult] = await Promise.all([
     portalRequest<{ projects: PortalProject[] }>('/api/portal/admin/projects'),
     portalRequest<{ requests: PasswordResetRequest[] }>('/api/portal/admin/password-reset-requests'),
+    portalRequest<{ feedback: AdminFeedback[] }>('/api/portal/admin/feedback'),
   ]);
-  return { projects: projectResult.projects, requests: requestResult.requests };
+  return { projects: projectResult.projects, requests: requestResult.requests, feedback: feedbackResult.feedback };
 }
 
 async function loadAdminUpdates(projectId: string): Promise<PortalUpdate[]> {
@@ -400,6 +458,7 @@ const PortalAdmin: React.FC = () => {
   const [adminPassword, setAdminPassword] = useState('');
   const [projects, setProjects] = useState<PortalProject[]>([]);
   const [passwordRequests, setPasswordRequests] = useState<PasswordResetRequest[]>([]);
+  const [feedbackItems, setFeedbackItems] = useState<AdminFeedback[]>([]);
   const [issuedPassword, setIssuedPassword] = useState<IssuedPassword | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [adminUpdates, setAdminUpdates] = useState<PortalUpdate[]>([]);
@@ -435,6 +494,7 @@ const PortalAdmin: React.FC = () => {
         if (active) {
           setProjects(result.projects);
           setPasswordRequests(result.requests);
+          setFeedbackItems(result.feedback);
           setSelectedProjectId(result.projects[0]?.id ?? '');
           setAdminRole(role);
           setActiveSection('admin-dashboard');
@@ -483,6 +543,7 @@ const PortalAdmin: React.FC = () => {
       const result = await loadAdminData();
       setProjects(result.projects);
       setPasswordRequests(result.requests);
+      setFeedbackItems(result.feedback);
       setSelectedProjectId(result.projects[0]?.id ?? '');
       setAdminRole(role);
       setAuthenticated(true);
@@ -628,6 +689,50 @@ const PortalAdmin: React.FC = () => {
       setPasswordRequests(result.requests);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Permintaan reset tidak dapat dimuat.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const refreshFeedback = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      const result = await portalRequest<{ feedback: AdminFeedback[] }>('/api/portal/admin/feedback');
+      setFeedbackItems(result.feedback);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Feedback tidak dapat dimuat.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitFeedbackReply = async (event: React.FormEvent<HTMLFormElement>, item: AdminFeedback) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const reply = String(new FormData(form).get('reply') ?? '').trim();
+    if (!reply) {
+      setError('Balasan feedback tidak boleh kosong.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const result = await portalRequest<{
+        reply: string;
+        replied_by: 'admin' | 'staff';
+        replied_at: string;
+      }>('/api/portal/admin/feedback', {
+        method: 'POST',
+        body: JSON.stringify({ feedbackId: item.id, reply }),
+      });
+      setFeedbackItems((current) => current.map((feedback) => feedback.id === item.id
+        ? { ...feedback, ...result }
+        : feedback));
+      setNotice(t.feedbackReplySaved);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Balasan feedback tidak dapat disimpan.');
     } finally {
       setBusy(false);
     }
@@ -862,6 +967,7 @@ const PortalAdmin: React.FC = () => {
 
       const { projects: refreshedProjects } = await portalRequest<{ projects: PortalProject[] }>('/api/portal/admin/projects');
       setProjects(refreshedProjects);
+      setFeedbackItems((current) => current.filter((item) => item.project_id !== project.id));
       const nextProject = refreshedProjects.find((item) => item.id === selectedProjectId) ?? refreshedProjects[0];
       setSelectedProjectId(nextProject?.id ?? '');
       setNotice(t.deletedProject);
@@ -877,6 +983,18 @@ const PortalAdmin: React.FC = () => {
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId);
   const selectedUpdate = adminUpdates.find((update) => update.id === editingUpdateId);
+  const clientDirectory = Array.from(projects.reduce((clients, project) => {
+    const key = project.client_email?.trim().toLowerCase() || project.id;
+    const client = clients.get(key) ?? {
+      key,
+      name: project.client_name,
+      email: project.client_email,
+      projects: [] as PortalProject[],
+    };
+    client.projects.push(project);
+    clients.set(key, client);
+    return clients;
+  }, new Map<string, { key: string; name: string; email: string | null | undefined; projects: PortalProject[] }>()).values());
   const existingPhotos = editingAttachments.filter((attachment) => attachment.contentType.startsWith('image/'));
   const existingDocuments = editingAttachments.filter((attachment) => !attachment.contentType.startsWith('image/'));
   const selectedPhotos = selectedFiles.filter((file) => file.type.startsWith('image/'));
@@ -885,6 +1003,7 @@ const PortalAdmin: React.FC = () => {
     ? Math.round(projects.reduce((sum, project) => sum + project.progress_percent, 0) / projects.length)
     : 0;
   const completedProjectCount = projects.filter((project) => project.progress_percent === 100).length;
+  const pendingFeedbackCount = feedbackItems.filter((item) => !item.reply).length;
   const openAdminPage = (sectionId: string) => {
     setActiveSection(sectionId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -898,6 +1017,8 @@ const PortalAdmin: React.FC = () => {
   const navigation = [
     { id: 'admin-dashboard', label: t.dashboard, icon: <LayoutDashboard size={17} /> },
     { id: 'admin-progress', label: t.projectProgress, icon: <ChartNoAxesColumn size={17} /> },
+    { id: 'admin-clients', label: t.clients, icon: <Users size={17} /> },
+    { id: 'admin-feedback', label: t.feedback, icon: <MessageCircle size={17} /> },
     { id: 'admin-access', label: t.clientAccess, icon: <FolderOpen size={17} /> },
     { id: 'admin-resets', label: t.passwordRequestsNav, icon: <KeyRound size={17} /> },
   ].filter((item) => adminRole !== 'staff' || item.id !== 'admin-access');
@@ -931,6 +1052,7 @@ const PortalAdmin: React.FC = () => {
               >
                 <span className={activeSection === item.id ? 'text-bronze-300' : 'text-white/45'}>{item.icon}</span><span>{item.label}</span>
                 {item.id === 'admin-resets' && passwordRequests.length > 0 && <span className="ml-auto rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{passwordRequests.length}</span>}
+                {item.id === 'admin-feedback' && pendingFeedbackCount > 0 && <span className="ml-auto rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{pendingFeedbackCount}</span>}
               </button>
             ))}
           </nav>
@@ -1032,11 +1154,13 @@ const PortalAdmin: React.FC = () => {
           <>
             {activeSection === 'admin-dashboard' && (
               <>
-            <div className="mb-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="mb-7 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
               <Metric icon={<Layers size={17} />} label={t.projectCount} value={projects.length.toString().padStart(2, '0')} />
               <Metric icon={<Send size={17} />} label={t.activeProjects} value={projects.filter((project) => project.progress_percent < 100).length.toString().padStart(2, '0')} />
               <Metric icon={<CheckCircle2 size={17} />} label={t.completedProjects} value={completedProjectCount.toString().padStart(2, '0')} />
               <Metric icon={<ClipboardList size={17} />} label={t.progress} value={`${averageProgress}%`} />
+              <Metric icon={<Users size={17} />} label={t.clientCount} value={clientDirectory.length.toString().padStart(2, '0')} />
+              <Metric icon={<MessageCircle size={17} />} label={t.pendingFeedback} value={pendingFeedbackCount.toString().padStart(2, '0')} />
             </div>
             <div className="mb-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
               <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
@@ -1115,6 +1239,106 @@ const PortalAdmin: React.FC = () => {
               </section>
             </div>
               </>
+            )}
+            {activeSection === 'admin-clients' && (
+              <section id="admin-clients" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><Users size={18} /></span>
+                  <div>
+                    <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">CLIENT RELATIONS</p>
+                    <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.clientDirectory}</h2>
+                  </div>
+                  <span className="ml-auto font-mono text-xs text-neutral-500">{clientDirectory.length.toString().padStart(2, '0')}</span>
+                </div>
+                {clientDirectory.length === 0 ? (
+                  <p className="py-4 text-sm text-neutral-500">{t.noClients}</p>
+                ) : (
+                  <ul className="grid gap-3 lg:grid-cols-2">
+                    {clientDirectory.map((client) => (
+                      <li key={client.key} className="rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 sm:p-5 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h3 className="truncate font-medium">{client.name}</h3>
+                            <p className="mt-1 break-all text-xs text-neutral-500">{client.email || t.noClientEmail}</p>
+                          </div>
+                          <span className="shrink-0 rounded-full bg-[#f4f1eb] px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[#746349] dark:bg-white/[0.07] dark:text-neutral-300">
+                            {client.projects.length} {t.clientProjects}
+                          </span>
+                        </div>
+                        <ul className="mt-4 space-y-2 border-t border-neutral-200 pt-3 dark:border-white/10">
+                          {client.projects.map((project) => (
+                            <li key={project.id} className="flex items-center justify-between gap-3 text-xs">
+                              <span className="min-w-0">
+                                <span className="font-mono text-[10px] text-bronze-600 dark:text-bronze-400">{project.project_code}</span>
+                                <span className="mx-2 text-neutral-300">/</span>
+                                <span className="break-words text-neutral-700 dark:text-neutral-300">{project.project_name}</span>
+                              </span>
+                              <span className="shrink-0 font-mono text-[10px] text-neutral-500">{project.progress_percent}%</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            )}
+            {activeSection === 'admin-feedback' && (
+              <section id="admin-feedback" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><MessageCircle size={18} /></span>
+                  <div>
+                    <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">CLIENT RELATIONS</p>
+                    <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.feedbackInbox}</h2>
+                  </div>
+                  <span className="ml-auto font-mono text-xs text-neutral-500">{feedbackItems.length.toString().padStart(2, '0')}</span>
+                  <button type="button" disabled={busy} onClick={refreshFeedback} aria-label={t.refreshFeedback} title={t.refreshFeedback} className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-500 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03]">
+                    <RefreshCw size={14} />
+                  </button>
+                </div>
+                {feedbackItems.length === 0 ? (
+                  <p className="py-4 text-sm text-neutral-500">{t.noFeedback}</p>
+                ) : (
+                  <ol className="space-y-4">
+                    {feedbackItems.map((item) => (
+                      <li key={item.id} className="rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 sm:p-6 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="font-medium">{item.client_name}<span className="mx-2 text-neutral-300">/</span><span className="font-mono text-[10px] text-bronze-600 dark:text-bronze-400">{item.project_code}</span></p>
+                            <p className="mt-1 text-xs text-neutral-500">{item.project_name}{item.client_email ? ` · ${item.client_email}` : ''}</p>
+                          </div>
+                          <span className={`rounded-full px-3 py-1.5 text-[9px] font-medium ${item.reply ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'}`}>
+                            {item.reply ? t.feedbackReplied : t.feedbackWaiting}
+                          </span>
+                        </div>
+                        <div className="mt-4 border-t border-neutral-200 pt-4 dark:border-white/10">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <h3 className="font-display text-lg font-medium">{item.subject}</h3>
+                            <time className="font-mono text-[9px] uppercase tracking-widest text-neutral-400">{t.feedbackSubmitted}: {formatAdminDate(item.created_at, language)}</time>
+                          </div>
+                          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-neutral-600 dark:text-neutral-400">{item.message}</p>
+                        </div>
+                        {item.reply && item.replied_at && (
+                          <p className="mt-4 text-[10px] text-neutral-500">
+                            {item.replied_by === 'staff' ? t.studioStaff : t.studioAdmin} · {formatAdminDate(item.replied_at, language)}
+                          </p>
+                        )}
+                        <form key={`${item.id}-${item.replied_at ?? 'pending'}`} onSubmit={(event) => submitFeedbackReply(event, item)} className="mt-4 border-t border-neutral-200 pt-4 dark:border-white/10">
+                          <label className="block">
+                            <span className="mb-2 block text-xs font-medium text-neutral-700 dark:text-neutral-300">{t.feedbackReply}</span>
+                            <textarea name="reply" defaultValue={item.reply ?? ''} required minLength={1} maxLength={5000} rows={3} placeholder={t.feedbackReplyPlaceholder} className="w-full resize-y rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400" />
+                          </label>
+                          <div className="mt-3 flex justify-end">
+                            <button disabled={busy} className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 font-mono text-[9px] uppercase tracking-widest text-white transition-colors hover:bg-bronze-600 disabled:cursor-wait disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
+                              <Send size={13} /> {item.reply ? t.feedbackSaveReply : t.feedbackSendReply}
+                            </button>
+                          </div>
+                        </form>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
             )}
             {activeSection === 'admin-resets' && (
               <>

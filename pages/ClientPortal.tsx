@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, CalendarDays, CheckCircle2, Clock3, Download, FileText, LockKeyhole, LogOut, MapPin, ShieldCheck } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, CalendarDays, CheckCircle2, Clock3, Download, FileText, LockKeyhole, LogOut, MapPin, MessageCircle, Send, ShieldCheck, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type PortalProject, type PortalUpdate } from '../lib/portalApi';
+import { portalRequest, type ClientFeedback, type PortalProject, type PortalUpdate } from '../lib/portalApi';
 
 const copy = {
   ID: {
@@ -55,6 +55,21 @@ const copy = {
     downloadPhoto: 'Unduh foto',
     strapline: 'Catatan proyek, disusun dengan perhatian.',
     journal: 'Catatan proyek',
+    feedbackTitle: 'Feedback untuk tim studio',
+    feedbackDescription: 'Sampaikan pertanyaan atau masukan terkait proyek. Admin dan staf studio akan membalas melalui portal ini.',
+    feedbackMessage: 'Pesan',
+    feedbackPlaceholder: 'Tulis feedback atau pertanyaan Anda...',
+    feedbackSend: 'Kirim feedback',
+    feedbackSending: 'Mengirim...',
+    feedbackSent: 'Feedback berhasil dikirim.',
+    feedbackEmpty: 'Belum ada feedback untuk proyek ini.',
+    feedbackWaiting: 'Menunggu balasan tim studio',
+    feedbackReply: 'Balasan tim studio',
+    feedbackReplyByAdmin: 'Dibalas admin',
+    feedbackReplyByStaff: 'Dibalas staf',
+    feedbackReplyDate: 'Tanggal balasan',
+    feedbackOpen: 'Buka chat feedback',
+    feedbackClose: 'Tutup chat feedback',
   },
   EN: {
     eyebrow: 'LINIER STUDIO / CLIENT PORTAL',
@@ -106,6 +121,21 @@ const copy = {
     downloadPhoto: 'Download photo',
     strapline: 'Project updates, shared with care.',
     journal: 'Project journal',
+    feedbackTitle: 'Feedback for the studio team',
+    feedbackDescription: 'Share a question or note about your project. The studio admin and staff will reply through this portal.',
+    feedbackMessage: 'Message',
+    feedbackPlaceholder: 'Write your feedback or question...',
+    feedbackSend: 'Send feedback',
+    feedbackSending: 'Sending...',
+    feedbackSent: 'Feedback sent successfully.',
+    feedbackEmpty: 'There is no feedback for this project yet.',
+    feedbackWaiting: 'Waiting for the studio team',
+    feedbackReply: 'Studio team reply',
+    feedbackReplyByAdmin: 'Replied by admin',
+    feedbackReplyByStaff: 'Replied by staff',
+    feedbackReplyDate: 'Reply date',
+    feedbackOpen: 'Open feedback chat',
+    feedbackClose: 'Close feedback chat',
   },
   CN: {
     eyebrow: 'LINIER STUDIO / 客户门户',
@@ -157,6 +187,21 @@ const copy = {
     downloadPhoto: '下载照片',
     strapline: '用心记录项目进展。',
     journal: '项目记录',
+    feedbackTitle: '向工作室团队反馈',
+    feedbackDescription: '提交与项目相关的问题或建议。工作室管理员和员工会通过此门户回复。',
+    feedbackMessage: '内容',
+    feedbackPlaceholder: '请输入您的反馈或问题...',
+    feedbackSend: '发送反馈',
+    feedbackSending: '正在发送...',
+    feedbackSent: '反馈已成功发送。',
+    feedbackEmpty: '此项目暂无反馈。',
+    feedbackWaiting: '等待工作室团队回复',
+    feedbackReply: '工作室团队回复',
+    feedbackReplyByAdmin: '管理员回复',
+    feedbackReplyByStaff: '员工回复',
+    feedbackReplyDate: '回复日期',
+    feedbackOpen: '打开反馈聊天',
+    feedbackClose: '关闭反馈聊天',
   },
 } as const;
 
@@ -168,6 +213,7 @@ const ClientPortal: React.FC = () => {
   const [projects, setProjects] = useState<PortalProject[]>([]);
   const [project, setProject] = useState<PortalProject | null>(null);
   const [updates, setUpdates] = useState<PortalUpdate[]>([]);
+  const [feedbackItems, setFeedbackItems] = useState<ClientFeedback[]>([]);
   const [projectCode, setProjectCode] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(true);
@@ -183,6 +229,11 @@ const ClientPortal: React.FC = () => {
   const [passwordChanging, setPasswordChanging] = useState(false);
   const [passwordChangeError, setPasswordChangeError] = useState('');
   const [passwordChangeNotice, setPasswordChangeNotice] = useState('');
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackNotice, setFeedbackNotice] = useState('');
+  const [feedbackError, setFeedbackError] = useState('');
+  const [feedbackChatOpen, setFeedbackChatOpen] = useState(false);
+  const feedbackMessagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -221,6 +272,32 @@ const ClientPortal: React.FC = () => {
     return () => { active = false; };
   }, [project?.id]);
 
+  useEffect(() => {
+    let active = true;
+    if (!project) {
+      setFeedbackItems([]);
+      return () => { active = false; };
+    }
+
+    setFeedbackItems([]);
+    setFeedbackNotice('');
+    setFeedbackError('');
+    portalRequest<{ feedback: ClientFeedback[] }>(`/api/portal/client/feedback?projectId=${encodeURIComponent(project.id)}`)
+      .then(({ feedback }) => {
+        if (active) setFeedbackItems(feedback);
+      })
+      .catch((cause: unknown) => {
+        if (active) setFeedbackError(cause instanceof Error ? cause.message : 'Feedback tidak dapat dimuat.');
+      });
+    return () => { active = false; };
+  }, [project?.id]);
+
+  useEffect(() => {
+    if (feedbackChatOpen) {
+      feedbackMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [feedbackChatOpen, feedbackItems]);
+
   const signIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitting(true);
@@ -258,6 +335,32 @@ const ClientPortal: React.FC = () => {
     }
   };
 
+  const submitFeedback = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!project) return;
+    setFeedbackSubmitting(true);
+    setFeedbackError('');
+    setFeedbackNotice('');
+    const values = new FormData(form);
+    try {
+      const result = await portalRequest<{ feedback: ClientFeedback }>('/api/portal/client/feedback', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: project.id,
+          message: values.get('message'),
+        }),
+      });
+      setFeedbackItems((current) => [result.feedback, ...current]);
+      setFeedbackNotice(t.feedbackSent);
+      form.reset();
+    } catch (cause) {
+      setFeedbackError(cause instanceof Error ? cause.message : 'Feedback tidak dapat dikirim.');
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  };
+
   const changePassword = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPasswordChangeError('');
@@ -280,6 +383,7 @@ const ClientPortal: React.FC = () => {
       setProject(null);
       setProjects([]);
       setUpdates([]);
+      setFeedbackChatOpen(false);
       setError('');
       setResetMode(false);
       closePasswordChange();
@@ -306,6 +410,7 @@ const ClientPortal: React.FC = () => {
       setProject(null);
       setProjects([]);
       setUpdates([]);
+      setFeedbackChatOpen(false);
       setError('');
       closePasswordChange();
     } catch (cause) {
@@ -529,6 +634,67 @@ const ClientPortal: React.FC = () => {
                 </ol>
               )}
             </div>
+            {feedbackChatOpen && (
+              <div id="client-feedback-chat" role="dialog" aria-modal="true" aria-labelledby="client-feedback-title" className="fixed inset-x-3 bottom-24 z-50 flex h-[min(600px,74vh)] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_80px_rgba(27,25,20,0.22)] dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/40 sm:inset-x-auto sm:right-6 sm:w-[420px]">
+                <header className="flex items-center gap-3 bg-[#272925] px-4 py-4 text-white">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-bronze-300"><MessageCircle size={18} /></span>
+                  <div className="min-w-0 flex-1">
+                    <h2 id="client-feedback-title" className="truncate text-sm font-semibold">{t.feedbackTitle}</h2>
+                    <p className="mt-1 truncate text-[10px] text-white/60">{project.project_name}</p>
+                  </div>
+                  <button type="button" onClick={() => setFeedbackChatOpen(false)} aria-label={t.feedbackClose} title={t.feedbackClose} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white">
+                    <X size={18} />
+                  </button>
+                </header>
+                <div className="flex-1 space-y-4 overflow-y-auto bg-[#f7f6f2] px-4 py-5 dark:bg-[#111210]" aria-live="polite">
+                  {feedbackItems.length === 0 ? (
+                    <div className="flex h-full flex-col items-center justify-center px-5 text-center">
+                      <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#ece8df] text-[#8c795e] dark:bg-white/[0.07] dark:text-bronze-400"><MessageCircle size={20} /></span>
+                      <p className="text-sm font-medium">{t.feedbackTitle}</p>
+                      <p className="mt-2 text-xs leading-5 text-neutral-500">{t.feedbackDescription}</p>
+                    </div>
+                  ) : (
+                    [...feedbackItems].reverse().map((item) => (
+                      <div key={item.id} className="space-y-2">
+                        <div className="flex justify-end">
+                          <div className="max-w-[88%] rounded-2xl rounded-br-sm bg-neutral-900 px-4 py-3 text-white dark:bg-white dark:text-neutral-950">
+                            <p className="whitespace-pre-wrap break-words text-sm leading-6">{item.message}</p>
+                            <time className="mt-2 block text-right font-mono text-[9px] text-white/50 dark:text-neutral-500">{formatDate(item.created_at.slice(0, 10), language)}</time>
+                          </div>
+                        </div>
+                        {item.reply ? (
+                          <div className="flex justify-start">
+                            <div className="max-w-[88%] rounded-2xl rounded-bl-sm border border-neutral-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-white/[0.06]">
+                              <p className="whitespace-pre-wrap break-words text-sm leading-6 text-neutral-700 dark:text-neutral-200">{item.reply}</p>
+                              <p className="mt-2 text-right font-mono text-[9px] text-neutral-400">
+                                {item.replied_by === 'staff' ? t.feedbackReplyByStaff : t.feedbackReplyByAdmin}
+                                {item.replied_at ? ` · ${formatDate(item.replied_at.slice(0, 10), language)}` : ''}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="pr-1 text-right text-[10px] text-neutral-400">{t.feedbackWaiting}</p>
+                        )}
+                      </div>
+                    ))
+                  )}
+                  <div ref={feedbackMessagesEndRef} />
+                </div>
+                {feedbackError && <p role="alert" className="border-t border-red-500/20 bg-red-500/5 px-4 py-2 text-xs text-red-600 dark:text-red-300">{feedbackError}</p>}
+                {feedbackNotice && <p role="status" className="border-t border-emerald-500/20 bg-emerald-500/5 px-4 py-2 text-xs text-emerald-700 dark:text-emerald-300">{feedbackNotice}</p>}
+                <form onSubmit={submitFeedback} className="flex items-end gap-2 border-t border-neutral-200 bg-white p-3 dark:border-white/10 dark:bg-neutral-900">
+                  <label htmlFor="client-feedback-message" className="sr-only">{t.feedbackMessage}</label>
+                  <textarea id="client-feedback-message" name="message" required minLength={1} maxLength={5000} rows={2} placeholder={t.feedbackPlaceholder} className="max-h-28 min-h-11 flex-1 resize-none rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm leading-5 outline-none transition focus:border-[#8c795e] focus:ring-2 focus:ring-[#8c795e]/10 dark:border-white/10 dark:bg-neutral-950 dark:focus:border-bronze-400" />
+                  <button type="submit" disabled={feedbackSubmitting} aria-label={feedbackSubmitting ? t.feedbackSending : t.feedbackSend} title={feedbackSubmitting ? t.feedbackSending : t.feedbackSend} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-900 text-white transition-colors hover:bg-bronze-600 disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
+                    <Send size={17} />
+                  </button>
+                </form>
+              </div>
+            )}
+            <button type="button" onClick={() => setFeedbackChatOpen((open) => !open)} aria-label={feedbackChatOpen ? t.feedbackClose : t.feedbackOpen} aria-expanded={feedbackChatOpen} aria-controls={feedbackChatOpen ? 'client-feedback-chat' : undefined} title={feedbackChatOpen ? t.feedbackClose : t.feedbackOpen} className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#272925] text-white shadow-[0_12px_35px_rgba(27,25,20,0.28)] transition hover:-translate-y-0.5 hover:bg-bronze-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-bronze-500 dark:bg-white dark:text-neutral-950 dark:hover:bg-bronze-300">
+              {feedbackChatOpen ? <X size={21} /> : <MessageCircle size={21} />}
+              {!feedbackChatOpen && feedbackItems.some((item) => !item.reply) && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-bronze-500 dark:border-neutral-900" />}
+            </button>
           </section>
         ) : (
           <div className="grid overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-[0_24px_80px_rgba(27,25,20,0.10)] lg:grid-cols-[1.08fr_0.92fr] dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/25">

@@ -93,6 +93,20 @@ create table if not exists public.project_password_reset_requests (
   processed_at timestamptz
 );
 
+create table if not exists public.client_feedback (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.client_projects(id) on delete cascade,
+  subject text not null check (length(btrim(subject)) between 1 and 120),
+  message text not null check (length(btrim(message)) between 1 and 5000),
+  reply text check (reply is null or length(btrim(reply)) between 1 and 5000),
+  replied_by text check (replied_by is null or replied_by in ('admin', 'staff')),
+  created_at timestamptz not null default now(),
+  replied_at timestamptz
+);
+
+create index if not exists client_feedback_project_date_idx
+  on public.client_feedback (project_id, created_at desc);
+
 alter table public.project_password_reset_requests
   add column if not exists credential_type text not null default 'project'
   check (credential_type in ('project', 'account'));
@@ -107,6 +121,7 @@ alter table public.client_projects enable row level security;
 alter table public.project_updates enable row level security;
 alter table public.project_login_attempts enable row level security;
 alter table public.project_password_reset_requests enable row level security;
+alter table public.client_feedback enable row level security;
 
 create or replace function public.portal_allow_login_attempt(
   p_project_id uuid,
@@ -472,11 +487,12 @@ grant execute on function public.portal_delete_project(uuid) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
 grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
 
-revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests from anon, authenticated;
+revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback from anon, authenticated;
 grant select, insert on public.client_projects to service_role;
 grant select, insert, update, delete on public.project_updates to service_role;
 grant select, insert, update, delete on public.project_login_attempts to service_role;
 grant select, insert, update on public.project_password_reset_requests to service_role;
+grant select, insert, update on public.client_feedback to service_role;
 grant update on public.client_projects to service_role;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
