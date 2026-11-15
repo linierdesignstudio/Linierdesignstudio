@@ -374,6 +374,32 @@ const Home: React.FC = () => {
          </div>
       </section>
 
+      {/* Next Steps */}
+      <section className="relative z-50 overflow-hidden border-y border-neutral-200 bg-neutral-100 transition-colors duration-500 dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="container mx-auto px-4 py-16 md:px-12 md:py-24">
+          <RevealOnScroll>
+            <div className="flex flex-col justify-between gap-10 md:flex-row md:items-end md:gap-8">
+              <div className="max-w-4xl">
+                <p className="text-xs font-mono uppercase tracking-[0.2em] text-bronze-600 dark:text-bronze-500">
+                  {t.home.next_steps}
+                </p>
+                <h2 className="mt-6 font-display text-5xl font-semibold uppercase leading-[0.9] tracking-tight text-neutral-900 dark:text-white sm:text-6xl md:text-8xl lg:text-[9vw]">
+                  <span className="block">{t.home.have_a}</span>
+                  <span className="block text-bronze-600 dark:text-bronze-500">{t.home.vision}</span>
+                </h2>
+              </div>
+              <Link
+                to="/contact"
+                className="group inline-flex w-fit items-center gap-5 border-b border-neutral-400 pb-3 text-xs font-bold uppercase tracking-widest text-neutral-900 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-neutral-600 dark:text-white dark:hover:text-bronze-500"
+              >
+                {t.home.lets_discuss}
+                <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+              </Link>
+            </div>
+          </RevealOnScroll>
+        </div>
+      </section>
+
       {/* Process Section */}
       <HorizontalScroll />
 
