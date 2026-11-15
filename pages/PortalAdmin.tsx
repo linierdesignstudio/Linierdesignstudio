@@ -906,122 +906,125 @@ const PortalAdmin: React.FC = () => {
     : navigation.find((item) => item.id === activeSection)?.label ?? t.adminDashboard;
 
   return (
-    <div className={authenticated ? 'min-h-screen bg-[#f1efe9] text-neutral-900 dark:bg-neutral-950 dark:text-white' : 'min-h-screen bg-[#f1efe9] px-5 pt-20 pb-24 text-neutral-900 dark:bg-neutral-950 dark:text-white md:pt-24'}>
+    <div className={authenticated ? 'min-h-screen bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'min-h-screen bg-[#f4f3ef] px-5 pt-20 pb-24 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white md:pt-24'}>
       {authenticated && !checking && (
-        <aside className="z-40 bg-[#272925] text-white lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col">
-          <div className="border-b border-white/10 px-5 py-5 sm:px-7 lg:px-6 lg:py-7">
+        <aside className="z-40 bg-[#20211d] text-white shadow-xl shadow-black/10 lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-64 lg:flex-col">
+          <div className="border-b border-white/[0.08] px-5 py-5 sm:px-7 lg:px-6 lg:py-7">
             <div className="flex items-center gap-3">
-              <span className="relative h-14 w-14 shrink-0 overflow-hidden">
+              <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
                 <img src={logoImage} alt="Linier Studio" className="absolute left-1/2 top-1/2 h-40 w-40 max-w-none -translate-x-1/2 -translate-y-1/2 object-contain" />
               </span>
               <div>
-                <p className="text-sm font-medium tracking-wide">Linier Studio</p>
-                <p className="mt-1 text-[10px] text-white/50">{t.workspace}</p>
+                <p className="text-sm font-semibold tracking-wide">Linier Studio</p>
+                <p className="mt-1 text-[10px] text-white/45">{t.workspace}</p>
               </div>
             </div>
           </div>
           <p className="hidden px-6 pb-3 pt-7 font-mono text-[9px] uppercase tracking-[0.2em] text-white/35 lg:block">{t.navigation}</p>
-          <nav aria-label={t.navigation} className="flex gap-2 overflow-x-auto px-4 py-3 lg:block lg:space-y-1 lg:overflow-visible lg:px-3 lg:py-0">
+          <nav aria-label={t.navigation} className="flex gap-2 overflow-x-auto px-4 py-3 lg:block lg:space-y-1.5 lg:overflow-visible lg:px-3 lg:py-0">
             {navigation.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => openAdminPage(item.id)}
-                className={`flex shrink-0 items-center gap-3 border-l-2 px-3 py-3 text-left text-xs transition-colors lg:w-full ${activeSection === item.id ? 'border-bronze-400 bg-white/10 text-white' : 'border-transparent text-white/55 hover:bg-white/5 hover:text-white'}`}
+                className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-3 text-left text-xs font-medium transition-colors lg:w-full ${activeSection === item.id ? 'bg-white/10 text-white shadow-inner shadow-white/[0.03]' : 'text-white/55 hover:bg-white/[0.06] hover:text-white'}`}
               >
-                {item.icon}<span>{item.label}</span>
+                <span className={activeSection === item.id ? 'text-bronze-300' : 'text-white/45'}>{item.icon}</span><span>{item.label}</span>
                 {item.id === 'admin-resets' && passwordRequests.length > 0 && <span className="ml-auto rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{passwordRequests.length}</span>}
               </button>
             ))}
           </nav>
-          <div className="mt-auto hidden border-t border-white/10 p-4 lg:block">
-            <Link to="/portal" className="mb-2 flex items-center gap-3 px-3 py-3 text-xs text-white/55 transition-colors hover:text-white"><ArrowDownLeft size={16} />{t.back}</Link>
-            <button type="button" onClick={signOut} className="flex w-full items-center gap-3 px-3 py-3 text-xs text-white/55 transition-colors hover:text-white"><LogOut size={16} />{t.signOut}</button>
+          <div className="mt-auto hidden border-t border-white/[0.08] p-4 lg:block">
+            <Link to="/portal" className="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-xs text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white"><ArrowDownLeft size={16} />{t.back}</Link>
+            <button type="button" onClick={signOut} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-xs text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white"><LogOut size={16} />{t.signOut}</button>
           </div>
         </aside>
       )}
-      <div className={authenticated && !checking ? 'lg:pl-60' : ''}>
+      <div className={authenticated && !checking ? 'lg:pl-64' : ''}>
         {authenticated && !checking && (
-          <header className="sticky top-0 z-30 flex min-h-[72px] items-center justify-between gap-4 border-b border-[#ded9cf] bg-[#f7f5ef]/95 px-4 text-neutral-900 backdrop-blur dark:border-white/10 dark:bg-neutral-900/95 dark:text-white sm:px-7 lg:px-10">
+          <header className="sticky top-0 z-30 flex min-h-[76px] items-center justify-between gap-4 border-b border-neutral-200/80 bg-white/90 px-4 text-neutral-900 shadow-sm shadow-neutral-900/[0.02] backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#111210]/90 dark:text-white sm:px-7 lg:px-10">
             <div className="min-w-0">
-              <p className="text-[11px] text-neutral-500">{t.eyebrow}</p>
+              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-400">{t.eyebrow}</p>
               <h1 className="mt-1 font-display text-base font-medium leading-tight tracking-tight sm:text-xl">{activePageTitle}</h1>
             </div>
             <div className="flex shrink-0 items-center gap-2 sm:gap-4">
               <div className="hidden items-center gap-2 border-r border-neutral-200 pr-3 dark:border-white/15 sm:flex">
                 {([Language.ID, Language.EN, Language.CN] as const).map((option) => (
-                  <button key={option} type="button" onClick={() => setLanguage(option)} className={`font-mono text-[9px] uppercase tracking-wider transition-colors ${language === option ? 'text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'}`}>{option}</button>
+                  <button key={option} type="button" onClick={() => setLanguage(option)} className={`rounded-md px-1.5 py-1 font-mono text-[9px] uppercase tracking-wider transition-colors ${language === option ? 'bg-neutral-100 text-neutral-900 dark:bg-white/10 dark:text-white' : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'}`}>{option}</button>
                 ))}
               </div>
-              <button type="button" onClick={toggleTheme} aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'} className="flex h-10 w-10 items-center justify-center border border-neutral-200 text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/15 dark:text-neutral-300">
+              <button type="button" onClick={toggleTheme} aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'} className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300">
                 {isDark ? <Sun size={16} /> : <Moon size={16} />}
               </button>
-              <button type="button" onClick={() => openAdminPage('admin-resets')} aria-label={t.passwordRequestsNav} title={t.passwordRequestsNav} className="relative flex h-10 w-10 items-center justify-center border border-neutral-200 text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/15 dark:text-neutral-300">
+              <button type="button" onClick={() => openAdminPage('admin-resets')} aria-label={t.passwordRequestsNav} title={t.passwordRequestsNav} className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300">
                 <Bell size={17} />
                 {passwordRequests.length > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 font-mono text-[8px] text-white">{passwordRequests.length}</span>}
               </button>
-              <span className="hidden h-9 w-9 items-center justify-center rounded-full bg-neutral-900 font-mono text-[10px] text-white sm:flex dark:bg-white dark:text-neutral-900">LS</span>
+              <span className="hidden h-9 w-9 items-center justify-center rounded-full bg-[#262722] font-mono text-[10px] font-medium text-white sm:flex dark:bg-white dark:text-neutral-900">LS</span>
               <span className="hidden text-xs font-medium sm:block">{adminRole === 'staff' ? t.studioStaff : t.studioAdmin}</span>
               <Link to="/portal" aria-label={t.back} className="inline-flex items-center gap-1 border-l border-neutral-200 pl-3 text-[10px] font-mono uppercase tracking-wider text-neutral-500 transition-colors hover:text-neutral-900 dark:border-white/15 dark:text-neutral-300 sm:pl-4"><span className="hidden sm:inline">{t.back}</span><ArrowUpRight size={13} /></Link>
-              <button type="button" onClick={signOut} aria-label={t.signOut} title={t.signOut} className="flex h-10 w-10 items-center justify-center border border-neutral-200 text-neutral-600 transition-colors hover:border-red-400 hover:text-red-600 dark:border-white/15 dark:text-neutral-300 lg:hidden"><LogOut size={16} /></button>
+              <button type="button" onClick={signOut} aria-label={t.signOut} title={t.signOut} className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-red-400 hover:text-red-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 lg:hidden"><LogOut size={16} /></button>
             </div>
           </header>
         )}
-        <div className={`mx-auto w-full ${authenticated ? 'max-w-[1600px] px-4 py-6 sm:px-7 lg:px-10' : 'max-w-7xl px-0 sm:px-3 lg:px-0'}`}>
-        {(!authenticated || activeSection === 'admin-dashboard') && <header id="admin-dashboard" className="relative mb-8 scroll-mt-24 overflow-hidden bg-neutral-900 p-7 text-white sm:p-10 lg:p-12">
+        <div className={`mx-auto w-full ${authenticated ? 'max-w-[1600px] px-4 py-6 sm:px-7 lg:px-10 lg:py-8' : 'max-w-7xl px-0 sm:px-3 lg:px-0'}`}>
+        {(!authenticated || activeSection === 'admin-dashboard') && <header id="admin-dashboard" className="relative mb-8 scroll-mt-24 overflow-hidden rounded-3xl bg-neutral-900 p-7 text-white shadow-[0_24px_70px_rgba(27,25,20,0.12)] sm:p-10 lg:p-12">
           <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-40" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-900/80 to-neutral-900/25" />
           <div className="pointer-events-none absolute -right-12 -top-32 h-80 w-80 rounded-full border border-white/10" />
           <div className="pointer-events-none absolute -right-2 -top-20 h-60 w-60 rounded-full border border-bronze-500/30" />
           <div className="relative flex items-center justify-between gap-4">
             {!authenticated && (
-              <Link to="/portal" className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55 transition-colors hover:text-white">
+              <Link to="/portal" className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2.5 font-mono text-[9px] uppercase tracking-[0.16em] text-white/65 transition-colors hover:border-white/35 hover:bg-white/[0.08] hover:text-white">
                 <ArrowDownLeft size={14} /> {t.back}
               </Link>
             )}
           </div>
           <div className="relative mt-12 max-w-3xl sm:mt-16">
-            <p className="mb-4 text-xs text-white/70">{authenticated && selectedProject ? `${t.overview} / ${selectedProject.project_code}` : t.eyebrow}</p>
-            <h1 className="font-display text-4xl font-medium leading-[0.98] tracking-[-0.04em] sm:text-6xl">{authenticated && selectedProject ? selectedProject.project_name : t.title}</h1>
-            <p className="mt-5 max-w-xl text-sm leading-6 text-white/70 sm:text-base">
+            <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.18em] text-white/65">{authenticated && selectedProject ? `${t.overview} / ${selectedProject.project_code}` : t.eyebrow}</p>
+            <h1 className="font-display text-4xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-6xl">{authenticated && selectedProject ? selectedProject.project_name : t.title}</h1>
+            <p className="mt-5 max-w-xl text-sm leading-7 text-white/70 sm:text-base">
               {authenticated && selectedProject
                 ? [selectedProject.client_name, selectedProject.location].filter(Boolean).join(' / ')
                 : t.subtitle}
             </p>
           </div>
-          <div className="relative mt-10 flex items-center gap-3 border-t border-white/15 pt-5 text-xs text-white/60">
+          <div className="relative mt-10 flex flex-wrap items-center gap-3 border-t border-white/15 pt-5 text-xs text-white/60">
             <span className="h-1.5 w-1.5 rounded-full bg-bronze-400" /> {t.workspace}
-            {authenticated && selectedProject && <span className="ml-auto border border-white/15 px-3 py-1 text-white/75">{selectedProject.progress_percent === 100 ? t.completed : t.inProgress} · {selectedProject.progress_percent}%</span>}
+            {authenticated && selectedProject && <span className="ml-auto rounded-full border border-white/15 bg-white/[0.05] px-3 py-1.5 text-white/75">{selectedProject.progress_percent === 100 ? t.completed : t.inProgress} · {selectedProject.progress_percent}%</span>}
           </div>
         </header>}
 
         {error && <ErrorBanner message={error} />}
-        {notice && <p role="status" className="mb-6 flex items-start gap-2 border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300"><Check size={17} className="mt-0.5 shrink-0" />{notice}</p>}
+        {notice && <p role="status" className="mb-6 flex items-start gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-sm leading-6 text-emerald-700 dark:text-emerald-300"><Check size={17} className="mt-0.5 shrink-0" />{notice}</p>}
 
         {checking ? (
-          <p className="py-16 text-center font-mono text-xs uppercase tracking-widest text-neutral-500">...</p>
+          <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-neutral-200 bg-white text-neutral-500 shadow-sm dark:border-white/10 dark:bg-neutral-900">
+            <span className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-[#8c795e] dark:border-white/10 dark:border-t-bronze-400" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em]">{language === 'ID' ? 'Memuat ruang kerja...' : language === 'CN' ? '正在加载工作区...' : 'Loading workspace...'}</span>
+          </div>
         ) : !authenticated ? (
-          <form onSubmit={signIn} className="mx-auto max-w-xl border border-[#d9d4c9] bg-[#fbfaf6] p-6 sm:p-10 dark:border-white/10 dark:bg-neutral-900">
+          <form onSubmit={signIn} className="mx-auto max-w-xl rounded-3xl border border-neutral-200 bg-white p-6 shadow-[0_20px_60px_rgba(27,25,20,0.08)] sm:p-10 dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/20">
             <div className="mb-8 flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center border border-[#d9d4c9] text-neutral-600 dark:border-white/15 dark:text-neutral-300"><KeyRound size={18} strokeWidth={1.5} /></span>
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#e8e4dc] bg-[#f7f5f0] text-[#8c795e] dark:border-white/10 dark:bg-white/[0.04] dark:text-bronze-400"><KeyRound size={18} strokeWidth={1.5} /></span>
               <span>
-                <span className="block text-xs text-neutral-500">Linier Studio</span>
+                <span className="block font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">Linier Studio</span>
                 <span className="mt-1 block font-display text-xl font-medium">{t.signIn}</span>
               </span>
             </div>
             <label className="mb-6 block">
               <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.email}</span>
-              <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full border border-[#d9d4c9] bg-white px-4 py-3.5 text-sm outline-none transition focus:border-neutral-700 focus:ring-2 focus:ring-neutral-900/5 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-white/50" />
+              <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3.5 text-sm outline-none transition focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400 dark:focus:ring-bronze-400/10" />
             </label>
             <label className="mb-2 block">
               <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.password}</span>
-              <input name="password" type="password" autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full border border-[#d9d4c9] bg-white px-4 py-3.5 text-sm outline-none transition focus:border-neutral-700 focus:ring-2 focus:ring-neutral-900/5 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-white/50" />
+              <input name="password" type="password" autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3.5 text-sm outline-none transition focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400 dark:focus:ring-bronze-400/10" />
             </label>
-            <button disabled={busy} className="mt-6 flex w-full items-center justify-between bg-[#272925] px-5 py-4 text-sm font-medium text-white transition-colors hover:bg-[#45483e] disabled:opacity-60 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
+            <button disabled={busy} className="mt-6 flex w-full items-center justify-between rounded-xl bg-[#272925] px-5 py-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#45483e] disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
               {busy ? '...' : t.signIn} <ArrowUpRight size={17} />
             </button>
-            <details className="mt-6 border-t border-[#e4e0d7] pt-4 text-xs dark:border-white/10">
-              <summary className="w-fit cursor-pointer text-neutral-500 transition-colors hover:text-neutral-900 dark:hover:text-white">{t.forgotPassword}</summary>
+            <details className="mt-6 border-t border-neutral-100 pt-4 text-xs dark:border-white/10">
+              <summary className="w-fit cursor-pointer rounded-sm text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8c795e] dark:hover:text-white">{t.forgotPassword}</summary>
               <p className="mt-3 leading-6 text-neutral-500">{t.forgotPasswordHint}</p>
             </details>
           </form>
@@ -1029,23 +1032,23 @@ const PortalAdmin: React.FC = () => {
           <>
             {activeSection === 'admin-dashboard' && (
               <>
-            <div className="mb-7 grid grid-cols-2 gap-px border-y border-[#d9d4c9] bg-[#d9d4c9] sm:grid-cols-4 dark:border-white/10 dark:bg-white/10">
+            <div className="mb-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Metric icon={<Layers size={17} />} label={t.projectCount} value={projects.length.toString().padStart(2, '0')} />
               <Metric icon={<Send size={17} />} label={t.activeProjects} value={projects.filter((project) => project.progress_percent < 100).length.toString().padStart(2, '0')} />
               <Metric icon={<CheckCircle2 size={17} />} label={t.completedProjects} value={completedProjectCount.toString().padStart(2, '0')} />
               <Metric icon={<ClipboardList size={17} />} label={t.progress} value={`${averageProgress}%`} />
             </div>
             <div className="mb-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-              <section className="border border-[#ded9cf] bg-[#fbfaf6] p-5 sm:p-6 dark:border-white/10 dark:bg-neutral-900">
+              <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-5 flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-white/10">
                   <div className="flex items-center gap-3">
-                    <CalendarDays size={17} className="text-bronze-500" />
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><CalendarDays size={17} /></span>
                     <div>
                       <p className="text-xs text-neutral-500">{t.overview}</p>
                       <h2 className="mt-1 font-display text-xl font-medium">{t.timeline}</h2>
                     </div>
                   </div>
-                  <button type="button" onClick={() => openAdminPage('admin-progress')} className="text-xs text-neutral-500 transition-colors hover:text-neutral-900 dark:hover:text-white">{t.viewAllProjects}<ArrowUpRight size={12} className="ml-1 inline" /></button>
+                  <button type="button" onClick={() => openAdminPage('admin-progress')} className="rounded-lg px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-white/[0.05] dark:hover:text-white">{t.viewAllProjects}<ArrowUpRight size={12} className="ml-1 inline" /></button>
                 </div>
                 {projects.length === 0 ? (
                   <p className="py-5 text-sm text-neutral-500">{t.emptyProjects}</p>
@@ -1062,7 +1065,7 @@ const PortalAdmin: React.FC = () => {
                             setAdminUpdates([]);
                             setSelectedProjectId(project.id);
                           }}
-                          className={`w-full border-l-2 px-4 py-3 text-left transition-colors ${selectedProjectId === project.id ? 'border-bronze-500 bg-bronze-500/[0.06]' : 'border-neutral-200 hover:border-bronze-300 hover:bg-neutral-50 dark:border-white/15 dark:hover:bg-white/[0.03]'}`}
+                          className={`w-full rounded-xl border px-4 py-3 text-left transition-colors ${selectedProjectId === project.id ? 'border-bronze-500/40 bg-bronze-500/[0.06] dark:border-bronze-400/30' : 'border-neutral-100 hover:border-neutral-300 hover:bg-neutral-50 dark:border-white/[0.06] dark:hover:bg-white/[0.03]'}`}
                         >
                           <span className="flex items-start justify-between gap-3">
                             <span className="min-w-0">
@@ -1074,8 +1077,8 @@ const PortalAdmin: React.FC = () => {
                               <span className="mt-1 block font-mono text-xs">{project.progress_percent}%</span>
                             </span>
                           </span>
-                          <span className="mt-3 block h-1 bg-neutral-100 dark:bg-white/10">
-                            <span className="block h-full bg-bronze-500" style={{ width: `${project.progress_percent}%` }} />
+                          <span className="mt-3 block h-1 overflow-hidden rounded-full bg-neutral-100 dark:bg-white/10">
+                            <span className="block h-full rounded-full bg-bronze-500" style={{ width: `${project.progress_percent}%` }} />
                           </span>
                         </button>
                       </li>
@@ -1083,10 +1086,10 @@ const PortalAdmin: React.FC = () => {
                   </ol>
                 )}
               </section>
-              <section className="border border-[#ded9cf] bg-[#fbfaf6] p-5 sm:p-6 dark:border-white/10 dark:bg-neutral-900">
+              <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-5 flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-white/10">
                   <div className="flex items-center gap-3">
-                    <ImagePlus size={17} className="text-bronze-500" />
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><ImagePlus size={17} /></span>
                     <div>
                       <p className="text-xs text-neutral-500">{selectedProject?.project_name ?? t.chooseProject}</p>
                       <h2 className="mt-1 font-display text-xl font-medium">{t.photoPreview}</h2>
@@ -1097,14 +1100,14 @@ const PortalAdmin: React.FC = () => {
                 {previewFiles.length > 0 ? (
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {previewFiles.map((file) => (
-                      <div key={file.url} className="group relative aspect-[4/3] overflow-hidden bg-neutral-100 dark:bg-white/5">
+                      <div key={file.url} className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-neutral-100 dark:bg-white/5">
                         <img src={file.url} alt={file.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                         <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/75 to-transparent px-2 pb-2 pt-6 text-[9px] text-white">{file.name}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="flex min-h-40 flex-col items-center justify-center border border-dashed border-neutral-300 px-6 text-center dark:border-white/15">
+                  <div className="flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50/60 px-6 text-center dark:border-white/15 dark:bg-white/[0.02]">
                     <ImagePlus size={22} className="mb-3 text-neutral-400" />
                     <p className="max-w-xs text-xs leading-5 text-neutral-500">{t.noPhotoPreview}</p>
                   </div>
@@ -1115,31 +1118,31 @@ const PortalAdmin: React.FC = () => {
             )}
             {activeSection === 'admin-resets' && (
               <>
-            <section id="admin-resets" className="mb-5 scroll-mt-24 border border-[#ded9cf] bg-[#fbfaf6] p-6 sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+            <section id="admin-resets" className="mb-5 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
-                <KeyRound size={17} className="text-bronze-500" />
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><KeyRound size={17} /></span>
                 <div>
                   <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">SECURITY / ACCESS</p>
                   <h2 className="mt-1 font-mono text-xs uppercase tracking-widest">{t.resetRequests}</h2>
                 </div>
                 <span className="ml-auto font-mono text-xs text-neutral-500">{passwordRequests.length.toString().padStart(2, '0')}</span>
-                <button type="button" disabled={busy} onClick={refreshPasswordRequests} aria-label={t.refreshRequests} title={t.refreshRequests} className="flex h-8 w-8 items-center justify-center border border-neutral-200 text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-500 disabled:opacity-50 dark:border-white/15">
+                <button type="button" disabled={busy} onClick={refreshPasswordRequests} aria-label={t.refreshRequests} title={t.refreshRequests} className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-500 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03]">
                   <RefreshCw size={14} />
                 </button>
               </div>
               {passwordRequests.length === 0 ? (
                 <p className="text-sm text-neutral-500">{t.noResetRequests}</p>
               ) : (
-                <ul className="divide-y divide-neutral-100 dark:divide-white/10">
+                <ul className="space-y-3">
                   {passwordRequests.map((request) => (
-                    <li key={request.id} className="flex flex-col justify-between gap-4 py-4 sm:flex-row sm:items-center">
+                    <li key={request.id} className="flex flex-col justify-between gap-4 rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 sm:flex-row sm:items-center sm:p-5 dark:border-white/[0.06] dark:bg-white/[0.02]">
                       <div>
                         <p className="font-medium">{request.client_name}<span className="mx-2 text-neutral-300">/</span><span className="font-mono text-xs text-bronze-600 dark:text-bronze-400">{request.project_code}</span></p>
                         <p className="mt-1 text-xs text-neutral-500">{request.project_name} <span className="mx-1">·</span>{request.whatsapp_number}</p>
                         <p className="mt-1 text-[10px] text-neutral-400">{request.credential_type === 'account' ? t.emailPasswordReset : t.projectPasswordReset}</p>
                         <p className="mt-1 font-mono text-[9px] uppercase tracking-widest text-neutral-400">{formatAdminDate(request.created_at, language)}</p>
                       </div>
-                      <button type="button" disabled={busy} onClick={() => processPasswordReset(request)} className="inline-flex items-center justify-center gap-2 bg-neutral-900 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-50 dark:bg-white dark:text-neutral-950">
+                      <button type="button" disabled={busy} onClick={() => processPasswordReset(request)} className="inline-flex items-center justify-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-white transition-colors hover:bg-bronze-600 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
                         <KeyRound size={14} /> {t.processReset}
                       </button>
                     </li>
@@ -1148,12 +1151,12 @@ const PortalAdmin: React.FC = () => {
               )}
             </section>
             {issuedPassword && (
-              <section role="status" className="mb-5 border border-emerald-500/30 bg-emerald-500/5 p-6 sm:p-8">
+              <section role="status" className="mb-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5 shadow-sm sm:p-8">
                 <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">{t.temporaryPassword} / {issuedPassword.resetRequest.credential_type === 'account' ? t.emailPasswordReset : t.projectPasswordReset} · {issuedPassword.resetRequest.credential_type === 'account' ? issuedPassword.resetRequest.client_email : issuedPassword.resetRequest.project_code}</p>
                 <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{issuedPassword.resetRequest.client_name} — {t.verifyClient}</p>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                  <code className="block min-w-0 flex-1 select-all break-all border border-emerald-500/20 bg-white px-4 py-3 font-mono text-lg dark:bg-neutral-950">{issuedPassword.password}</code>
-                  <button type="button" onClick={copyIssuedPassword} className="inline-flex items-center justify-center gap-2 border border-emerald-700 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-emerald-800 transition-colors hover:bg-emerald-700 hover:text-white dark:text-emerald-300">
+                  <code className="block min-w-0 flex-1 select-all break-all rounded-xl border border-emerald-500/20 bg-white px-4 py-3 font-mono text-lg dark:bg-neutral-950">{issuedPassword.password}</code>
+                  <button type="button" onClick={copyIssuedPassword} className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-700 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-emerald-800 transition-colors hover:bg-emerald-700 hover:text-white dark:text-emerald-300">
                     <Copy size={14} /> {t.copyPassword}
                   </button>
                 </div>
@@ -1161,7 +1164,7 @@ const PortalAdmin: React.FC = () => {
                   href={`https://wa.me/${issuedPassword.resetRequest.whatsapp_number.replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 bg-emerald-700 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-white transition-colors hover:bg-emerald-600"
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-white transition-colors hover:bg-emerald-600"
                 >
                   <MessageCircle size={15} /> {t.sendWhatsapp} <ArrowUpRight size={14} />
                 </a>
@@ -1173,7 +1176,7 @@ const PortalAdmin: React.FC = () => {
               </>
             )}
             <div className="space-y-5">
-            {adminRole === 'admin' && activeSection === 'admin-access' && <section id="admin-access" className="mx-auto w-full max-w-3xl scroll-mt-24 border border-[#ded9cf] bg-[#fbfaf6] p-6 sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+            {adminRole === 'admin' && activeSection === 'admin-access' && <section id="admin-access" className="mx-auto w-full max-w-3xl scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-8 flex items-start gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                 <Plus size={19} className="text-bronze-500" />
                 <div>
@@ -1190,14 +1193,14 @@ const PortalAdmin: React.FC = () => {
                 <Field name="startDate" label={t.startDate} type="date" defaultValue={today()} required />
                 <Field name="clientLoginPassword" label={t.clientLoginPassword} type="password" required minLength={8} maxLength={256} autoComplete="new-password" />
                 <p className="-mt-3 text-xs leading-5 text-neutral-500">{t.accountPasswordHint}</p>
-                <button disabled={busy} className="mt-2 flex w-full items-center justify-between bg-neutral-900 px-5 py-4 font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-60 dark:bg-white dark:text-neutral-950">
+                <button disabled={busy} className="mt-2 flex w-full items-center justify-between rounded-xl bg-neutral-900 px-5 py-4 font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-600 disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
                   {t.create} <ArrowUpRight size={17} />
                 </button>
               </form>
             </section>}
 
-            {activeSection === 'admin-progress' && <section id="admin-progress" className="mx-auto w-full max-w-3xl scroll-mt-24 space-y-5">
-              <div className="border border-[#ded9cf] bg-[#fbfaf6] p-6 sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+            {activeSection === 'admin-progress' && <section id="admin-progress" className="mx-auto grid w-full max-w-7xl items-start gap-5 scroll-mt-24 xl:grid-cols-[1.1fr_0.9fr]">
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900 xl:col-start-1 xl:row-span-2">
                 <div className="mb-7 flex items-start gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                   <Send size={18} className="text-bronze-500" />
                   <div>
@@ -1211,13 +1214,13 @@ const PortalAdmin: React.FC = () => {
                   <form id="progress-update-form" key={`${selectedProjectId}-${editingUpdateId || 'new'}`} onSubmit={submitProgressUpdate} className="space-y-5">
                     <label className="block">
                       <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.projects}</span>
-                      <select value={selectedProjectId} onChange={(event) => { setSelectedFiles([]); setEditingUpdateId(''); setEditingAttachments([]); setAdminUpdates([]); if (imageInputRef.current) imageInputRef.current.value = ''; if (documentInputRef.current) documentInputRef.current.value = ''; setSelectedProjectId(event.target.value); }} required className="w-full border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-neutral-700 dark:border-white/15 dark:bg-neutral-950 dark:[color-scheme:dark]">
+                      <select value={selectedProjectId} onChange={(event) => { setSelectedFiles([]); setEditingUpdateId(''); setEditingAttachments([]); setAdminUpdates([]); if (imageInputRef.current) imageInputRef.current.value = ''; if (documentInputRef.current) documentInputRef.current.value = ''; setSelectedProjectId(event.target.value); }} required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:[color-scheme:dark] dark:focus:border-bronze-400">
                         <option value="">{t.chooseProject}</option>
                         {projects.map((project) => <option key={project.id} value={project.id}>{project.project_code} — {project.project_name}</option>)}
                       </select>
                     </label>
                     {selectedUpdate && (
-                      <div className="flex flex-wrap items-center justify-between gap-3 border border-bronze-500/30 bg-bronze-500/5 px-4 py-3 text-xs">
+                      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-bronze-500/30 bg-bronze-500/5 px-4 py-3 text-xs">
                         <span>{t.editingUpdate}: <strong>{selectedUpdate.title}</strong></span>
                         <button
                           type="button"
@@ -1237,7 +1240,7 @@ const PortalAdmin: React.FC = () => {
                     <Field name="title" label={t.titleField} required maxLength={120} defaultValue={selectedUpdate?.title ?? ''} />
                     <label className="block">
                       <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.description}</span>
-                      <textarea name="description" defaultValue={selectedUpdate?.description ?? ''} required minLength={2} maxLength={5000} rows={4} className="w-full resize-y border border-[#d9d4c9] bg-white px-4 py-3 text-sm leading-6 outline-none focus:border-neutral-700 dark:border-white/15 dark:bg-neutral-950" />
+                      <textarea name="description" defaultValue={selectedUpdate?.description ?? ''} required minLength={2} maxLength={5000} rows={4} className="w-full resize-y rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400" />
                     </label>
                     <div className="grid gap-5 sm:grid-cols-2">
                       <Field name="progressPercent" label={t.progress} type="number" min={0} max={100} defaultValue={selectedUpdate?.progress_percent ?? selectedProject?.progress_percent ?? 0} required />
@@ -1249,7 +1252,7 @@ const PortalAdmin: React.FC = () => {
                         <span className="font-mono text-[10px] uppercase tracking-widest">{t.attachmentLabel}</span>
                       </div>
                       <div className="space-y-4">
-                        <section className="border border-dashed border-neutral-300 bg-neutral-50/80 p-4 dark:border-white/15 dark:bg-white/[0.03]">
+                        <section className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50/80 p-4 dark:border-white/15 dark:bg-white/[0.03]">
                           <div className="mb-3 flex items-center gap-2">
                             <ImagePlus size={16} className="text-bronze-500" />
                             <h3 className="font-mono text-[10px] uppercase tracking-widest">{t.photo}</h3>
@@ -1258,8 +1261,8 @@ const PortalAdmin: React.FC = () => {
                             <div className="mb-4 space-y-2">
                               <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">{t.existingAttachments}</p>
                               {existingPhotos.map((attachment) => (
-                                <div key={attachment.path} className="flex items-center gap-3 border border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-neutral-900">
-                                  {attachment.url && <img src={attachment.url} alt={attachment.name} className="h-14 w-20 shrink-0 object-cover" />}
+                                <div key={attachment.path} className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-neutral-900">
+                                  {attachment.url && <img src={attachment.url} alt={attachment.name} className="h-14 w-20 shrink-0 rounded-md object-cover" />}
                                   <a href={attachment.downloadUrl ?? attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs hover:text-bronze-600">{attachment.name}</a>
                                   <button type="button" onClick={() => setEditingAttachments((current) => current.filter((item) => item.path !== attachment.path))} aria-label={`${t.removeAttachment}: ${attachment.name}`} title={t.removeAttachment} className="flex h-8 w-8 shrink-0 items-center justify-center text-neutral-400 hover:text-red-500">
                                     <X size={15} />
@@ -1268,7 +1271,7 @@ const PortalAdmin: React.FC = () => {
                               ))}
                             </div>
                           )}
-                          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 border border-neutral-200 bg-white px-4 py-5 text-center transition-colors hover:border-bronze-500 dark:border-white/10 dark:bg-neutral-900">
+                          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-5 text-center transition-colors hover:border-bronze-500 hover:bg-bronze-500/[0.03] dark:border-white/10 dark:bg-neutral-900">
                             <Upload size={19} className="text-bronze-500" />
                             <span className="text-xs font-medium">{t.choosePhotos}</span>
                             <span className="max-w-sm text-[10px] leading-5 text-neutral-500">{t.photoHint}</span>
@@ -1287,7 +1290,7 @@ const PortalAdmin: React.FC = () => {
                           )}
                         </section>
 
-                        <section className="border border-dashed border-neutral-300 bg-neutral-50/80 p-4 dark:border-white/15 dark:bg-white/[0.03]">
+                        <section className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50/80 p-4 dark:border-white/15 dark:bg-white/[0.03]">
                           <div className="mb-3 flex items-center gap-2">
                             <FileText size={16} className="text-bronze-500" />
                             <h3 className="font-mono text-[10px] uppercase tracking-widest">{t.progressFiles}</h3>
@@ -1296,7 +1299,7 @@ const PortalAdmin: React.FC = () => {
                             <div className="mb-4 space-y-2">
                               <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">{t.existingAttachments}</p>
                               {existingDocuments.map((attachment) => (
-                                <div key={attachment.path} className="flex items-center gap-3 border border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-neutral-900">
+                                <div key={attachment.path} className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-neutral-900">
                                   <FileText size={18} className="mx-1 shrink-0 text-bronze-500" />
                                   <a href={attachment.downloadUrl ?? attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs hover:text-bronze-600">{attachment.name}</a>
                                   <button type="button" onClick={() => setEditingAttachments((current) => current.filter((item) => item.path !== attachment.path))} aria-label={`${t.removeAttachment}: ${attachment.name}`} title={t.removeAttachment} className="flex h-8 w-8 shrink-0 items-center justify-center text-neutral-400 hover:text-red-500">
@@ -1306,7 +1309,7 @@ const PortalAdmin: React.FC = () => {
                               ))}
                             </div>
                           )}
-                          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 border border-neutral-200 bg-white px-4 py-5 text-center transition-colors hover:border-bronze-500 dark:border-white/10 dark:bg-neutral-900">
+                          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-5 text-center transition-colors hover:border-bronze-500 hover:bg-bronze-500/[0.03] dark:border-white/10 dark:bg-neutral-900">
                             <Upload size={19} className="text-bronze-500" />
                             <span className="text-xs font-medium">{t.chooseProgressFiles}</span>
                             <span className="max-w-sm text-[10px] leading-5 text-neutral-500">{t.documentHint}</span>
@@ -1326,14 +1329,14 @@ const PortalAdmin: React.FC = () => {
                         </section>
                       </div>
                     </div>
-                    <button disabled={busy || projects.length === 0} className="flex w-full items-center justify-between bg-neutral-900 px-5 py-4 font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-500 disabled:opacity-60 dark:bg-white dark:text-neutral-950">
+                    <button disabled={busy || projects.length === 0} className="flex w-full items-center justify-between rounded-xl bg-neutral-900 px-5 py-4 font-mono text-xs uppercase tracking-widest text-white transition-colors hover:bg-bronze-600 disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
                       {busy ? (language === 'ID' ? 'Mengunggah...' : language === 'CN' ? '正在上传...' : 'Uploading...') : editingUpdateId ? t.saveChanges : t.publish} <ArrowUpRight size={17} />
                     </button>
                   </form>
                 )}
               </div>
 
-              <div className="border border-neutral-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-neutral-900">
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900 xl:col-start-2 xl:row-start-1">
                 <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                   <ClipboardList size={17} className="text-bronze-500" />
                   <div>
@@ -1344,9 +1347,9 @@ const PortalAdmin: React.FC = () => {
                 {adminUpdates.length === 0 ? (
                   <p className="text-sm text-neutral-500">{t.noPreviousUpdates}</p>
                 ) : (
-                  <ul className="divide-y divide-neutral-200 dark:divide-white/10">
+                  <ul className="space-y-3">
                     {adminUpdates.map((update) => (
-                      <li key={update.id} className="flex flex-col justify-between gap-3 py-4 sm:flex-row sm:items-center">
+                      <li key={update.id} className="flex flex-col justify-between gap-3 rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 sm:flex-row sm:items-center dark:border-white/[0.06] dark:bg-white/[0.02]">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium">{update.title}</p>
                           <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-neutral-400">
@@ -1368,7 +1371,7 @@ const PortalAdmin: React.FC = () => {
                               if (documentInputRef.current) documentInputRef.current.value = '';
                               document.getElementById('progress-update-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                             }}
-                            className="border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 hover:text-bronze-600 disabled:opacity-50 dark:border-white/15"
+                            className="rounded-lg border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 hover:text-bronze-600 disabled:opacity-50 dark:border-white/15"
                           >
                             {editingUpdateId === update.id ? t.editingUpdate : t.editUpdate}
                           </button>
@@ -1377,7 +1380,7 @@ const PortalAdmin: React.FC = () => {
                               type="button"
                               disabled={busy}
                               onClick={() => deleteProgressUpdate(update)}
-                              className="inline-flex items-center gap-2 border border-red-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-red-600 transition-colors hover:border-red-500 hover:bg-red-50 disabled:opacity-50 dark:border-red-400/20 dark:text-red-400 dark:hover:bg-red-500/10"
+                              className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-red-600 transition-colors hover:border-red-500 hover:bg-red-50 disabled:opacity-50 dark:border-red-400/20 dark:text-red-400 dark:hover:bg-red-500/10"
                             >
                               <Trash2 size={13} />
                               {busy ? t.deletingUpdate : t.deleteUpdate}
@@ -1390,7 +1393,7 @@ const PortalAdmin: React.FC = () => {
                 )}
               </div>
 
-              <div className="border border-neutral-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-neutral-900">
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900 xl:col-start-2">
                 <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                   <ClipboardList size={17} className="text-bronze-500" />
                   <div>
@@ -1399,14 +1402,14 @@ const PortalAdmin: React.FC = () => {
                   </div>
                 </div>
                 {projects.length === 0 ? <p className="text-sm text-neutral-500">{t.emptyProjects}</p> : (
-                  <ul className="divide-y divide-neutral-200 dark:divide-white/10">
+                  <ul className="space-y-3">
                     {projects.map((project) => (
-                      <li key={`${project.id}-${project.start_date ?? ''}`} className="py-4 text-sm">
+                      <li key={`${project.id}-${project.start_date ?? ''}`} className="rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 text-sm dark:border-white/[0.06] dark:bg-white/[0.02]">
                         <div className="flex items-center justify-between gap-4">
                           <span className="min-w-0"><strong className="font-mono text-[10px] text-bronze-600 dark:text-bronze-400">{project.project_code}</strong><span className="mx-2 text-neutral-300">/</span><span className="font-medium">{project.project_name}</span><span className="mt-1 block text-xs text-neutral-500">{project.client_name}</span><span className="mt-1 block text-[10px] text-neutral-400">{project.client_email ?? t.noClientEmail}</span></span>
                           <span className="w-24 shrink-0">
                             <span className="mb-1 block text-right font-mono text-[10px] text-neutral-500">{project.progress_percent}%</span>
-                            <span className="block h-1 bg-neutral-100 dark:bg-white/10"><span className="block h-full bg-bronze-500" style={{ width: `${project.progress_percent}%` }} /></span>
+                            <span className="block h-1 overflow-hidden rounded-full bg-neutral-100 dark:bg-white/10"><span className="block h-full rounded-full bg-bronze-500" style={{ width: `${project.progress_percent}%` }} /></span>
                           </span>
                         </div>
                         {adminRole === 'admin' && (
@@ -1415,14 +1418,14 @@ const PortalAdmin: React.FC = () => {
                           <input type="hidden" name="projectId" value={project.id} />
                           <label className="min-w-[180px] flex-1">
                             <span className="mb-2 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-neutral-500"><CalendarDays size={12} />{t.startDate}</span>
-                            <input name="startDate" type="date" defaultValue={project.start_date ?? ''} required className="w-full border-b border-neutral-200 bg-transparent py-2 text-xs outline-none focus:border-bronze-500 dark:border-white/15 dark:[color-scheme:dark]" />
+                            <input name="startDate" type="date" defaultValue={project.start_date ?? ''} required className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-xs outline-none transition focus:border-bronze-500 focus:ring-4 focus:ring-bronze-500/10 dark:border-white/10 dark:bg-neutral-950 dark:[color-scheme:dark]" />
                           </label>
-                          <button disabled={busy} className="border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15">{t.saveDate}</button>
+                          <button disabled={busy} className="rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15 dark:bg-white/[0.03]">{t.saveDate}</button>
                         </form>
                         <form onSubmit={saveClientAccount} className="mt-4 grid gap-3 border-t border-neutral-100 pt-4 dark:border-white/10 sm:grid-cols-[1fr_auto] sm:items-end">
                           <input type="hidden" name="projectId" value={project.id} />
                           <Field name="clientEmail" label={t.clientEmail} type="email" defaultValue={project.client_email ?? ''} required maxLength={254} autoCapitalize="none" />
-                          <button disabled={busy} className="border border-neutral-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15">{t.saveClientAccount}</button>
+                          <button disabled={busy} className="rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15 dark:bg-white/[0.03]">{t.saveClientAccount}</button>
                         </form>
                         <p className="mt-2 text-[10px] leading-5 text-neutral-500">{t.clientEmailEditHint}</p>
                         <div className="mt-4 flex justify-end border-t border-neutral-100 pt-4 dark:border-white/10">
@@ -1430,7 +1433,7 @@ const PortalAdmin: React.FC = () => {
                             type="button"
                             disabled={busy}
                             onClick={() => deleteProject(project)}
-                            className="inline-flex items-center gap-2 border border-red-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-red-600 transition-colors hover:border-red-500 hover:bg-red-50 disabled:opacity-50 dark:border-red-400/20 dark:text-red-400 dark:hover:bg-red-500/10"
+                            className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-red-600 transition-colors hover:border-red-500 hover:bg-red-50 disabled:opacity-50 dark:border-red-400/20 dark:text-red-400 dark:hover:bg-red-500/10"
                           >
                             <Trash2 size={13} />
                             {busy ? t.deletingProject : t.deleteProject}
@@ -1475,7 +1478,7 @@ const PortalAdmin: React.FC = () => {
                 <h2 className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">{t.services}</h2>
                 <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {siteT.services.list.map((service) => (
-                    <li key={service.id} className="border border-neutral-200 px-3 py-2.5 text-xs leading-5 text-neutral-600 dark:border-white/10 dark:text-neutral-300">
+                    <li key={service.id} className="rounded-lg border border-neutral-200 bg-white/70 px-3 py-2.5 text-xs leading-5 text-neutral-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300">
                       {service.title}
                     </li>
                   ))}
@@ -1500,17 +1503,17 @@ function Field({
   return (
     <label className="block">
       <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</span>
-      <input {...props} className="w-full border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-neutral-700 focus:ring-2 focus:ring-neutral-900/5 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-white/50" />
+      <input {...props} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400 dark:focus:ring-bronze-400/10" />
     </label>
   );
 }
 
 function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="flex min-h-28 flex-col justify-between bg-[#f7f5ef] px-4 py-4 sm:px-5 sm:py-5 dark:bg-neutral-900">
+    <div className="flex min-h-28 flex-col justify-between rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow-sm sm:px-5 sm:py-5 dark:border-white/10 dark:bg-neutral-900">
       <div className="flex items-center justify-between gap-2 text-neutral-500">
-        <p className="text-xs">{label}</p>
-        <span className="text-[#8c795e]">{icon}</span>
+        <p className="text-xs font-medium">{label}</p>
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400">{icon}</span>
       </div>
       <p className="mt-4 font-display text-3xl font-medium tracking-tight tabular-nums sm:text-4xl">{value}</p>
     </div>
@@ -1518,7 +1521,7 @@ function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; 
 }
 
 function ErrorBanner({ message }: { message: string }) {
-  return <p role="alert" className="mb-6 border border-red-500/30 bg-red-500/5 px-4 py-3 text-sm text-red-600 dark:text-red-300">{message}</p>;
+  return <p role="alert" className="mb-6 rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-3 text-sm leading-6 text-red-600 dark:text-red-300">{message}</p>;
 }
 
 function formatBytes(bytes: number): string {

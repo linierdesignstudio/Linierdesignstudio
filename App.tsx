@@ -59,12 +59,12 @@ const AnimatedRoutes = () => {
 
 const RouteAppShell: React.FC<{ scrollLocked: boolean }> = ({ scrollLocked }) => {
   const { pathname } = useLocation();
-  const isAdminPortal = pathname === '/portal/admin';
+  const isPortalRoute = pathname.startsWith('/portal');
 
   return (
     <>
       <CustomCursor />
-      {!isAdminPortal && <Navbar />}
+      {!isPortalRoute && <Navbar />}
       <div
         className={`
           text-neutral-900 dark:text-neutral-100
@@ -79,9 +79,9 @@ const RouteAppShell: React.FC<{ scrollLocked: boolean }> = ({ scrollLocked }) =>
           </main>
         </div>
       </div>
-      {!isAdminPortal && <StickyFooterWrapper />}
+      {!isPortalRoute && <StickyFooterWrapper />}
       <CookieBanner />
-      {!isAdminPortal && <AudioPlayer />}
+      {!isPortalRoute && <AudioPlayer />}
     </>
   );
 };
