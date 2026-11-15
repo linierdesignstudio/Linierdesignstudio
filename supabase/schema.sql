@@ -107,6 +107,49 @@ create table if not exists public.client_feedback (
 create index if not exists client_feedback_project_date_idx
   on public.client_feedback (project_id, created_at desc);
 
+create table if not exists public.project_billing_items (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.client_projects(id) on delete cascade,
+  title text not null check (length(btrim(title)) between 1 and 120),
+  amount numeric(16, 0) not null check (amount > 0 and amount <= 9007199254740991),
+  due_date date not null,
+  status text not null default 'unpaid'
+    check (status in ('unpaid', 'uploading', 'pending_review', 'rejected', 'paid')),
+  payment_proof_path text,
+  payment_proof_name text,
+  payment_proof_content_type text,
+  proof_upload_expires_at timestamptz,
+  payment_proof_submitted_at timestamptz,
+  payment_review_note text,
+  paid_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists project_billing_items_project_due_idx
+  on public.project_billing_items (project_id, due_date, created_at);
+
+create table if not exists public.project_change_orders (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.client_projects(id) on delete cascade,
+  title text not null check (length(btrim(title)) between 1 and 120),
+  description text not null check (length(btrim(description)) between 1 and 5000),
+  requested_by text not null check (requested_by in ('client', 'admin')),
+  cost_impact numeric(16, 0) not null default 0
+    check (cost_impact between -9007199254740991 and 9007199254740991),
+  schedule_impact_days integer not null default 0
+    check (schedule_impact_days between -3650 and 3650),
+  status text not null default 'requested'
+    check (status in ('requested', 'pending_approval', 'approved', 'rejected')),
+  admin_note text,
+  client_response_note text,
+  created_at timestamptz not null default now(),
+  proposed_at timestamptz,
+  responded_at timestamptz
+);
+
+create index if not exists project_change_orders_project_created_idx
+  on public.project_change_orders (project_id, created_at desc);
+
 alter table public.project_password_reset_requests
   add column if not exists credential_type text not null default 'project'
   check (credential_type in ('project', 'account'));
@@ -122,6 +165,8 @@ alter table public.project_updates enable row level security;
 alter table public.project_login_attempts enable row level security;
 alter table public.project_password_reset_requests enable row level security;
 alter table public.client_feedback enable row level security;
+alter table public.project_billing_items enable row level security;
+alter table public.project_change_orders enable row level security;
 
 create or replace function public.portal_allow_login_attempt(
   p_project_id uuid,
@@ -487,12 +532,14 @@ grant execute on function public.portal_delete_project(uuid) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
 grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
 
-revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback from anon, authenticated;
+revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.project_change_orders from anon, authenticated;
 grant select, insert on public.client_projects to service_role;
 grant select, insert, update, delete on public.project_updates to service_role;
 grant select, insert, update, delete on public.project_login_attempts to service_role;
 grant select, insert, update on public.project_password_reset_requests to service_role;
 grant select, insert, update on public.client_feedback to service_role;
+grant select, insert, update, delete on public.project_billing_items to service_role;
+grant select, insert, update, delete on public.project_change_orders to service_role;
 grant update on public.client_projects to service_role;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

@@ -24,7 +24,9 @@ export type AdminPermission =
   | 'delete_projects'
   | 'process_resets'
   | 'manage_client_access'
-  | 'feedback_manage';
+  | 'feedback_manage'
+  | 'manage_billing'
+  | 'manage_change_orders';
 
 const STAFF_PERMISSIONS = new Set<AdminPermission>([
   'project_read',

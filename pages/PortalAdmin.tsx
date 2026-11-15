@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileCheck2, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type AdminFeedback, type PasswordResetRequest, type PortalAttachment, type PortalProject, type PortalUpdate } from '../lib/portalApi';
+import { portalRequest, type AdminFeedback, type BillingItem, type PasswordResetRequest, type PortalAttachment, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 import { Language } from '../types';
 
 const copy = {
@@ -137,6 +137,62 @@ const copy = {
     feedbackWaiting: 'Menunggu balasan',
     feedbackReplied: 'Sudah dibalas',
     clientCount: 'Jumlah klien',
+    billingNav: 'Tagihan',
+    billingTitle: 'Tagihan & pembayaran',
+    billingAdd: 'Tambah termin',
+    billingName: 'Nama termin',
+    billingAmount: 'Nominal (Rp)',
+    billingDueDate: 'Jatuh tempo',
+    billingSave: 'Simpan termin',
+    billingEmpty: 'Belum ada termin pembayaran untuk proyek ini.',
+    billingUnpaid: 'Belum dibayar',
+    billingUploading: 'Mengunggah bukti',
+    billingPending: 'Menunggu pemeriksaan',
+    billingRejected: 'Bukti perlu diperbaiki',
+    billingPaid: 'Lunas',
+    billingProof: 'Bukti pembayaran',
+    billingNoProof: 'Belum ada bukti pembayaran.',
+    billingUploadProof: 'Unggah bukti pembayaran',
+    billingProofHint: 'JPG, PNG, WEBP, atau PDF · Maksimal 5 MB.',
+    billingReviewNote: 'Catatan untuk klien',
+    billingApproveProof: 'Tandai lunas',
+    billingRejectProof: 'Minta unggah ulang',
+    billingDelete: 'Hapus termin',
+    billingDeleteConfirm: 'Hapus termin pembayaran yang belum dibayar ini?',
+    billingCreated: 'Termin pembayaran berhasil ditambahkan.',
+    billingPaidSaved: 'Pembayaran berhasil ditandai lunas.',
+    billingProofRejected: 'Bukti ditolak dan klien dapat mengunggah ulang.',
+    billingDeleted: 'Termin pembayaran berhasil dihapus.',
+    billingOverdue: 'Terlambat',
+    billingRefresh: 'Perbarui tagihan',
+    changeOrders: 'Perubahan pekerjaan',
+    changeOrdersTitle: 'Permintaan perubahan pekerjaan',
+    changeOrdersEmpty: 'Belum ada permintaan atau usulan perubahan.',
+    changeNewProposal: 'Buat usulan perubahan',
+    changeRequestedByClient: 'Permintaan dari klien',
+    changeRequestedByAdmin: 'Usulan dari studio',
+    changeTitle: 'Judul perubahan',
+    changeDescription: 'Rincian perubahan',
+    changeCostImpact: 'Dampak biaya (Rp; minus untuk pengurangan)',
+    changeScheduleImpact: 'Dampak jadwal (hari; minus untuk lebih cepat)',
+    changeAdminNote: 'Catatan untuk klien (opsional)',
+    changeRequestNote: 'Catatan tanggapan klien',
+    changeSubmitProposal: 'Kirim usulan untuk persetujuan',
+    changeSendRequest: 'Kirim permintaan perubahan',
+    changeStatusRequested: 'Perlu estimasi studio',
+    changeStatusPending: 'Menunggu persetujuan klien',
+    changeStatusApproved: 'Disetujui klien',
+    changeStatusRejected: 'Ditolak klien',
+    changeApprove: 'Setujui',
+    changeReject: 'Tolak',
+    changeProposalSaved: 'Usulan perubahan dikirim kepada klien.',
+    changeRequestSaved: 'Permintaan perubahan klien berhasil dikirim.',
+    changeDecisionSaved: 'Tanggapan klien berhasil disimpan.',
+    changeConfirmApprove: 'Setujui perubahan ini beserta dampak biaya dan jadwalnya?',
+    changeConfirmReject: 'Tolak usulan perubahan ini?',
+    changeCost: 'Dampak biaya',
+    changeSchedule: 'Dampak jadwal',
+    changeRefresh: 'Perbarui perubahan',
   },
   EN: {
     eyebrow: 'LINIER STUDIO / ADMIN',
@@ -269,6 +325,62 @@ const copy = {
     feedbackWaiting: 'Awaiting reply',
     feedbackReplied: 'Replied',
     clientCount: 'Total clients',
+    billingNav: 'Billing',
+    billingTitle: 'Billing & payments',
+    billingAdd: 'Add installment',
+    billingName: 'Installment name',
+    billingAmount: 'Amount (IDR)',
+    billingDueDate: 'Due date',
+    billingSave: 'Save installment',
+    billingEmpty: 'There are no payment installments for this project yet.',
+    billingUnpaid: 'Unpaid',
+    billingUploading: 'Uploading proof',
+    billingPending: 'Awaiting review',
+    billingRejected: 'Proof needs changes',
+    billingPaid: 'Paid',
+    billingProof: 'Payment proof',
+    billingNoProof: 'No payment proof submitted.',
+    billingUploadProof: 'Upload payment proof',
+    billingProofHint: 'JPG, PNG, WEBP, or PDF · Up to 5 MB.',
+    billingReviewNote: 'Note for the client',
+    billingApproveProof: 'Mark as paid',
+    billingRejectProof: 'Request new proof',
+    billingDelete: 'Delete installment',
+    billingDeleteConfirm: 'Delete this unpaid payment installment?',
+    billingCreated: 'Payment installment added.',
+    billingPaidSaved: 'Payment marked as paid.',
+    billingProofRejected: 'Proof rejected; the client can upload a replacement.',
+    billingDeleted: 'Payment installment deleted.',
+    billingOverdue: 'Overdue',
+    billingRefresh: 'Refresh billing',
+    changeOrders: 'Scope changes',
+    changeOrdersTitle: 'Project change requests',
+    changeOrdersEmpty: 'There are no change requests or proposals yet.',
+    changeNewProposal: 'Create a change proposal',
+    changeRequestedByClient: 'Requested by client',
+    changeRequestedByAdmin: 'Proposed by studio',
+    changeTitle: 'Change title',
+    changeDescription: 'Change details',
+    changeCostImpact: 'Cost impact (IDR; negative for a reduction)',
+    changeScheduleImpact: 'Schedule impact (days; negative for sooner)',
+    changeAdminNote: 'Note for client (optional)',
+    changeRequestNote: 'Client response note',
+    changeSubmitProposal: 'Send proposal for approval',
+    changeSendRequest: 'Send change request',
+    changeStatusRequested: 'Studio estimate needed',
+    changeStatusPending: 'Awaiting client approval',
+    changeStatusApproved: 'Approved by client',
+    changeStatusRejected: 'Rejected by client',
+    changeApprove: 'Approve',
+    changeReject: 'Reject',
+    changeProposalSaved: 'Change proposal sent to the client.',
+    changeRequestSaved: 'Client change request sent.',
+    changeDecisionSaved: 'Client response saved.',
+    changeConfirmApprove: 'Approve this change and its cost and schedule impacts?',
+    changeConfirmReject: 'Reject this change proposal?',
+    changeCost: 'Cost impact',
+    changeSchedule: 'Schedule impact',
+    changeRefresh: 'Refresh changes',
   },
   CN: {
     eyebrow: 'LINIER STUDIO / 管理',
@@ -401,6 +513,62 @@ const copy = {
     feedbackWaiting: '等待回复',
     feedbackReplied: '已回复',
     clientCount: '客户数量',
+    billingNav: '账单',
+    billingTitle: '账单与付款',
+    billingAdd: '添加付款阶段',
+    billingName: '阶段名称',
+    billingAmount: '金额（印尼盾）',
+    billingDueDate: '到期日',
+    billingSave: '保存阶段',
+    billingEmpty: '此项目暂无付款阶段。',
+    billingUnpaid: '未付款',
+    billingUploading: '正在上传凭证',
+    billingPending: '等待审核',
+    billingRejected: '凭证需要修改',
+    billingPaid: '已付款',
+    billingProof: '付款凭证',
+    billingNoProof: '尚未提交付款凭证。',
+    billingUploadProof: '上传付款凭证',
+    billingProofHint: 'JPG、PNG、WEBP 或 PDF · 最大 5 MB。',
+    billingReviewNote: '给客户的说明',
+    billingApproveProof: '标记为已付款',
+    billingRejectProof: '要求重新上传',
+    billingDelete: '删除付款阶段',
+    billingDeleteConfirm: '删除此未付款阶段？',
+    billingCreated: '付款阶段已添加。',
+    billingPaidSaved: '付款已标记为已付款。',
+    billingProofRejected: '凭证已退回，客户可以重新上传。',
+    billingDeleted: '付款阶段已删除。',
+    billingOverdue: '已逾期',
+    billingRefresh: '刷新账单',
+    changeOrders: '工程变更',
+    changeOrdersTitle: '工程变更申请',
+    changeOrdersEmpty: '暂无变更申请或提案。',
+    changeNewProposal: '创建变更提案',
+    changeRequestedByClient: '客户申请',
+    changeRequestedByAdmin: '工作室提案',
+    changeTitle: '变更标题',
+    changeDescription: '变更详情',
+    changeCostImpact: '费用影响（印尼盾；负数表示减少）',
+    changeScheduleImpact: '工期影响（天；负数表示提前）',
+    changeAdminNote: '给客户的说明（可选）',
+    changeRequestNote: '客户回复说明',
+    changeSubmitProposal: '发送提案等待批准',
+    changeSendRequest: '发送变更申请',
+    changeStatusRequested: '等待工作室估价',
+    changeStatusPending: '等待客户批准',
+    changeStatusApproved: '客户已批准',
+    changeStatusRejected: '客户已拒绝',
+    changeApprove: '批准',
+    changeReject: '拒绝',
+    changeProposalSaved: '变更提案已发送给客户。',
+    changeRequestSaved: '客户变更申请已发送。',
+    changeDecisionSaved: '客户回复已保存。',
+    changeConfirmApprove: '批准此变更及其费用和工期影响？',
+    changeConfirmReject: '拒绝此变更提案？',
+    changeCost: '费用影响',
+    changeSchedule: '工期影响',
+    changeRefresh: '刷新变更',
   },
 } as const;
 
@@ -459,6 +627,8 @@ const PortalAdmin: React.FC = () => {
   const [projects, setProjects] = useState<PortalProject[]>([]);
   const [passwordRequests, setPasswordRequests] = useState<PasswordResetRequest[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<AdminFeedback[]>([]);
+  const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
+  const [changeOrders, setChangeOrders] = useState<ProjectChangeOrder[]>([]);
   const [seenFeedbackIds, setSeenFeedbackIds] = useState<Set<string>>(() => new Set(
     (localStorage.getItem('linier-admin-seen-feedback') ?? '').split(',').filter(Boolean)
   ));
@@ -539,6 +709,29 @@ const PortalAdmin: React.FC = () => {
       });
     return () => { active = false; };
   }, [authenticated, selectedProjectId]);
+
+  useEffect(() => {
+    let active = true;
+    if (!authenticated || adminRole !== 'admin' || !selectedProjectId) {
+      setBillingItems([]);
+      setChangeOrders([]);
+      return () => { active = false; };
+    }
+
+    Promise.all([
+      portalRequest<{ items: BillingItem[] }>(`/api/portal/admin/billing?projectId=${encodeURIComponent(selectedProjectId)}`),
+      portalRequest<{ orders: ProjectChangeOrder[] }>(`/api/portal/admin/change-orders?projectId=${encodeURIComponent(selectedProjectId)}`),
+    ])
+      .then(([billing, changes]) => {
+        if (!active) return;
+        setBillingItems(billing.items);
+        setChangeOrders(changes.orders);
+      })
+      .catch((cause: unknown) => {
+        if (active) setError(cause instanceof Error ? cause.message : 'Tagihan dan perubahan pekerjaan tidak dapat dimuat.');
+      });
+    return () => { active = false; };
+  }, [authenticated, adminRole, selectedProjectId]);
 
   const signIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -749,6 +942,107 @@ const PortalAdmin: React.FC = () => {
       setNotice(t.feedbackReplySaved);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Balasan feedback tidak dapat disimpan.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitBillingItem = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedProjectId) return;
+    const form = event.currentTarget;
+    const values = new FormData(form);
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const { item } = await portalRequest<{ item: BillingItem }>('/api/portal/admin/billing', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: selectedProjectId,
+          title: values.get('title'),
+          amount: Number(values.get('amount')),
+          dueDate: values.get('dueDate'),
+        }),
+      });
+      setBillingItems((current) => [...current, item].sort((a, b) => a.due_date.localeCompare(b.due_date)));
+      form.reset();
+      setNotice(t.billingCreated);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Termin pembayaran tidak dapat disimpan.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const reviewBillingItem = async (item: BillingItem, status: 'paid' | 'rejected', reviewNote = '') => {
+    if (status === 'rejected' && !reviewNote.trim()) {
+      setError(t.billingReviewNote);
+      return;
+    }
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const result = await portalRequest<{ item: BillingItem }>('/api/portal/admin/billing', {
+        method: 'PATCH',
+        body: JSON.stringify({ itemId: item.id, status, reviewNote }),
+      });
+      setBillingItems((current) => current.map((entry) => entry.id === item.id ? result.item : entry));
+      setNotice(status === 'paid' ? t.billingPaidSaved : t.billingProofRejected);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Status pembayaran tidak dapat diperbarui.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteBillingItem = async (item: BillingItem) => {
+    if (!window.confirm(t.billingDeleteConfirm)) return;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      await portalRequest<{ deleted: boolean }>('/api/portal/admin/billing', {
+        method: 'DELETE',
+        body: JSON.stringify({ itemId: item.id }),
+      });
+      setBillingItems((current) => current.filter((entry) => entry.id !== item.id));
+      setNotice(t.billingDeleted);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Termin pembayaran tidak dapat dihapus.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitChangeProposal = async (event: React.FormEvent<HTMLFormElement>, order?: ProjectChangeOrder) => {
+    event.preventDefault();
+    if (!selectedProjectId) return;
+    const form = event.currentTarget;
+    const values = new FormData(form);
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const result = await portalRequest<{ order: ProjectChangeOrder }>('/api/portal/admin/change-orders', {
+        method: order ? 'PATCH' : 'POST',
+        body: JSON.stringify({
+          ...(order ? { orderId: order.id } : { projectId: selectedProjectId }),
+          title: values.get('title'),
+          description: values.get('description'),
+          costImpact: Number(values.get('costImpact')),
+          scheduleImpactDays: Number(values.get('scheduleImpactDays')),
+          adminNote: values.get('adminNote'),
+        }),
+      });
+      setChangeOrders((current) => order
+        ? current.map((entry) => entry.id === order.id ? result.order : entry)
+        : [result.order, ...current]);
+      if (!order) form.reset();
+      setNotice(t.changeProposalSaved);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Usulan perubahan tidak dapat disimpan.');
     } finally {
       setBusy(false);
     }
@@ -1036,9 +1330,11 @@ const PortalAdmin: React.FC = () => {
     { id: 'admin-progress', label: t.projectProgress, icon: <ChartNoAxesColumn size={17} /> },
     { id: 'admin-clients', label: t.clients, icon: <Users size={17} /> },
     { id: 'admin-feedback', label: t.feedback, icon: <MessageCircle size={17} /> },
+    { id: 'admin-billing', label: t.billingNav, icon: <FileCheck2 size={17} /> },
+    { id: 'admin-changes', label: t.changeOrders, icon: <ClipboardList size={17} /> },
     { id: 'admin-access', label: t.clientAccess, icon: <FolderOpen size={17} /> },
     { id: 'admin-resets', label: t.passwordRequestsNav, icon: <KeyRound size={17} /> },
-  ].filter((item) => adminRole !== 'staff' || item.id !== 'admin-access');
+  ].filter((item) => adminRole === 'admin' || !['admin-access', 'admin-billing', 'admin-changes'].includes(item.id));
   const activePageTitle = activeSection === 'admin-dashboard'
     ? t.adminDashboard
     : navigation.find((item) => item.id === activeSection)?.label ?? t.adminDashboard;
@@ -1356,6 +1652,142 @@ const PortalAdmin: React.FC = () => {
                     ))}
                   </ol>
                 )}
+              </section>
+            )}
+            {activeSection === 'admin-billing' && (
+              <section id="admin-billing" className="scroll-mt-24 space-y-5">
+                <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                  <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileCheck2 size={18} /></span>
+                    <div className="min-w-0">
+                      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{selectedProject?.project_code}</p>
+                      <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.billingTitle}</h2>
+                    </div>
+                    <button type="button" disabled={busy || !selectedProjectId} onClick={() => {
+                      setBusy(true);
+                      setError('');
+                      portalRequest<{ items: BillingItem[] }>(`/api/portal/admin/billing?projectId=${encodeURIComponent(selectedProjectId)}`)
+                        .then(({ items }) => setBillingItems(items))
+                        .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Tagihan tidak dapat dimuat.'))
+                        .finally(() => setBusy(false));
+                    }} aria-label={t.billingRefresh} title={t.billingRefresh} className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-500 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03]">
+                      <RefreshCw size={14} />
+                    </button>
+                  </div>
+                  {!selectedProjectId ? <p className="text-sm text-neutral-500">{t.chooseProject}</p> : billingItems.length === 0 ? (
+                    <p className="py-2 text-sm text-neutral-500">{t.billingEmpty}</p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {billingItems.map((item) => (
+                        <li key={item.id} className="rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 sm:p-5 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <h3 className="break-words font-medium">{item.title}</h3>
+                              <p className="mt-1 text-xs text-neutral-500">{formatAdminCurrency(item.amount, language)} · {t.billingDueDate}: {formatAdminDate(item.due_date, language)}</p>
+                            </div>
+                            <span className={`rounded-full px-3 py-1.5 text-[9px] font-medium ${item.status === 'paid' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : item.status === 'pending_review' ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : item.status === 'rejected' || (item.status === 'unpaid' && item.due_date < today()) ? 'bg-red-500/10 text-red-700 dark:text-red-300' : item.status === 'uploading' ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-neutral-200/70 text-neutral-600 dark:bg-white/10 dark:text-neutral-300'}`}>
+                              {item.status === 'paid' ? t.billingPaid : item.status === 'pending_review' ? t.billingPending : item.status === 'rejected' ? t.billingRejected : item.status === 'uploading' ? t.billingUploading : item.due_date < today() ? t.billingOverdue : t.billingUnpaid}
+                            </span>
+                          </div>
+                          {item.payment_proof_url && (
+                            <a href={item.payment_proof_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-bronze-700 underline underline-offset-2 dark:text-bronze-300">
+                              <FileText size={14} /> {t.billingProof}: {item.payment_proof_name || t.billingProof}
+                            </a>
+                          )}
+                          {item.payment_review_note && <p className="mt-3 rounded-lg bg-red-500/5 p-3 text-xs leading-5 text-neutral-600 dark:text-neutral-300">{item.payment_review_note}</p>}
+                          {item.status === 'pending_review' && (
+                            <form className="mt-4 border-t border-neutral-200 pt-4 dark:border-white/10" onSubmit={(event) => {
+                              event.preventDefault();
+                              const note = String(new FormData(event.currentTarget).get('reviewNote') ?? '');
+                              void reviewBillingItem(item, 'rejected', note);
+                            }}>
+                              <label className="block">
+                                <span className="mb-2 block text-xs font-medium text-neutral-700 dark:text-neutral-300">{t.billingReviewNote}</span>
+                                <textarea name="reviewNote" required maxLength={1000} rows={2} placeholder={t.billingReviewNote} className="w-full resize-y rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400" />
+                              </label>
+                              <div className="mt-3 flex flex-wrap justify-end gap-2">
+                                <button type="button" disabled={busy} onClick={() => void reviewBillingItem(item, 'paid')} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-xs font-medium text-white transition-colors hover:bg-emerald-800 disabled:opacity-50"><Check size={14} /> {t.billingApproveProof}</button>
+                                <button disabled={busy} className="inline-flex items-center gap-2 rounded-xl border border-red-500/25 px-4 py-3 text-xs font-medium text-red-700 transition-colors hover:bg-red-500/5 disabled:opacity-50 dark:text-red-300"><X size={14} /> {t.billingRejectProof}</button>
+                              </div>
+                            </form>
+                          )}
+                          {item.status === 'unpaid' && !item.payment_proof_path && (
+                            <div className="mt-3 flex justify-end">
+                              <button type="button" disabled={busy} onClick={() => void deleteBillingItem(item)} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-red-600 transition-colors hover:bg-red-500/5 disabled:opacity-50 dark:text-red-300"><Trash2 size={13} /> {t.billingDelete}</button>
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <form onSubmit={submitBillingItem} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                  <h3 className="mb-5 font-display text-lg font-medium">{t.billingAdd}</h3>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block sm:col-span-2"><span className="mb-2 block text-xs font-medium">{t.billingName}</span><input name="title" required maxLength={120} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
+                    <label className="block"><span className="mb-2 block text-xs font-medium">{t.billingAmount}</span><input name="amount" type="number" min={1} step={1} required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
+                    <label className="block"><span className="mb-2 block text-xs font-medium">{t.billingDueDate}</span><input name="dueDate" type="date" required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950 dark:[color-scheme:dark]" /></label>
+                  </div>
+                  <div className="mt-5 flex justify-end"><button disabled={busy || !selectedProjectId} className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 text-xs font-medium text-white transition-colors hover:bg-bronze-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-neutral-950"><Plus size={14} /> {t.billingSave}</button></div>
+                </form>
+              </section>
+            )}
+            {activeSection === 'admin-changes' && (
+              <section id="admin-changes" className="scroll-mt-24 space-y-5">
+                <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                  <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><ClipboardList size={18} /></span>
+                    <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{selectedProject?.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.changeOrdersTitle}</h2></div>
+                    <button type="button" disabled={busy || !selectedProjectId} onClick={() => {
+                      setBusy(true);
+                      setError('');
+                      portalRequest<{ orders: ProjectChangeOrder[] }>(`/api/portal/admin/change-orders?projectId=${encodeURIComponent(selectedProjectId)}`)
+                        .then(({ orders }) => setChangeOrders(orders))
+                        .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Perubahan pekerjaan tidak dapat dimuat.'))
+                        .finally(() => setBusy(false));
+                    }} aria-label={t.changeRefresh} title={t.changeRefresh} className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-500 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03]"><RefreshCw size={14} /></button>
+                  </div>
+                  {changeOrders.length === 0 ? <p className="text-sm text-neutral-500">{t.changeOrdersEmpty}</p> : (
+                    <ul className="space-y-4">
+                      {changeOrders.map((order) => (
+                        <li key={order.id} className="rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 sm:p-5 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0"><p className="text-[9px] uppercase tracking-wider text-neutral-400">{order.requested_by === 'client' ? t.changeRequestedByClient : t.changeRequestedByAdmin} · {formatAdminDate(order.created_at, language)}</p><h3 className="mt-1 break-words font-medium">{order.title}</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-neutral-600 dark:text-neutral-300">{order.description}</p></div>
+                            <span className={`shrink-0 rounded-full px-3 py-1.5 text-[9px] font-medium ${order.status === 'approved' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : order.status === 'rejected' ? 'bg-red-500/10 text-red-700 dark:text-red-300' : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'}`}>{order.status === 'requested' ? t.changeStatusRequested : order.status === 'pending_approval' ? t.changeStatusPending : order.status === 'approved' ? t.changeStatusApproved : t.changeStatusRejected}</span>
+                          </div>
+                          {order.status !== 'requested' && <p className="mt-3 text-xs text-neutral-500">{t.changeCost}: {formatAdminCurrency(order.cost_impact, language)} · {t.changeSchedule}: {order.schedule_impact_days} {language === 'EN' ? 'days' : language === 'CN' ? '天' : 'hari'}</p>}
+                          {order.admin_note && <p className="mt-2 rounded-lg bg-white/70 p-3 text-xs leading-5 text-neutral-600 dark:bg-white/[0.03] dark:text-neutral-300">{order.admin_note}</p>}
+                          {order.client_response_note && <p className="mt-2 rounded-lg bg-[#f5f2ec] p-3 text-xs leading-5 text-neutral-600 dark:bg-white/[0.04] dark:text-neutral-300">{t.changeRequestNote}: {order.client_response_note}</p>}
+                          {(order.status === 'requested' || order.status === 'pending_approval') && (
+                            <form onSubmit={(event) => void submitChangeProposal(event, order)} className="mt-4 grid gap-3 border-t border-neutral-200 pt-4 dark:border-white/10">
+                              <input name="title" defaultValue={order.title} required maxLength={120} aria-label={t.changeTitle} placeholder={t.changeTitle} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" />
+                              <textarea name="description" defaultValue={order.description} required maxLength={5000} rows={3} aria-label={t.changeDescription} placeholder={t.changeDescription} className="w-full resize-y rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm leading-6 outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" />
+                              <div className="grid gap-3 sm:grid-cols-2">
+                                <label className="block"><span className="mb-2 block text-xs font-medium">{t.changeCostImpact}</span><input name="costImpact" type="number" step={1} defaultValue={order.cost_impact} required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
+                                <label className="block"><span className="mb-2 block text-xs font-medium">{t.changeScheduleImpact}</span><input name="scheduleImpactDays" type="number" step={1} defaultValue={order.schedule_impact_days} required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
+                              </div>
+                              <label className="block"><span className="mb-2 block text-xs font-medium">{t.changeAdminNote}</span><textarea name="adminNote" defaultValue={order.admin_note ?? ''} maxLength={1000} rows={2} className="w-full resize-y rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
+                              <div className="flex justify-end"><button disabled={busy} className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 text-xs font-medium text-white transition-colors hover:bg-bronze-600 disabled:opacity-50 dark:bg-white dark:text-neutral-950"><Send size={14} /> {t.changeSubmitProposal}</button></div>
+                            </form>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <form onSubmit={(event) => void submitChangeProposal(event)} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                  <h3 className="mb-5 font-display text-lg font-medium">{t.changeNewProposal}</h3>
+                  <div className="grid gap-4">
+                    <label className="block"><span className="mb-2 block text-xs font-medium">{t.changeTitle}</span><input name="title" required maxLength={120} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
+                    <label className="block"><span className="mb-2 block text-xs font-medium">{t.changeDescription}</span><textarea name="description" required maxLength={5000} rows={3} className="w-full resize-y rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm leading-6 outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block"><span className="mb-2 block text-xs font-medium">{t.changeCostImpact}</span><input name="costImpact" type="number" step={1} defaultValue={0} required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
+                      <label className="block"><span className="mb-2 block text-xs font-medium">{t.changeScheduleImpact}</span><input name="scheduleImpactDays" type="number" step={1} defaultValue={0} required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
+                    </div>
+                    <label className="block"><span className="mb-2 block text-xs font-medium">{t.changeAdminNote}</span><textarea name="adminNote" maxLength={1000} rows={2} className="w-full resize-y rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
+                  </div>
+                  <div className="mt-5 flex justify-end"><button disabled={busy || !selectedProjectId} className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 text-xs font-medium text-white transition-colors hover:bg-bronze-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-neutral-950"><Plus size={14} /> {t.changeSubmitProposal}</button></div>
+                </form>
               </section>
             )}
             {activeSection === 'admin-resets' && (
@@ -1778,6 +2210,11 @@ function formatAdminDate(value: string, language: string): string {
     year: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(value));
+}
+
+function formatAdminCurrency(value: string | number, language: string): string {
+  const locale = language === 'ID' ? 'id-ID' : language === 'CN' ? 'zh-CN' : 'en-US';
+  return new Intl.NumberFormat(locale, { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value));
 }
 
 function formatAdminDateTime(value: string, language: string): string {

@@ -60,6 +60,43 @@ export interface AdminFeedback extends ClientFeedback {
   client_email: string | null;
 }
 
+export type BillingStatus = 'unpaid' | 'uploading' | 'pending_review' | 'rejected' | 'paid';
+
+export interface BillingItem {
+  id: string;
+  project_id: string;
+  title: string;
+  amount: string;
+  due_date: string;
+  status: BillingStatus;
+  payment_proof_path: string | null;
+  payment_proof_name: string | null;
+  payment_proof_content_type: string | null;
+  payment_proof_url?: string;
+  payment_proof_submitted_at: string | null;
+  payment_review_note: string | null;
+  paid_at: string | null;
+  created_at: string;
+}
+
+export type ChangeOrderStatus = 'requested' | 'pending_approval' | 'approved' | 'rejected';
+
+export interface ProjectChangeOrder {
+  id: string;
+  project_id: string;
+  title: string;
+  description: string;
+  requested_by: 'client' | 'admin';
+  cost_impact: string;
+  schedule_impact_days: number;
+  status: ChangeOrderStatus;
+  admin_note: string | null;
+  client_response_note: string | null;
+  created_at: string;
+  proposed_at: string | null;
+  responded_at: string | null;
+}
+
 export async function portalRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
