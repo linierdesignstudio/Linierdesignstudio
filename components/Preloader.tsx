@@ -21,6 +21,8 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   const [text2State, setText2State] = useState<'idle' | 'active' | 'exit'>('idle');
   
   const [brandVisible, setBrandVisible] = useState(false);
+  const [finalStage, setFinalStage] = useState(false);
+  const [presentVisible, setPresentVisible] = useState(false);
 
   useEffect(() => {
     let interval: ReturnType<typeof setTimeout>;
@@ -63,8 +65,16 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
 
       // 5. Brand Reveal
       setBrandVisible(true);
+      await wait(1300);
 
-      // 6. Count
+      // 6. Transition to the final title card
+      setLinesOpacity(0);
+      setSparkOpacity(0);
+      setFinalStage(true);
+      await wait(500);
+      setPresentVisible(true);
+
+      // 7. Count
       let p = 0;
       // Count to 100
       interval = setInterval(() => {
@@ -165,6 +175,15 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
           <div className="noise-overlay"></div>
           <div className="absolute top-0 left-0 w-full h-[1px] bg-neutral-200 dark:bg-white/10"></div>
        </motion.div>
+
+       {finalStage && (
+         <motion.div
+           className="absolute inset-0 z-[5] bg-black"
+           initial={{ opacity: 0 }}
+           animate={{ opacity: 1 }}
+           transition={{ duration: 0.5, ease: 'easeInOut' }}
+         />
+       )}
        
        {/* CONTENT CONTAINER - Fades out slightly faster than shutters open */}
        <motion.div 
@@ -184,7 +203,7 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
 
           {/* Brand Final */}
           <div className="relative overflow-hidden z-20 text-center">
-             <div className="brand-name" style={{ transform: brandVisible ? 'translateY(0)' : 'translateY(100%)' }}>
+             {!presentVisible && <div className="brand-name" style={{ transform: brandVisible ? 'translateY(0)' : 'translateY(100%)' }}>
                 <span
                    role="img"
                    aria-label="Linier Studio Logo"
@@ -202,14 +221,27 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
                                maskMode: 'luminance',
                             } as React.CSSProperties & { WebkitMaskMode: string; maskMode: string }}
                 />
-             </div>
+             </div>}
           </div>
-          <div className={`mt-6 md:mt-8 text-[10px] md:text-xs font-light tracking-[0.3em] transition-opacity duration-1000 text-neutral-900 dark:text-white ${brandVisible ? 'opacity-100' : 'opacity-0'}`}>
-             ARCHITECTURE INTERIOR & CONTRACTORS
-          </div>
+          {!presentVisible && (
+            <div className={`mt-[clamp(0.625rem,2.5vw,1.125rem)] md:mt-[clamp(0.875rem,1.3vw,1.125rem)] w-[48vw] min-w-[170px] max-w-[350px] md:w-[30vw] text-[clamp(0.48rem,2.2vw,0.85rem)] md:text-[clamp(0.64rem,1.2vw,0.9rem)] font-light leading-relaxed tracking-[0.04em] text-center transition-opacity duration-1000 text-neutral-900 dark:text-white ${brandVisible ? 'opacity-100' : 'opacity-0'}`}>
+              ARCHITECTURE INTERIOR & CONTRACTORS
+            </div>
+          )}
+
+          {presentVisible && (
+            <motion.h1
+              className="absolute inset-0 z-20 flex items-center justify-center whitespace-nowrap px-6 text-center font-display text-[clamp(2.2rem,8vw,6.5rem)] font-medium leading-none tracking-[-0.045em] text-white"
+              initial={{ x: '-100vw', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+            >
+              Linier present
+            </motion.h1>
+          )}
 
           {/* Loader UI */}
-          <div className="absolute bottom-10 flex items-center gap-2 font-mono text-xs opacity-50 tracking-widest text-neutral-900 dark:text-white">
+          <div className={`absolute bottom-10 flex items-center gap-2 font-mono text-xs opacity-50 tracking-widest ${finalStage ? 'text-white' : 'text-neutral-900 dark:text-white'}`}>
              <span>{pct.toString().padStart(2, '0')}</span>%
           </div>
        </motion.div>
