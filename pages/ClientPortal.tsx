@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, FileCheck2, FileText, LockKeyhole, LogOut, MapPin, MessageCircle, Search, Send, ShieldCheck, Upload, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowLeft, ArrowUpRight, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, FileCheck2, FileText, LockKeyhole, LogOut, MapPin, MessageCircle, Search, Send, ShieldCheck, Upload, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -143,6 +143,8 @@ const copy = {
     notificationLoading: 'Memuat aktivitas...',
     notificationOpen: 'Buka aktivitas',
     notificationLoadFailed: 'Aktivitas portal tidak dapat dimuat.',
+    viewAll: 'Tampilkan semuanya',
+    activityBack: 'Kembali ke dashboard',
   },
   EN: {
     eyebrow: 'LINIER STUDIO / CLIENT PORTAL',
@@ -279,6 +281,8 @@ const copy = {
     notificationLoading: 'Loading activity...',
     notificationOpen: 'Open activity',
     notificationLoadFailed: 'Portal activity could not be loaded.',
+    viewAll: 'View all',
+    activityBack: 'Back to dashboard',
   },
   CN: {
     eyebrow: 'LINIER STUDIO / 客户门户',
@@ -415,6 +419,8 @@ const copy = {
     notificationLoading: '正在加载动态...',
     notificationOpen: '打开动态',
     notificationLoadFailed: '无法加载门户动态。',
+    viewAll: '查看全部',
+    activityBack: '返回仪表板',
   },
 } as const;
 
@@ -433,6 +439,7 @@ const ClientPortal: React.FC = () => {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState('');
   const [notificationsRefreshToken, setNotificationsRefreshToken] = useState(0);
+  const [showAllActivity, setShowAllActivity] = useState(false);
   const [documentSearch, setDocumentSearch] = useState('');
   const [documentType, setDocumentType] = useState<PortalDocumentKind | 'all'>('all');
   const [documentDateFrom, setDocumentDateFrom] = useState('');
@@ -798,6 +805,7 @@ const ClientPortal: React.FC = () => {
       setProjects([]);
       setUpdates([]);
       setFeedbackChatOpen(false);
+      setShowAllActivity(false);
       setError('');
       setResetMode(false);
       closePasswordChange();
@@ -834,6 +842,18 @@ const ClientPortal: React.FC = () => {
 
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const openActivityPage = () => {
+    setShowAllActivity(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const openProjectSection = (sectionId: string) => {
+    if (showAllActivity) {
+      setShowAllActivity(false);
+      window.setTimeout(() => scrollToSection(sectionId), 0);
+      return;
+    }
+    scrollToSection(sectionId);
   };
   const getNotificationLabel = (eventType: PortalNotification['event_type']) => {
     switch (eventType) {
@@ -875,13 +895,14 @@ const ClientPortal: React.FC = () => {
     }
 
     if (notification.event_type === 'feedback_replied') {
+      setShowAllActivity(false);
       setFeedbackChatOpen(true);
     } else if (['billing_created', 'payment_review', 'payment_paid', 'payment_rejected'].includes(notification.event_type)) {
-      scrollToSection('project-billing');
+      openProjectSection('project-billing');
     } else if (['change_requested', 'change_proposed', 'change_decided'].includes(notification.event_type)) {
-      scrollToSection('project-changes');
+      openProjectSection('project-changes');
     } else {
-      scrollToSection('project-updates');
+      openProjectSection('project-updates');
     }
   };
   const projectDocuments = updates.flatMap((update) =>
@@ -919,6 +940,41 @@ const ClientPortal: React.FC = () => {
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">{t.loading}</p>
           </div>
         ) : project ? (
+          showAllActivity ? (
+          <section className="space-y-5">
+            <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6 dark:border-white/10 dark:bg-neutral-900">
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{project.project_code}</p>
+                <h1 className="mt-1 font-display text-2xl font-medium tracking-tight">{t.activityCenter}</h1>
+              </div>
+              <button type="button" onClick={() => setShowAllActivity(false)} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-2.5 text-xs font-medium text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-700 dark:border-white/10 dark:text-neutral-300 dark:hover:text-bronze-300">
+                <ArrowLeft size={14} /> {t.activityBack}
+              </button>
+            </header>
+            <PortalActivityPanel
+              notifications={notifications}
+              showAll
+              labels={{
+                actions: t.actionCenter,
+                activity: t.activityCenter,
+                emptyActions: t.actionCenterEmpty,
+                emptyActivity: t.activityCenterEmpty,
+                needsAttention: t.needsAttention,
+                unread: t.unread,
+                refresh: t.notificationRefresh,
+                loading: t.notificationLoading,
+                open: t.notificationOpen,
+                viewAll: t.viewAll,
+              }}
+              error={notificationsError}
+              loading={notificationsLoading}
+              onRefresh={() => setNotificationsRefreshToken((current) => current + 1)}
+              onOpen={openNotification}
+              getEventLabel={getNotificationLabel}
+              formatDate={(value) => formatDateTime(value, language)}
+            />
+          </section>
+          ) : (
           <section>
             <div className="relative mb-5 min-w-0 overflow-hidden rounded-2xl bg-[#23241f] p-4 text-white shadow-[0_30px_90px_rgba(27,25,20,0.22)] sm:mb-6 sm:rounded-[2rem] sm:p-9 lg:p-12">
               <img src={clientPortalImage} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-25" />
@@ -1011,10 +1067,12 @@ const ClientPortal: React.FC = () => {
                 refresh: t.notificationRefresh,
                 loading: t.notificationLoading,
                 open: t.notificationOpen,
+                viewAll: t.viewAll,
               }}
               error={notificationsError}
               loading={notificationsLoading}
               onRefresh={() => setNotificationsRefreshToken((current) => current + 1)}
+              onViewAll={openActivityPage}
               onOpen={openNotification}
               getEventLabel={getNotificationLabel}
               formatDate={(value) => formatDateTime(value, language)}
@@ -1400,6 +1458,7 @@ const ClientPortal: React.FC = () => {
               />
             )}
           </section>
+          )
         ) : (
           <div className="grid min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_80px_rgba(27,25,20,0.10)] sm:rounded-3xl lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/25">
             <section className="relative flex min-h-[360px] flex-col justify-between overflow-hidden bg-[#252722] p-5 text-white sm:min-h-[520px] sm:p-10 lg:p-14">

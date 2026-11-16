@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, Download, Eye, FileCheck2, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Search, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, Download, Eye, FileCheck2, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Search, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -137,6 +137,8 @@ const copy = {
     actionCenterEmpty: 'Tidak ada tindakan admin yang menunggu.',
     activityCenter: 'Aktivitas terbaru',
     activityCenterEmpty: 'Belum ada notifikasi.',
+    viewAll: 'Tampilkan semuanya',
+    activityBack: 'Kembali ke dashboard',
     needsAttention: 'Perlu ditindaklanjuti',
     unread: 'belum dibaca',
     notificationRefresh: 'Perbarui aktivitas',
@@ -172,6 +174,7 @@ const copy = {
     billingNav: 'Tagihan',
     billingTitle: 'Tagihan & pembayaran',
     billingAdd: 'Tambah termin',
+    billingProject: 'Proyek tagihan',
     billingName: 'Nama termin',
     billingAmount: 'Nominal (Rp)',
     billingDueDate: 'Jatuh tempo',
@@ -358,6 +361,8 @@ const copy = {
     actionCenterEmpty: 'There are no pending admin actions.',
     activityCenter: 'Recent activity',
     activityCenterEmpty: 'There are no notifications yet.',
+    viewAll: 'View all',
+    activityBack: 'Back to dashboard',
     needsAttention: 'Action needed',
     unread: 'unread',
     notificationRefresh: 'Refresh activity',
@@ -393,6 +398,7 @@ const copy = {
     billingNav: 'Billing',
     billingTitle: 'Billing & payments',
     billingAdd: 'Add installment',
+    billingProject: 'Billing project',
     billingName: 'Installment name',
     billingAmount: 'Amount (IDR)',
     billingDueDate: 'Due date',
@@ -579,6 +585,8 @@ const copy = {
     actionCenterEmpty: '目前没有待处理的管理员事项。',
     activityCenter: '最新动态',
     activityCenterEmpty: '暂无通知。',
+    viewAll: '查看全部',
+    activityBack: '返回仪表板',
     needsAttention: '需要处理',
     unread: '未读',
     notificationRefresh: '刷新动态',
@@ -614,6 +622,7 @@ const copy = {
     billingNav: '账单',
     billingTitle: '账单与付款',
     billingAdd: '添加付款阶段',
+    billingProject: '账单项目',
     billingName: '阶段名称',
     billingAmount: '金额（印尼盾）',
     billingDueDate: '到期日',
@@ -1125,9 +1134,10 @@ const PortalAdmin: React.FC = () => {
 
   const submitBillingItem = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!selectedProjectId) return;
     const form = event.currentTarget;
     const values = new FormData(form);
+    const billingProjectId = String(values.get('projectId') ?? '');
+    if (!billingProjectId) return;
     setBusy(true);
     setError('');
     setNotice('');
@@ -1135,13 +1145,15 @@ const PortalAdmin: React.FC = () => {
       const { item } = await portalRequest<{ item: BillingItem }>('/api/portal/admin/billing', {
         method: 'POST',
         body: JSON.stringify({
-          projectId: selectedProjectId,
+          projectId: billingProjectId,
           title: values.get('title'),
           amount: Number(String(values.get('amount') ?? '').replace(/\./g, '')),
           dueDate: values.get('dueDate'),
         }),
       });
-      setBillingItems((current) => [...current, item].sort((a, b) => a.due_date.localeCompare(b.due_date)));
+      if (billingProjectId === selectedProjectId) {
+        setBillingItems((current) => [...current, item].sort((a, b) => a.due_date.localeCompare(b.due_date)));
+      }
       form.reset();
       setBillingAmount('');
       setNotice(t.billingCreated);
@@ -1587,6 +1599,7 @@ const PortalAdmin: React.FC = () => {
   };
   const navigation = [
     { id: 'admin-dashboard', label: t.dashboard, icon: <LayoutDashboard size={17} /> },
+    { id: 'admin-activity', label: t.activityCenter, icon: <Bell size={17} /> },
     { id: 'admin-progress', label: t.projectProgress, icon: <ChartNoAxesColumn size={17} /> },
     { id: 'admin-documents', label: t.documents, icon: <FileText size={17} /> },
     { id: 'admin-clients', label: t.clients, icon: <Users size={17} /> },
@@ -1606,6 +1619,27 @@ const PortalAdmin: React.FC = () => {
   const activePageTitle = activeSection === 'admin-dashboard'
     ? t.adminDashboard
     : navigation.find((item) => item.id === activeSection)?.label ?? t.adminDashboard;
+  const activityPanelProps = {
+    notifications,
+    labels: {
+      actions: t.actionCenter,
+      activity: t.activityCenter,
+      emptyActions: t.actionCenterEmpty,
+      emptyActivity: t.activityCenterEmpty,
+      needsAttention: t.needsAttention,
+      unread: t.unread,
+      refresh: t.notificationRefresh,
+      loading: t.notificationLoading,
+      open: t.notificationOpen,
+      viewAll: t.viewAll,
+    },
+    error: notificationsError,
+    loading: notificationsLoading,
+    onRefresh: () => setNotificationsRefreshToken((current) => current + 1),
+    onOpen: openNotification,
+    getEventLabel: getNotificationLabel,
+    formatDate: (value: string) => formatAdminDateTime(value, language),
+  };
 
   return (
     <div className={`portal-readable ${authenticated ? 'min-h-screen overflow-x-clip bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'min-h-screen overflow-x-clip bg-[#f4f3ef] px-4 pt-16 pb-20 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:px-5 sm:pt-20 sm:pb-24 md:pt-24'}`}>
@@ -1745,24 +1779,8 @@ const PortalAdmin: React.FC = () => {
               <Metric icon={<MessageCircle size={17} />} label={t.pendingFeedback} value={unreadFeedbackCount.toString().padStart(2, '0')} />
             </div>
             <PortalActivityPanel
-              notifications={notifications}
-              labels={{
-                actions: t.actionCenter,
-                activity: t.activityCenter,
-                emptyActions: t.actionCenterEmpty,
-                emptyActivity: t.activityCenterEmpty,
-                needsAttention: t.needsAttention,
-                unread: t.unread,
-                refresh: t.notificationRefresh,
-                loading: t.notificationLoading,
-                open: t.notificationOpen,
-              }}
-              error={notificationsError}
-              loading={notificationsLoading}
-              onRefresh={() => setNotificationsRefreshToken((current) => current + 1)}
-              onOpen={openNotification}
-              getEventLabel={getNotificationLabel}
-              formatDate={(value) => formatAdminDateTime(value, language)}
+              {...activityPanelProps}
+              onViewAll={() => openAdminPage('admin-activity')}
             />
             <div className="mb-5 grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
               <section className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
@@ -1841,6 +1859,20 @@ const PortalAdmin: React.FC = () => {
               </section>
             </div>
               </>
+            )}
+            {activeSection === 'admin-activity' && (
+              <section className="space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6 dark:border-white/10 dark:bg-neutral-900">
+                  <div>
+                    <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{t.eyebrow}</p>
+                    <h2 className="mt-1 font-display text-2xl font-medium tracking-tight">{t.activityCenter}</h2>
+                  </div>
+                  <button type="button" onClick={() => openAdminPage('admin-dashboard')} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-2.5 text-xs font-medium text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-700 dark:border-white/10 dark:text-neutral-300 dark:hover:text-bronze-300">
+                    <ArrowLeft size={14} /> {t.activityBack}
+                  </button>
+                </div>
+                <PortalActivityPanel {...activityPanelProps} showAll />
+              </section>
             )}
             {activeSection === 'admin-clients' && (
               <section id="admin-clients" className="min-w-0 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
@@ -2018,6 +2050,13 @@ const PortalAdmin: React.FC = () => {
                 <form onSubmit={submitBillingItem} className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                   <h3 className="mb-5 font-display text-lg font-medium">{t.billingAdd}</h3>
                   <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block sm:col-span-2">
+                      <span className="mb-2 block text-xs font-medium">{t.billingProject}</span>
+                      <select name="projectId" value={selectedProjectId} onChange={(event) => setSelectedProjectId(event.target.value)} required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950 dark:[color-scheme:dark]">
+                        <option value="" disabled>{t.chooseProject}</option>
+                        {projects.map((project) => <option key={project.id} value={project.id}>{project.project_code} — {project.project_name}</option>)}
+                      </select>
+                    </label>
                     <label className="block sm:col-span-2"><span className="mb-2 block text-xs font-medium">{t.billingName}</span><input name="title" required maxLength={120} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
                     <label className="block"><span className="mb-2 block text-xs font-medium">{t.billingAmount}</span><input name="amount" type="text" inputMode="numeric" autoComplete="off" placeholder="1.000.000" value={billingAmount} onChange={(event) => setBillingAmount(formatAdminIntegerInput(event.target.value))} required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
                     <label className="block"><span className="mb-2 block text-xs font-medium">{t.billingDueDate}</span><input name="dueDate" type="date" required className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950 dark:[color-scheme:dark]" /></label>

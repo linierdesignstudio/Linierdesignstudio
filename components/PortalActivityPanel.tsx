@@ -14,10 +14,13 @@ interface PortalActivityPanelProps {
     refresh: string;
     loading: string;
     open: string;
+    viewAll: string;
   };
+  showAll?: boolean;
   error?: string;
   loading?: boolean;
   onRefresh: () => void;
+  onViewAll?: () => void;
   onOpen: (notification: PortalNotification) => void;
   getEventLabel: (eventType: PortalNotification['event_type']) => string;
   formatDate: (value: string) => string;
@@ -26,21 +29,27 @@ interface PortalActivityPanelProps {
 const PortalActivityPanel: React.FC<PortalActivityPanelProps> = ({
   notifications,
   labels,
+  showAll = false,
   error = '',
   loading = false,
   onRefresh,
+  onViewAll,
   onOpen,
   getEventLabel,
   formatDate,
 }) => {
-  const actions = notifications
+  const orderedNotifications = [...notifications].sort(
+    (first, second) => Date.parse(second.created_at) - Date.parse(first.created_at)
+  );
+  const actions = orderedNotifications
     .filter((notification) =>
       notification.action_required
       && !notification.resolved_at
       && notification.event_type !== 'feedback_received'
       && notification.event_type !== 'feedback_replied'
-    )
-    .slice(0, 5);
+    );
+  const visibleActions = showAll ? actions : actions.slice(0, 2);
+  const visibleNotifications = showAll ? orderedNotifications : orderedNotifications.slice(0, 2);
   const unreadCount = notifications.filter((notification) => !notification.read_at).length;
 
   const renderNotification = (notification: PortalNotification) => (
@@ -84,10 +93,17 @@ const PortalActivityPanel: React.FC<PortalActivityPanelProps> = ({
         </div>
         {loading && notifications.length === 0 ? (
           <p className="py-3 text-xs text-neutral-500">{labels.loading}</p>
-        ) : actions.length === 0 ? (
+        ) : visibleActions.length === 0 ? (
           <div className="flex items-center gap-2 py-3 text-sm text-neutral-500"><CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />{labels.emptyActions}</div>
         ) : (
-          <ul className="space-y-2">{actions.map(renderNotification)}</ul>
+          <ul className="space-y-2">{visibleActions.map(renderNotification)}</ul>
+        )}
+        {!showAll && actions.length > 2 && onViewAll && (
+          <div className="mt-3 flex justify-end">
+            <button type="button" onClick={onViewAll} className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-[10px] font-medium text-bronze-700 transition-colors hover:bg-bronze-500/10 dark:text-bronze-300">
+              {labels.viewAll}<ArrowUpRight size={12} />
+            </button>
+          </div>
         )}
       </section>
 
@@ -109,7 +125,14 @@ const PortalActivityPanel: React.FC<PortalActivityPanelProps> = ({
         ) : notifications.length === 0 ? (
           <p className="py-3 text-sm text-neutral-500">{labels.emptyActivity}</p>
         ) : (
-          <ul className="space-y-2">{notifications.slice(0, 5).map(renderNotification)}</ul>
+          <ul className="space-y-2">{visibleNotifications.map(renderNotification)}</ul>
+        )}
+        {!showAll && notifications.length > 2 && onViewAll && (
+          <div className="mt-3 flex justify-end">
+            <button type="button" onClick={onViewAll} className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-[10px] font-medium text-bronze-700 transition-colors hover:bg-bronze-500/10 dark:text-bronze-300">
+              {labels.viewAll}<ArrowUpRight size={12} />
+            </button>
+          </div>
         )}
       </section>
     </div>
