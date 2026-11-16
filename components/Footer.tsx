@@ -109,14 +109,18 @@ const Footer: React.FC = () => {
           <div className="lg:w-1/2 border-r border-white/15 dark:border-white/10 bg-[#222021] text-white px-6 pt-24 pb-28 sm:px-8 sm:pt-28 sm:pb-32 md:px-12 md:pt-28 md:pb-32 lg:px-16 lg:pt-28 lg:pb-24 xl:px-20 flex flex-col justify-between min-h-[360px] sm:min-h-[420px] lg:min-h-[500px]">
               
               <div>
-                <div className="mb-8 flex flex-col items-start gap-3 sm:mb-10 sm:gap-4">
-                  <img
-                    src={logoImage}
-                    alt="Linier Studio logo"
-                    className="h-20 sm:h-24 md:h-28 w-auto object-contain"
-                  />
-                  <span className="text-xs font-mono uppercase tracking-[0.2em] text-white/60 dark:text-neutral-400">
-                    PT. LINIER NUSAKARYA PERSADA
+                <div className="mb-8 flex items-center gap-4 sm:mb-10 sm:gap-5 md:gap-6">
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden sm:h-24 sm:w-24 md:h-28 md:w-28 lg:h-32 lg:w-32">
+                    <img
+                      src={logoImage}
+                      alt="Linier Studio logo"
+                      className="absolute left-1/2 top-1/2 h-[280%] w-[280%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain"
+                    />
+                  </div>
+                  <span className="text-sm font-mono uppercase leading-[1.5] tracking-[0.12em] text-white/70 dark:text-neutral-400 sm:text-base md:text-lg lg:text-xl">
+                    PT. LINIER<br />
+                    NUSA KARYA<br />
+                    PERSADA
                   </span>
                 </div>
                   <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-[clamp(4rem,5.2vw,6.25rem)] font-display font-bold uppercase leading-[0.9] tracking-tighter mb-6 sm:mb-8">
