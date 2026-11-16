@@ -37,6 +37,11 @@ const Home: React.FC = () => {
     target: nextStepsRef,
     offset: ["start start", "end end"]
   });
+  const nextStepFills = [
+    useTransform(nextStepsProgress, [0.25, 0.5], [0, 1]),
+    useTransform(nextStepsProgress, [0.5, 0.75], [0, 1]),
+    useTransform(nextStepsProgress, [0.75, 1], [0, 1]),
+  ];
   const [activeNextStep, setActiveNextStep] = useState(0);
   useMotionValueEvent(nextStepsProgress, 'change', (progress) => {
     const nextStep = Math.min(3, Math.max(0, Math.floor(progress * 4)));
@@ -460,8 +465,14 @@ const Home: React.FC = () => {
                         {[1, 2, 3].map((step) => (
                           <span
                             key={step}
-                            className={`h-0.5 flex-1 transition-colors duration-500 ${step <= activeNextStep ? 'bg-lime-400' : 'bg-white/20'}`}
-                          />
+                            className="relative h-0.5 flex-1 overflow-hidden bg-white/20"
+                          >
+                            <motion.span
+                              aria-hidden="true"
+                              style={{ scaleX: nextStepFills[step - 1] }}
+                              className="absolute inset-0 origin-left bg-lime-400"
+                            />
+                          </span>
                         ))}
                       </div>
                     </div>
