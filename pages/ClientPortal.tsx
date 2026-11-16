@@ -908,7 +908,7 @@ const ClientPortal: React.FC = () => {
 
   return (
     <div className={`portal-readable min-h-screen overflow-x-clip bg-[#f5f4f0] ${project ? 'pb-28 sm:pb-20' : 'pb-16 sm:pb-20'} pt-16 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:pt-24 md:pt-32`}>
-      <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
+      <div className="mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-8 lg:px-12">
         <Link to="/" className="mb-5 inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-400 hover:text-neutral-950 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:border-white/25 dark:hover:text-white sm:mb-7">
           <ArrowDownLeft size={15} /> {t.back}
         </Link>
@@ -920,7 +920,7 @@ const ClientPortal: React.FC = () => {
           </div>
         ) : project ? (
           <section>
-            <div className="relative mb-5 overflow-hidden rounded-2xl bg-[#23241f] p-5 text-white shadow-[0_30px_90px_rgba(27,25,20,0.22)] sm:mb-6 sm:rounded-[2rem] sm:p-9 lg:p-12">
+            <div className="relative mb-5 min-w-0 overflow-hidden rounded-2xl bg-[#23241f] p-4 text-white shadow-[0_30px_90px_rgba(27,25,20,0.22)] sm:mb-6 sm:rounded-[2rem] sm:p-9 lg:p-12">
               <img src={clientPortalImage} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-25" />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#171814]/95 via-[#1d1e19]/80 to-[#25241f]/35" />
               <div className="pointer-events-none absolute -right-24 -top-40 h-96 w-96 rounded-full border border-white/[0.09]" />
@@ -1045,7 +1045,7 @@ const ClientPortal: React.FC = () => {
             )}
 
             <div className="grid gap-3 sm:gap-4 md:grid-cols-[1.3fr_0.9fr]">
-              <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-5 shadow-[0_18px_50px_rgba(27,25,20,0.05)] sm:rounded-3xl sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+              <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-[0_18px_50px_rgba(27,25,20,0.05)] sm:rounded-3xl sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
                   <div>
                     <p className="mb-3 text-xs font-medium text-neutral-500">{t.latest}</p>
@@ -1071,7 +1071,7 @@ const ClientPortal: React.FC = () => {
                   <span>{t.status}: {project.progress_percent === 100 ? t.complete : t.inProgress}</span>
                 </div>
               </div>
-              <div className="relative flex min-h-[160px] flex-col justify-between overflow-hidden rounded-2xl border border-neutral-200 bg-[#eeece6] p-5 text-neutral-900 shadow-sm sm:min-h-[190px] sm:rounded-3xl sm:p-8 dark:border-white/10 dark:bg-neutral-900 dark:text-white">
+              <div className="relative flex min-h-[160px] min-w-0 flex-col justify-between overflow-hidden rounded-2xl border border-neutral-200 bg-[#eeece6] p-4 text-neutral-900 shadow-sm sm:min-h-[190px] sm:rounded-3xl sm:p-8 dark:border-white/10 dark:bg-neutral-900 dark:text-white">
                 <span className="pointer-events-none absolute -bottom-12 -right-8 h-40 w-40 rounded-full border border-[#8c795e]/15" />
                 <div>
                   <p className="mb-5 text-xs font-medium text-neutral-500 dark:text-neutral-400">{t.duration}</p>
@@ -1401,7 +1401,7 @@ const ClientPortal: React.FC = () => {
             )}
           </section>
         ) : (
-          <div className="grid min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_80px_rgba(27,25,20,0.10)] sm:rounded-3xl lg:grid-cols-[1.08fr_0.92fr] dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/25">
+          <div className="grid min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_80px_rgba(27,25,20,0.10)] sm:rounded-3xl lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/25">
             <section className="relative flex min-h-[360px] flex-col justify-between overflow-hidden bg-[#252722] p-5 text-white sm:min-h-[520px] sm:p-10 lg:p-14">
               <img src={clientPortalImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-40" />
               <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/90 via-neutral-900/55 to-neutral-950/75" />

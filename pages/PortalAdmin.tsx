@@ -1644,7 +1644,7 @@ const PortalAdmin: React.FC = () => {
           </div>
         </aside>
       )}
-      <div className={authenticated && !checking ? 'lg:pl-64' : ''}>
+      <div className={authenticated && !checking ? 'min-w-0 lg:pl-64' : ''}>
         {authenticated && !checking && (
           <header className="sticky top-0 z-30 flex min-h-[68px] items-center justify-between gap-2 border-b border-neutral-200/80 bg-white/90 px-3 text-neutral-900 shadow-sm shadow-neutral-900/[0.02] backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#111210]/90 dark:text-white sm:min-h-[76px] sm:gap-4 sm:px-7 lg:px-10">
             <div className="min-w-0">
@@ -1671,8 +1671,8 @@ const PortalAdmin: React.FC = () => {
             </div>
           </header>
         )}
-        <div className={`mx-auto w-full ${authenticated ? 'max-w-[1600px] px-4 pt-6 pb-24 sm:px-7 lg:px-10 lg:py-8' : 'max-w-7xl px-0 sm:px-3 lg:px-0'}`}>
-        {(!authenticated || activeSection === 'admin-dashboard') && <header id="admin-dashboard" className="relative mb-6 scroll-mt-24 overflow-hidden rounded-2xl bg-neutral-900 p-5 text-white shadow-[0_24px_70px_rgba(27,25,20,0.12)] sm:mb-8 sm:rounded-3xl sm:p-10 lg:p-12">
+        <div className={`mx-auto w-full min-w-0 ${authenticated ? 'max-w-[1600px] px-4 pt-6 pb-24 sm:px-7 lg:px-10 lg:py-8' : 'max-w-7xl px-0 sm:px-3 lg:px-0'}`}>
+        {(!authenticated || activeSection === 'admin-dashboard') && <header id="admin-dashboard" className="relative mb-6 min-w-0 scroll-mt-24 overflow-hidden rounded-2xl bg-neutral-900 p-4 text-white shadow-[0_24px_70px_rgba(27,25,20,0.12)] sm:mb-8 sm:rounded-3xl sm:p-10 lg:p-12">
           <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-40" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-900/80 to-neutral-900/25" />
           <div className="pointer-events-none absolute -right-12 -top-32 h-80 w-80 rounded-full border border-white/10" />
@@ -1708,7 +1708,7 @@ const PortalAdmin: React.FC = () => {
             <span className="font-mono text-[10px] uppercase tracking-[0.18em]">{language === 'ID' ? 'Memuat ruang kerja...' : language === 'CN' ? '正在加载工作区...' : 'Loading workspace...'}</span>
           </div>
         ) : !authenticated ? (
-          <form onSubmit={signIn} className="mx-auto max-w-xl rounded-3xl border border-neutral-200 bg-white p-6 shadow-[0_20px_60px_rgba(27,25,20,0.08)] sm:p-10 dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/20">
+          <form onSubmit={signIn} className="mx-auto max-w-xl rounded-3xl border border-neutral-200 bg-white p-4 shadow-[0_20px_60px_rgba(27,25,20,0.08)] sm:p-10 dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/20">
             <div className="mb-8 flex items-center gap-3">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#e8e4dc] bg-[#f7f5f0] text-[#8c795e] dark:border-white/10 dark:bg-white/[0.04] dark:text-bronze-400"><KeyRound size={18} strokeWidth={1.5} /></span>
               <span>
@@ -1764,8 +1764,8 @@ const PortalAdmin: React.FC = () => {
               getEventLabel={getNotificationLabel}
               formatDate={(value) => formatAdminDateTime(value, language)}
             />
-            <div className="mb-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-              <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
+            <div className="mb-5 grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+              <section className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-5 flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-white/10">
                   <div className="flex items-center gap-3">
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><CalendarDays size={17} /></span>
@@ -1794,8 +1794,8 @@ const PortalAdmin: React.FC = () => {
                           className={`w-full rounded-xl border px-4 py-3 text-left transition-colors ${selectedProjectId === project.id ? 'border-bronze-500/40 bg-bronze-500/[0.06] dark:border-bronze-400/30' : 'border-neutral-100 hover:border-neutral-300 hover:bg-neutral-50 dark:border-white/[0.06] dark:hover:bg-white/[0.03]'}`}
                         >
                           <span className="flex items-start justify-between gap-3">
-                            <span className="min-w-0">
-                              <span className="block truncate text-sm font-medium">{project.project_name}</span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block break-words text-sm font-medium">{project.project_name}</span>
                               <span className="mt-1 block font-mono text-[9px] uppercase tracking-wider text-neutral-400">{project.project_code} · {project.start_date ? formatAdminDate(project.start_date, language) : t.noDate}</span>
                             </span>
                             <span className="shrink-0 text-right">
@@ -1812,7 +1812,7 @@ const PortalAdmin: React.FC = () => {
                   </ol>
                 )}
               </section>
-              <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
+              <section className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-5 flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-white/10">
                   <div className="flex items-center gap-3">
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><ImagePlus size={17} /></span>
@@ -1843,7 +1843,7 @@ const PortalAdmin: React.FC = () => {
               </>
             )}
             {activeSection === 'admin-clients' && (
-              <section id="admin-clients" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+              <section id="admin-clients" className="min-w-0 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><Users size={18} /></span>
                   <div>
@@ -1886,7 +1886,7 @@ const PortalAdmin: React.FC = () => {
               </section>
             )}
             {activeSection === 'admin-feedback' && (
-              <section id="admin-feedback" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+              <section id="admin-feedback" className="min-w-0 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><MessageCircle size={18} /></span>
                   <div>
@@ -2015,7 +2015,7 @@ const PortalAdmin: React.FC = () => {
                     </ul>
                   )}
                 </div>
-                <form onSubmit={submitBillingItem} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                <form onSubmit={submitBillingItem} className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                   <h3 className="mb-5 font-display text-lg font-medium">{t.billingAdd}</h3>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block sm:col-span-2"><span className="mb-2 block text-xs font-medium">{t.billingName}</span><input name="title" required maxLength={120} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
@@ -2028,7 +2028,7 @@ const PortalAdmin: React.FC = () => {
             )}
             {activeSection === 'admin-changes' && (
               <section id="admin-changes" className="scroll-mt-24 space-y-5">
-                <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                   <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><ClipboardList size={18} /></span>
                     <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{selectedProject?.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.changeOrdersTitle}</h2></div>
@@ -2069,7 +2069,7 @@ const PortalAdmin: React.FC = () => {
                     </ul>
                   )}
                 </div>
-                <form onSubmit={(event) => void submitChangeProposal(event)} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                <form onSubmit={(event) => void submitChangeProposal(event)} className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                   <h3 className="mb-5 font-display text-lg font-medium">{t.changeNewProposal}</h3>
                   <div className="grid gap-4">
                     <label className="block"><span className="mb-2 block text-xs font-medium">{t.changeTitle}</span><input name="title" required maxLength={120} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
@@ -2085,7 +2085,7 @@ const PortalAdmin: React.FC = () => {
               </section>
             )}
             {activeSection === 'admin-documents' && (
-              <section id="admin-documents" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+              <section id="admin-documents" className="min-w-0 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
                   <div>
@@ -2207,7 +2207,7 @@ const PortalAdmin: React.FC = () => {
             )}
             {activeSection === 'admin-resets' && (
               <>
-            <section id="admin-resets" className="mb-5 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+            <section id="admin-resets" className="mb-5 min-w-0 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><KeyRound size={17} /></span>
                 <div>
@@ -2240,7 +2240,7 @@ const PortalAdmin: React.FC = () => {
               )}
             </section>
             {issuedPassword && (
-              <section role="status" className="mb-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5 shadow-sm sm:p-8">
+              <section role="status" className="mb-5 min-w-0 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 shadow-sm sm:p-8">
                 <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">{t.temporaryPassword} / {issuedPassword.resetRequest.credential_type === 'account' ? t.emailPasswordReset : t.projectPasswordReset} · {issuedPassword.resetRequest.credential_type === 'account' ? issuedPassword.resetRequest.client_email : issuedPassword.resetRequest.project_code}</p>
                 <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{issuedPassword.resetRequest.client_name} — {t.verifyClient}</p>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -2265,7 +2265,7 @@ const PortalAdmin: React.FC = () => {
               </>
             )}
             <div className="space-y-5">
-            {adminRole === 'admin' && activeSection === 'admin-access' && <section id="admin-access" className="mx-auto w-full max-w-3xl scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+            {adminRole === 'admin' && activeSection === 'admin-access' && <section id="admin-access" className="mx-auto w-full min-w-0 max-w-3xl scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-8 flex items-start gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                 <Plus size={19} className="text-bronze-500" />
                 <div>
@@ -2288,8 +2288,8 @@ const PortalAdmin: React.FC = () => {
               </form>
             </section>}
 
-            {activeSection === 'admin-progress' && <section id="admin-progress" className="mx-auto grid w-full max-w-7xl items-start gap-5 scroll-mt-24 xl:grid-cols-[1.1fr_0.9fr]">
-              <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900 xl:col-start-1 xl:row-span-2">
+            {activeSection === 'admin-progress' && <section id="admin-progress" className="mx-auto grid w-full min-w-0 max-w-7xl items-start gap-5 scroll-mt-24 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+              <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900 xl:col-start-1 xl:row-span-2">
                 <div className="mb-7 flex items-start gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                   <Send size={18} className="text-bronze-500" />
                   <div>
@@ -2443,7 +2443,7 @@ const PortalAdmin: React.FC = () => {
                 )}
               </div>
 
-              <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900 xl:col-start-2 xl:row-start-1">
+              <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900 xl:col-start-2 xl:row-start-1">
                 <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                   <ClipboardList size={17} className="text-bronze-500" />
                   <div>
@@ -2500,7 +2500,7 @@ const PortalAdmin: React.FC = () => {
                 )}
               </div>
 
-              <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900 xl:col-start-2">
+              <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900 xl:col-start-2">
                 <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                   <ClipboardList size={17} className="text-bronze-500" />
                   <div>
@@ -2512,8 +2512,8 @@ const PortalAdmin: React.FC = () => {
                   <ul className="space-y-3">
                     {projects.map((project) => (
                       <li key={`${project.id}-${project.start_date ?? ''}`} className="rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 text-sm dark:border-white/[0.06] dark:bg-white/[0.02]">
-                        <div className="flex items-center justify-between gap-4">
-                          <span className="min-w-0"><strong className="font-mono text-[10px] text-bronze-600 dark:text-bronze-400">{project.project_code}</strong><span className="mx-2 text-neutral-300">/</span><span className="font-medium">{project.project_name}</span><span className="mt-1 block text-xs text-neutral-500">{project.client_name}</span><span className="mt-1 block text-[10px] text-neutral-400">{project.client_email ?? t.noClientEmail}</span></span>
+                        <div className="flex min-w-0 items-center justify-between gap-4">
+                          <span className="min-w-0 flex-1 break-words"><strong className="break-all font-mono text-[10px] text-bronze-600 dark:text-bronze-400">{project.project_code}</strong><span className="mx-2 text-neutral-300">/</span><span className="font-medium">{project.project_name}</span><span className="mt-1 block break-words text-xs text-neutral-500">{project.client_name}</span><span className="mt-1 block break-all text-[10px] text-neutral-400">{project.client_email ?? t.noClientEmail}</span></span>
                           <span className="w-24 shrink-0">
                             <span className="mb-1 block text-right font-mono text-[10px] text-neutral-500">{project.progress_percent}%</span>
                             <span className="block h-1 overflow-hidden rounded-full bg-neutral-100 dark:bg-white/10"><span className="block h-full rounded-full bg-bronze-500" style={{ width: `${project.progress_percent}%` }} /></span>
@@ -2523,7 +2523,7 @@ const PortalAdmin: React.FC = () => {
                           <>
                         <form onSubmit={saveProjectStartDate} className="mt-4 flex flex-wrap items-end gap-3 border-t border-neutral-100 pt-4 dark:border-white/10">
                           <input type="hidden" name="projectId" value={project.id} />
-                          <label className="min-w-[180px] flex-1">
+                          <label className="min-w-0 flex-1 sm:min-w-[180px]">
                             <span className="mb-2 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-neutral-500"><CalendarDays size={12} />{t.startDate}</span>
                             <input name="startDate" type="date" defaultValue={project.start_date ?? ''} required className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-xs outline-none transition focus:border-bronze-500 focus:ring-4 focus:ring-bronze-500/10 dark:border-white/10 dark:bg-neutral-950 dark:[color-scheme:dark]" />
                           </label>
