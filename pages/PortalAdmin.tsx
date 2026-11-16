@@ -1380,7 +1380,7 @@ const PortalAdmin: React.FC = () => {
     : navigation.find((item) => item.id === activeSection)?.label ?? t.adminDashboard;
 
   return (
-    <div className={authenticated ? 'min-h-screen overflow-x-clip bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'min-h-screen overflow-x-clip bg-[#f4f3ef] px-4 pt-16 pb-20 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:px-5 sm:pt-20 sm:pb-24 md:pt-24'}>
+    <div className={`portal-readable ${authenticated ? 'min-h-screen overflow-x-clip bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'min-h-screen overflow-x-clip bg-[#f4f3ef] px-4 pt-16 pb-20 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:px-5 sm:pt-20 sm:pb-24 md:pt-24'}`}>
       {authenticated && !checking && (
         <aside className="z-40 bg-[#20211d] text-white shadow-xl shadow-black/10 lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-64 lg:flex-col">
           <div className="border-b border-white/[0.08] px-4 py-4 sm:px-7 sm:py-5 lg:px-6 lg:py-7">

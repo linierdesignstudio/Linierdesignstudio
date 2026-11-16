@@ -705,8 +705,12 @@ const ClientPortal: React.FC = () => {
     }
   };
 
+  const scrollToSection = (sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
-    <div className="min-h-screen overflow-x-clip bg-[#f5f4f0] pb-16 pt-16 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:pb-20 sm:pt-24 md:pt-32">
+    <div className="portal-readable min-h-screen overflow-x-clip bg-[#f5f4f0] pb-16 pt-16 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:pb-20 sm:pt-24 md:pt-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
         <Link to="/" className="mb-5 inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-400 hover:text-neutral-950 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:border-white/25 dark:hover:text-white sm:mb-7">
           <ArrowDownLeft size={15} /> {t.back}
@@ -719,21 +723,21 @@ const ClientPortal: React.FC = () => {
           </div>
         ) : project ? (
           <section>
-            <div className="relative mb-5 overflow-hidden rounded-2xl bg-[#23241f] p-5 text-white shadow-[0_24px_70px_rgba(27,25,20,0.16)] sm:mb-6 sm:rounded-3xl sm:p-9 lg:p-12">
-              <img src={clientPortalImage} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.13]" />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-black/25 via-transparent to-[#8c795e]/20" />
-              <div className="pointer-events-none absolute -right-24 -top-40 h-96 w-96 rounded-full border border-white/[0.08]" />
-              <div className="pointer-events-none absolute -right-12 -top-28 h-72 w-72 rounded-full border border-white/[0.08]" />
-              <div className="relative flex flex-col justify-between gap-8 md:flex-row md:items-end">
+            <div className="relative mb-5 overflow-hidden rounded-2xl bg-[#23241f] p-5 text-white shadow-[0_30px_90px_rgba(27,25,20,0.22)] sm:mb-6 sm:rounded-[2rem] sm:p-9 lg:p-12">
+              <img src={clientPortalImage} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-25" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#171814]/95 via-[#1d1e19]/80 to-[#25241f]/35" />
+              <div className="pointer-events-none absolute -right-24 -top-40 h-96 w-96 rounded-full border border-white/[0.09]" />
+              <div className="pointer-events-none absolute -right-12 -top-28 h-72 w-72 rounded-full border border-white/[0.09]" />
+              <div className="relative grid gap-10 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
                 <div className="min-w-0">
-                  <p className="mb-5 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/60 sm:text-[11px]">
+                  <p className="mb-5 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/70 sm:text-[11px]">
                     <span>{t.eyebrow}</span><span className="text-white/30">/</span><span>{project.project_code}</span>
                   </p>
-                  <h1 className="max-w-3xl break-words font-display text-3xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-5xl lg:text-6xl">{project.project_name}</h1>
-                  <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/70">
-                    <span>{project.client_name}</span>
-                    <span className="hidden text-white/30 sm:inline">·</span>
-                    <span className="inline-flex items-center gap-1.5"><MapPin size={14} />{project.location || t.location}</span>
+                  <h1 className="max-w-3xl break-words font-display text-4xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-6xl lg:text-7xl">{project.project_name}</h1>
+                  <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/75 sm:text-base">
+                    <span className="font-medium text-white">{project.client_name}</span>
+                    <span className="hidden text-white/35 sm:inline">·</span>
+                    <span className="inline-flex items-center gap-2"><MapPin size={16} />{project.location || t.location}</span>
                   </div>
                   {projects.length > 1 && (
                     <label className="mt-7 block max-w-md">
@@ -754,7 +758,7 @@ const ClientPortal: React.FC = () => {
                     </label>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-2.5 self-start md:shrink-0 md:self-auto">
+                <div className="flex flex-wrap gap-2.5 md:justify-end">
                   <button
                     type="button"
                     onClick={() => {
@@ -766,17 +770,33 @@ const ClientPortal: React.FC = () => {
                         setPasswordChangeNotice('');
                       }
                     }}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-white/85 transition-colors hover:border-white/60 hover:bg-white/10 hover:text-white"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-4 py-2.5 text-xs font-medium text-white/90 transition-colors hover:border-white/60 hover:bg-white/10 hover:text-white"
                   >
                     <LockKeyhole size={14} /> {t.changePassword}
                   </button>
-                  <button onClick={signOut} className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-white/85 transition-colors hover:border-white/60 hover:bg-white/10 hover:text-white">
+                  <button onClick={signOut} className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-4 py-2.5 text-xs font-medium text-white/90 transition-colors hover:border-white/60 hover:bg-white/10 hover:text-white">
                     <LogOut size={14} /> {t.logout}
                   </button>
                 </div>
               </div>
-              <div className="relative mt-6 flex items-start gap-2.5 border-t border-white/15 pt-4 text-xs leading-5 text-white/60 sm:mt-10 sm:items-center sm:pt-5">
+              <div className="relative mt-8 flex flex-col gap-6 border-t border-white/15 pt-6 sm:mt-10 sm:flex-row sm:items-center sm:justify-between sm:pt-7">
+                <div className="flex items-start gap-2.5 text-sm leading-6 text-white/70 sm:items-center">
                 <ShieldCheck size={15} className="mt-0.5 shrink-0 text-white/75 sm:mt-0" /> {t.secure}
+                </div>
+                <div className="flex items-center gap-5 rounded-2xl border border-white/15 bg-black/20 px-4 py-3 backdrop-blur-sm sm:min-w-64 sm:gap-6 sm:px-5 sm:py-4">
+                  <div className="relative flex h-16 w-16 shrink-0 items-center justify-center">
+                    <svg viewBox="0 0 80 80" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden="true">
+                      <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="4" />
+                      <circle cx="40" cy="40" r="34" fill="none" stroke="#b39b74" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${(project.progress_percent / 100) * 213.6} 213.6`} />
+                    </svg>
+                    <span className="font-display text-lg font-semibold tabular-nums">{project.progress_percent}<span className="text-xs text-white/65">%</span></span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/55">{t.latest}</p>
+                    <p className="mt-1 text-sm font-medium text-white">{project.progress_percent === 100 ? t.complete : t.inProgress}</p>
+                    <p className="mt-1 text-xs text-white/50">{project.project_code}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -807,7 +827,7 @@ const ClientPortal: React.FC = () => {
             )}
 
             <div className="grid gap-3 sm:gap-4 md:grid-cols-[1.3fr_0.9fr]">
-              <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+              <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-5 shadow-[0_18px_50px_rgba(27,25,20,0.05)] sm:rounded-3xl sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
                   <div>
                     <p className="mb-3 text-xs font-medium text-neutral-500">{t.latest}</p>
@@ -833,7 +853,8 @@ const ClientPortal: React.FC = () => {
                   <span>{t.status}: {project.progress_percent === 100 ? t.complete : t.inProgress}</span>
                 </div>
               </div>
-              <div className="flex min-h-[160px] flex-col justify-between rounded-2xl border border-neutral-200 bg-[#eeece6] p-4 text-neutral-900 shadow-sm sm:min-h-[190px] sm:p-8 dark:border-white/10 dark:bg-neutral-900 dark:text-white">
+              <div className="relative flex min-h-[160px] flex-col justify-between overflow-hidden rounded-2xl border border-neutral-200 bg-[#eeece6] p-5 text-neutral-900 shadow-sm sm:min-h-[190px] sm:rounded-3xl sm:p-8 dark:border-white/10 dark:bg-neutral-900 dark:text-white">
+                <span className="pointer-events-none absolute -bottom-12 -right-8 h-40 w-40 rounded-full border border-[#8c795e]/15" />
                 <div>
                   <p className="mb-5 text-xs font-medium text-neutral-500 dark:text-neutral-400">{t.duration}</p>
                   <div className="flex items-start gap-3 text-lg font-medium leading-snug tracking-tight">
@@ -845,7 +866,19 @@ const ClientPortal: React.FC = () => {
               </div>
             </div>
 
-            <section className="mt-8 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:mt-10 sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
+            <nav aria-label={t.journal} className="my-7 flex flex-wrap gap-2 border-y border-neutral-200 py-4 dark:border-white/10 sm:my-9 sm:gap-3">
+              <a href="#project-updates" onClick={(event) => { event.preventDefault(); scrollToSection('project-updates'); }} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-[#8c795e] hover:text-[#746349] dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-200 dark:hover:border-bronze-400">
+                <FileText size={15} /> {t.updated}
+              </a>
+              <a href="#project-billing" onClick={(event) => { event.preventDefault(); scrollToSection('project-billing'); }} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-[#8c795e] hover:text-[#746349] dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-200 dark:hover:border-bronze-400">
+                <FileCheck2 size={15} /> {t.billingTitle}
+              </a>
+              <a href="#project-changes" onClick={(event) => { event.preventDefault(); scrollToSection('project-changes'); }} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-[#8c795e] hover:text-[#746349] dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-200 dark:hover:border-bronze-400">
+                <ClipboardList size={15} /> {t.changeTitle}
+              </a>
+            </nav>
+
+            <section id="project-billing" className="scroll-mt-24 mt-8 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:mt-10 sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileCheck2 size={18} /></span>
                 <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.billingTitle}</h2></div>
@@ -884,7 +917,7 @@ const ClientPortal: React.FC = () => {
               )}
             </section>
 
-            <section className="mt-5 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
+            <section id="project-changes" className="scroll-mt-24 mt-5 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><ClipboardList size={18} /></span>
                 <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.changeTitle}</h2></div>
@@ -932,7 +965,7 @@ const ClientPortal: React.FC = () => {
               </form>
             </section>
 
-            <div className="mt-9 sm:mt-12">
+            <div id="project-updates" className="scroll-mt-24 mt-9 sm:mt-12">
               <div className="mb-5 flex items-end justify-between gap-3 border-b border-neutral-300 pb-4 dark:border-white/10 sm:mb-6 sm:gap-4 sm:pb-5">
                 <div>
                   <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-500">{t.journal}</p>
