@@ -1351,6 +1351,16 @@ const PortalAdmin: React.FC = () => {
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId);
   const selectedUpdate = adminUpdates.find((update) => update.id === editingUpdateId);
+  const latestUpdateWithPhotos = adminUpdates.find((update) =>
+    update.attachments.some((attachment) => attachment.contentType.startsWith('image/') && attachment.url)
+  );
+  const dashboardPreviewFiles = previewFiles.length > 0
+    ? previewFiles
+    : (latestUpdateWithPhotos?.attachments ?? []).flatMap((attachment) =>
+        attachment.contentType.startsWith('image/') && attachment.url
+          ? [{ name: attachment.name, url: attachment.url }]
+          : []
+      );
   const selectedProjectDocuments = adminUpdates.flatMap((update) =>
     update.attachments
       .filter((attachment) => !attachment.contentType.startsWith('image/'))
@@ -1605,9 +1615,9 @@ const PortalAdmin: React.FC = () => {
                   </div>
                   {selectedFiles.length > 0 && <span className="font-mono text-[9px] uppercase tracking-wider text-neutral-400">{selectedFiles.length} / 5</span>}
                 </div>
-                {previewFiles.length > 0 ? (
+                {dashboardPreviewFiles.length > 0 ? (
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {previewFiles.map((file) => (
+                    {dashboardPreviewFiles.map((file) => (
                       <div key={file.url} className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-neutral-100 dark:bg-white/5">
                         <img src={file.url} alt={file.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                         <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/75 to-transparent px-2 pb-2 pt-6 text-[9px] text-white">{file.name}</span>
