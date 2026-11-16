@@ -10,6 +10,7 @@ import SplitTextReveal from '../components/SplitTextReveal';
 import CyclingSlideText from '../components/CyclingSlideText';
 import PhilosophySection from '../components/PhilosophySection';
 import HorizontalScroll from '../components/HorizontalScroll';
+import HomeApproachSection from '../components/HomeApproachSection';
 import RevealOnScroll from '../components/RevealOnScroll'; // Imported
 import ScrollHighlightText from '../components/ScrollHighlightText'; // Imported
 
@@ -279,6 +280,7 @@ const Home: React.FC = () => {
 
       </div>
 
+      <HomeApproachSection />
 
       {/* 3. INTERACTIVE PROJECT LIST */}
       <section className="relative z-50 pt-12 pb-6 md:pt-20 md:pb-32 bg-white dark:bg-neutral-950 transition-colors duration-500 border-t border-neutral-200 dark:border-neutral-800">
