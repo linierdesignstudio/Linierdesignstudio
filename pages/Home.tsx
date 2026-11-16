@@ -49,6 +49,9 @@ const Home: React.FC = () => {
     useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.5, 0.75 - NEXT_STEP_PAUSE_PROGRESS)),
     useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.75, 1 - NEXT_STEP_PAUSE_PROGRESS)),
   ];
+  const nextStepsIntroTitleY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-8vh']);
+  const nextStepsIntroDescriptionY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-14vh']);
+  const nextStepsIntroCtaY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-20vh']);
   const [activeNextStep, setActiveNextStep] = useState(0);
   useMotionValueEvent(nextStepsProgress, 'change', (progress) => {
     const nextStep = Math.min(3, Math.max(0, Math.floor(progress * 4)));
@@ -427,20 +430,28 @@ const Home: React.FC = () => {
                   transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
                   className="max-w-5xl"
                 >
-                  <h2 className="font-display text-[clamp(2.75rem,8vw,7.5rem)] font-medium leading-[0.98] tracking-tight">
+                  <motion.h2
+                    style={{ y: nextStepsIntroTitleY }}
+                    className="font-display text-[clamp(2.75rem,8vw,7.5rem)] font-medium leading-[0.98] tracking-tight"
+                  >
                     <span className="block">{t.home.next_steps_intro_title[0]}</span>
                     <span className="block">{t.home.next_steps_intro_title[1]}</span>
-                  </h2>
-                  <p className="mt-8 max-w-3xl text-base leading-relaxed text-white/65 sm:text-lg md:text-xl">
-                    {t.home.next_steps_intro_desc}
-                  </p>
-                  <Link
-                    to="/about"
-                    className="group mt-10 inline-flex items-center gap-8 border-b border-white/60 pb-3 text-xs font-medium tracking-wide text-white transition-colors hover:border-lime-400 hover:text-lime-300 sm:text-sm"
+                  </motion.h2>
+                  <motion.p
+                    style={{ y: nextStepsIntroDescriptionY }}
+                    className="mt-8 max-w-3xl text-base leading-relaxed text-white/65 sm:text-lg md:text-xl"
                   >
-                    {t.home.next_steps_intro_cta}
-                    <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
-                  </Link>
+                    {t.home.next_steps_intro_desc}
+                  </motion.p>
+                  <motion.div style={{ y: nextStepsIntroCtaY }}>
+                    <Link
+                      to="/about"
+                      className="group mt-10 inline-flex items-center gap-8 border-b border-white/60 pb-3 text-xs font-medium tracking-wide text-white transition-colors hover:border-lime-400 hover:text-lime-300 sm:text-sm"
+                    >
+                      {t.home.next_steps_intro_cta}
+                      <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                    </Link>
+                  </motion.div>
                 </motion.div>
               ) : (
                 <motion.div
