@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileCheck2, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, Download, Eye, FileCheck2, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Search, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
+import PortalFilePreview from '../components/PortalFilePreview';
 import { useLanguage } from '../contexts/LanguageContext';
 import { portalRequest, type AdminFeedback, type BillingItem, type PasswordResetRequest, type PortalAttachment, type PortalNotification, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
 import { Language } from '../types';
 
 const copy = {
@@ -93,8 +95,22 @@ const copy = {
     photo: 'Foto progress',
     progressFiles: 'File progress',
     documents: 'Dokumen',
-    documentsDescription: 'Dokumen yang dilampirkan pada update proyek. Buka bagian Progress proyek untuk mengubah atau menghapus lampiran.',
+    documentsDescription: 'Foto dan dokumen yang dilampirkan pada update proyek. Pilih proyek, jenis file, atau rentang tanggal untuk menemukan lampiran.',
     documentsEmpty: 'Belum ada dokumen pada proyek ini.',
+    documentsSearch: 'Cari nama file atau update',
+    documentsType: 'Jenis file',
+    documentsAllTypes: 'Semua jenis',
+    documentsImage: 'Gambar',
+    documentsPdf: 'PDF',
+    documentsWord: 'Word',
+    documentsSpreadsheet: 'Spreadsheet / CSV',
+    documentsOther: 'Lainnya',
+    documentsFrom: 'Dari tanggal',
+    documentsTo: 'Sampai tanggal',
+    documentsNoResults: 'Tidak ada file yang cocok dengan filter.',
+    previewFile: 'Pratinjau file',
+    downloadFile: 'Unduh file',
+    closePreview: 'Tutup pratinjau',
     documentsLoading: 'Memuat dokumen proyek...',
     photoHint: 'JPG, PNG, WEBP · Maksimal 5 lampiran gabungan per update.',
     documentHint: 'PDF, DOC, DOCX, XLSX, TXT, CSV · Maksimal 5 lampiran gabungan per update.',
@@ -132,6 +148,7 @@ const copy = {
     studioAdmin: 'Admin studio',
     studioStaff: 'Staf studio',
     navigation: 'Navigasi',
+    more: 'Lainnya',
     viewAllProjects: 'Lihat semua proyek',
     clients: 'Klien',
     clientDirectory: 'Direktori klien',
@@ -299,8 +316,22 @@ const copy = {
     photo: 'Progress photos',
     progressFiles: 'Progress files',
     documents: 'Documents',
-    documentsDescription: 'Documents attached to project updates. Open Project progress to edit or remove attachments.',
+    documentsDescription: 'Photos and documents attached to project updates. Choose a project, file type, or date range to find attachments.',
     documentsEmpty: 'There are no documents for this project yet.',
+    documentsSearch: 'Search file or update name',
+    documentsType: 'File type',
+    documentsAllTypes: 'All types',
+    documentsImage: 'Images',
+    documentsPdf: 'PDF',
+    documentsWord: 'Word',
+    documentsSpreadsheet: 'Spreadsheet / CSV',
+    documentsOther: 'Other',
+    documentsFrom: 'From date',
+    documentsTo: 'To date',
+    documentsNoResults: 'No files match these filters.',
+    previewFile: 'Preview file',
+    downloadFile: 'Download file',
+    closePreview: 'Close preview',
     documentsLoading: 'Loading project documents...',
     photoHint: 'JPG, PNG, WEBP · Up to 5 combined attachments per update.',
     documentHint: 'PDF, DOC, DOCX, XLSX, TXT, CSV · Up to 5 combined attachments per update.',
@@ -338,6 +369,7 @@ const copy = {
     studioAdmin: 'Studio admin',
     studioStaff: 'Studio staff',
     navigation: 'Navigation',
+    more: 'More',
     viewAllProjects: 'View all projects',
     clients: 'Clients',
     clientDirectory: 'Client directory',
@@ -505,8 +537,22 @@ const copy = {
     photo: '进度照片',
     progressFiles: '进度文件',
     documents: '项目文件',
-    documentsDescription: '项目更新中附带的文件。请前往项目进度修改或删除附件。',
+    documentsDescription: '项目更新中的照片和文件附件。可按项目、文件类型或日期范围筛选。',
     documentsEmpty: '此项目暂无文件。',
+    documentsSearch: '搜索文件名或更新标题',
+    documentsType: '文件类型',
+    documentsAllTypes: '所有类型',
+    documentsImage: '图片',
+    documentsPdf: 'PDF',
+    documentsWord: 'Word 文档',
+    documentsSpreadsheet: '表格 / CSV',
+    documentsOther: '其他',
+    documentsFrom: '开始日期',
+    documentsTo: '结束日期',
+    documentsNoResults: '没有符合筛选条件的文件。',
+    previewFile: '预览文件',
+    downloadFile: '下载文件',
+    closePreview: '关闭预览',
     documentsLoading: '正在加载项目文件...',
     photoHint: 'JPG、PNG、WEBP · 每次更新最多 5 个附件。',
     documentHint: 'PDF、DOC、DOCX、XLSX、TXT、CSV · 每次更新最多 5 个附件。',
@@ -544,6 +590,7 @@ const copy = {
     studioAdmin: '工作室管理员',
     studioStaff: '工作室员工',
     navigation: '导航',
+    more: '更多',
     viewAllProjects: '查看所有项目',
     clients: '客户',
     clientDirectory: '客户目录',
@@ -691,6 +738,11 @@ const PortalAdmin: React.FC = () => {
   const [issuedPassword, setIssuedPassword] = useState<IssuedPassword | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [adminUpdates, setAdminUpdates] = useState<PortalUpdate[]>([]);
+  const [documentSearch, setDocumentSearch] = useState('');
+  const [documentType, setDocumentType] = useState<PortalDocumentKind | 'all'>('all');
+  const [documentDateFrom, setDocumentDateFrom] = useState('');
+  const [documentDateTo, setDocumentDateTo] = useState('');
+  const [previewAttachment, setPreviewAttachment] = useState<PortalAttachment | null>(null);
   const [notifications, setNotifications] = useState<PortalNotification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState('');
@@ -704,6 +756,7 @@ const PortalAdmin: React.FC = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewFiles, setPreviewFiles] = useState<Array<{ name: string; url: string }>>([]);
   const [activeSection, setActiveSection] = useState('admin-dashboard');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const imageInputRef = React.useRef<HTMLInputElement>(null);
   const documentInputRef = React.useRef<HTMLInputElement>(null);
@@ -1429,7 +1482,6 @@ const PortalAdmin: React.FC = () => {
       );
   const selectedProjectDocuments = adminUpdates.flatMap((update) =>
     update.attachments
-      .filter((attachment) => !attachment.contentType.startsWith('image/'))
       .map((attachment) => ({
         ...attachment,
         updateId: update.id,
@@ -1438,6 +1490,16 @@ const PortalAdmin: React.FC = () => {
         updateAttachments: update.attachments,
       }))
   );
+  const filteredProjectDocuments = selectedProjectDocuments.filter((attachment) => {
+    const query = documentSearch.trim().toLowerCase();
+    const matchesQuery = !query
+      || attachment.name.toLowerCase().includes(query)
+      || attachment.updateTitle.toLowerCase().includes(query);
+    const matchesType = documentType === 'all' || getPortalDocumentKind(attachment) === documentType;
+    const matchesFrom = !documentDateFrom || attachment.updateDate >= documentDateFrom;
+    const matchesTo = !documentDateTo || attachment.updateDate <= documentDateTo;
+    return matchesQuery && matchesType && matchesFrom && matchesTo;
+  });
   const clientDirectory = Array.from(projects.reduce((clients, project) => {
     const key = project.client_email?.trim().toLowerCase() || project.id;
     const client = clients.get(key) ?? {
@@ -1534,6 +1596,13 @@ const PortalAdmin: React.FC = () => {
     { id: 'admin-access', label: t.clientAccess, icon: <FolderOpen size={17} /> },
     { id: 'admin-resets', label: t.passwordRequestsNav, icon: <KeyRound size={17} /> },
   ].filter((item) => adminRole === 'admin' || !['admin-access', 'admin-billing', 'admin-changes'].includes(item.id));
+  const primaryMobileNavIds = ['admin-dashboard', 'admin-progress', 'admin-documents', 'admin-feedback'];
+  const primaryMobileNavigation = navigation.filter((item) => primaryMobileNavIds.includes(item.id));
+  const moreMobileNavigation = navigation.filter((item) => !primaryMobileNavIds.includes(item.id));
+  const navigateFromMobile = (sectionId: string) => {
+    setMobileNavOpen(false);
+    openAdminPage(sectionId);
+  };
   const activePageTitle = activeSection === 'admin-dashboard'
     ? t.adminDashboard
     : navigation.find((item) => item.id === activeSection)?.label ?? t.adminDashboard;
@@ -1554,7 +1623,7 @@ const PortalAdmin: React.FC = () => {
             </div>
           </div>
           <p className="hidden px-6 pb-3 pt-7 font-mono text-[9px] uppercase tracking-[0.2em] text-white/35 lg:block">{t.navigation}</p>
-          <nav aria-label={t.navigation} className="grid grid-cols-2 gap-1.5 px-3 py-3 sm:grid-cols-3 lg:block lg:space-y-1.5 lg:px-3 lg:py-0">
+          <nav aria-label={t.navigation} className="hidden px-3 py-3 lg:block lg:space-y-1.5 lg:py-0">
             {navigation.map((item) => (
               <button
                 key={item.id}
@@ -1602,7 +1671,7 @@ const PortalAdmin: React.FC = () => {
             </div>
           </header>
         )}
-        <div className={`mx-auto w-full ${authenticated ? 'max-w-[1600px] px-4 py-6 sm:px-7 lg:px-10 lg:py-8' : 'max-w-7xl px-0 sm:px-3 lg:px-0'}`}>
+        <div className={`mx-auto w-full ${authenticated ? 'max-w-[1600px] px-4 pt-6 pb-24 sm:px-7 lg:px-10 lg:py-8' : 'max-w-7xl px-0 sm:px-3 lg:px-0'}`}>
         {(!authenticated || activeSection === 'admin-dashboard') && <header id="admin-dashboard" className="relative mb-6 scroll-mt-24 overflow-hidden rounded-2xl bg-neutral-900 p-5 text-white shadow-[0_24px_70px_rgba(27,25,20,0.12)] sm:mb-8 sm:rounded-3xl sm:p-10 lg:p-12">
           <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-40" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-900/80 to-neutral-900/25" />
@@ -2023,7 +2092,7 @@ const PortalAdmin: React.FC = () => {
                     <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{selectedProject?.project_code ?? t.documents}</p>
                     <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.documents}</h2>
                   </div>
-                  <span className="ml-auto rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-xs tabular-nums text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">{selectedProjectDocuments.length.toString().padStart(2, '0')}</span>
+                  <span className="ml-auto rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-xs tabular-nums text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">{filteredProjectDocuments.length.toString().padStart(2, '0')}</span>
                 </div>
                 <p className="mb-5 text-sm leading-6 text-neutral-500">{t.documentsDescription}</p>
                 {projects.length === 0 ? (
@@ -2051,36 +2120,86 @@ const PortalAdmin: React.FC = () => {
                     ) : selectedProjectDocuments.length === 0 ? (
                       <p className="py-4 text-sm text-neutral-500">{t.documentsEmpty}</p>
                     ) : (
-                      <ul className="grid gap-3 md:grid-cols-2">
-                        {selectedProjectDocuments.map((attachment) => {
-                          const href = attachment.downloadUrl ?? attachment.url;
-                          return (
-                            <li key={attachment.path} className="flex min-w-0 items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-bronze-600 dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
-                              <div className="min-w-0 flex-1">
-                                {href ? <a href={href} target="_blank" rel="noreferrer" className="block truncate text-sm font-medium text-neutral-800 transition-colors hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{attachment.name}</a> : <p className="truncate text-sm font-medium">{attachment.name}</p>}
-                                <p className="mt-1 truncate text-xs text-neutral-500">{attachment.updateTitle} · {formatAdminDate(attachment.updateDate, language)}</p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingUpdateId(attachment.updateId);
-                                  setEditingAttachments(attachment.updateAttachments);
-                                  setSelectedFiles([]);
-                                  setError('');
-                                  setNotice('');
-                                  if (imageInputRef.current) imageInputRef.current.value = '';
-                                  if (documentInputRef.current) documentInputRef.current.value = '';
-                                  openAdminPage('admin-progress');
-                                }}
-                                className="shrink-0 rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-700 dark:border-white/10 dark:text-neutral-300 dark:hover:text-bronze-300"
-                              >
-                                {t.editUpdate}
-                              </button>
-                            </li>
-                          );
-                        })}
-                      </ul>
+                      <>
+                        <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                          <label className="relative sm:col-span-2 lg:col-span-1">
+                            <span className="sr-only">{t.documentsSearch}</span>
+                            <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                            <input value={documentSearch} onChange={(event) => setDocumentSearch(event.target.value)} placeholder={t.documentsSearch} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950" />
+                          </label>
+                          <label>
+                            <span className="sr-only">{t.documentsType}</span>
+                            <select value={documentType} onChange={(event) => setDocumentType(event.target.value as PortalDocumentKind | 'all')} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950 dark:[color-scheme:dark]">
+                              <option value="all">{t.documentsAllTypes}</option>
+                              <option value="image">{t.documentsImage}</option>
+                              <option value="pdf">{t.documentsPdf}</option>
+                              <option value="word">{t.documentsWord}</option>
+                              <option value="spreadsheet">{t.documentsSpreadsheet}</option>
+                              <option value="other">{t.documentsOther}</option>
+                            </select>
+                          </label>
+                          <label>
+                            <span className="sr-only">{t.documentsFrom}</span>
+                            <input aria-label={t.documentsFrom} type="date" value={documentDateFrom} onChange={(event) => setDocumentDateFrom(event.target.value)} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-600 outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-300 dark:[color-scheme:dark]" />
+                          </label>
+                          <label>
+                            <span className="sr-only">{t.documentsTo}</span>
+                            <input aria-label={t.documentsTo} type="date" value={documentDateTo} onChange={(event) => setDocumentDateTo(event.target.value)} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-600 outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-300 dark:[color-scheme:dark]" />
+                          </label>
+                        </div>
+                        {filteredProjectDocuments.length === 0 ? (
+                          <p className="py-8 text-center text-sm text-neutral-500">{t.documentsNoResults}</p>
+                        ) : (
+                          <ul className="grid gap-3 md:grid-cols-2">
+                            {filteredProjectDocuments.map((attachment) => {
+                              const href = attachment.downloadUrl ?? attachment.url;
+                              const isImage = getPortalDocumentKind(attachment) === 'image';
+                              const canPreview = canPreviewPortalDocument(attachment) && Boolean(attachment.url);
+                              return (
+                                <li key={attachment.path} className="flex min-w-0 items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50/70 p-3 sm:p-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                                  {isImage && attachment.url ? (
+                                    <button type="button" onClick={() => setPreviewAttachment(attachment)} aria-label={`${t.previewFile}: ${attachment.name}`} className="h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bronze-500 sm:h-16 sm:w-20">
+                                      <img src={attachment.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                                    </button>
+                                  ) : (
+                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-bronze-600 dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
+                                  )}
+                                  <div className="min-w-0 flex-1">
+                                    {canPreview ? (
+                                      <button type="button" onClick={() => setPreviewAttachment(attachment)} className="block max-w-full truncate text-left text-sm font-medium text-neutral-800 transition-colors hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{attachment.name}</button>
+                                    ) : href ? (
+                                      <a href={href} target="_blank" rel="noreferrer" className="block truncate text-sm font-medium text-neutral-800 transition-colors hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{attachment.name}</a>
+                                    ) : (
+                                      <p className="truncate text-sm font-medium">{attachment.name}</p>
+                                    )}
+                                    <p className="mt-1 truncate text-xs text-neutral-500">{attachment.updateTitle} · {formatAdminDate(attachment.updateDate, language)}</p>
+                                  </div>
+                                  {canPreview && <button type="button" onClick={() => setPreviewAttachment(attachment)} aria-label={`${t.previewFile}: ${attachment.name}`} title={t.previewFile} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Eye size={16} /></button>}
+                                  {href && <a href={href} target="_blank" rel="noreferrer" aria-label={`${t.downloadFile}: ${attachment.name}`} title={t.downloadFile} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Download size={15} /></a>}
+                                  <button
+                                    type="button"
+                                    aria-label={`${t.editUpdate}: ${attachment.updateTitle}`}
+                                    onClick={() => {
+                                      setEditingUpdateId(attachment.updateId);
+                                      setEditingAttachments(attachment.updateAttachments);
+                                      setSelectedFiles([]);
+                                      setError('');
+                                      setNotice('');
+                                      if (imageInputRef.current) imageInputRef.current.value = '';
+                                      if (documentInputRef.current) documentInputRef.current.value = '';
+                                      openAdminPage('admin-progress');
+                                    }}
+                                    className="hidden shrink-0 rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-700 dark:border-white/10 dark:text-neutral-300 dark:hover:text-bronze-300 sm:inline-flex"
+                                  >
+                                    {t.editUpdate}
+                                  </button>
+                                  <button type="button" onClick={() => { setEditingUpdateId(attachment.updateId); setEditingAttachments(attachment.updateAttachments); setSelectedFiles([]); setError(''); setNotice(''); if (imageInputRef.current) imageInputRef.current.value = ''; if (documentInputRef.current) documentInputRef.current.value = ''; openAdminPage('admin-progress'); }} aria-label={`${t.editUpdate}: ${attachment.updateTitle}`} title={t.editUpdate} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-600 sm:hidden dark:border-white/10 dark:text-neutral-300"><ArrowUpRight size={15} /></button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </>
                     )}
                   </>
                 )}
@@ -2479,6 +2598,44 @@ const PortalAdmin: React.FC = () => {
           </section>
         )}
       </div>
+      {authenticated && !checking && (
+        <>
+          {mobileNavOpen && (
+            <button type="button" onClick={() => setMobileNavOpen(false)} aria-label={t.more} className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] lg:hidden" />
+          )}
+          {mobileNavOpen && (
+            <nav id="admin-mobile-more" aria-label={t.more} className="fixed inset-x-3 z-50 max-h-[min(60dvh,520px)] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-2 shadow-2xl dark:border-white/10 dark:bg-neutral-900 lg:hidden" style={{ bottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}>
+              {moreMobileNavigation.map((item) => (
+                <button key={item.id} type="button" onClick={() => navigateFromMobile(item.id)} className={`flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm transition-colors ${activeSection === item.id ? 'bg-[#f5f2ec] text-[#746349] dark:bg-white/[0.07] dark:text-bronze-300' : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-white/[0.05]'}`}>
+                  <span className="text-bronze-600 dark:text-bronze-400">{item.icon}</span>
+                  <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                  {item.id === 'admin-resets' && passwordRequests.length > 0 && <span className="rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{passwordRequests.length}</span>}
+                  {item.id === 'admin-feedback' && unreadFeedbackCount > 0 && <span className="rounded-full bg-bronze-500 px-2 py-0.5 font-mono text-[9px] text-white">{unreadFeedbackCount}</span>}
+                </button>
+              ))}
+            </nav>
+          )}
+          <nav aria-label={t.navigation} className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-neutral-200 bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-[0_-8px_24px_rgba(27,25,20,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111210]/95 lg:hidden">
+            {primaryMobileNavigation.map((item) => (
+              <button key={item.id} type="button" onClick={() => navigateFromMobile(item.id)} aria-current={activeSection === item.id ? 'page' : undefined} className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[9px] font-medium transition-colors ${activeSection === item.id ? 'text-bronze-700 dark:text-bronze-300' : 'text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-white/[0.06]'}`}>
+                <span>{item.icon}</span>
+                <span className="w-full truncate text-center">{item.label}</span>
+              </button>
+            ))}
+            <button type="button" onClick={() => setMobileNavOpen((open) => !open)} aria-expanded={mobileNavOpen} aria-controls="admin-mobile-more" className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[9px] font-medium transition-colors ${mobileNavOpen || moreMobileNavigation.some((item) => item.id === activeSection) ? 'text-bronze-700 dark:text-bronze-300' : 'text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-white/[0.06]'}`}>
+              <Layers size={17} />
+              <span className="w-full truncate text-center">{t.more}</span>
+            </button>
+          </nav>
+        </>
+      )}
+      {authenticated && !checking && previewAttachment && (
+        <PortalFilePreview
+          attachment={previewAttachment}
+          labels={{ preview: t.previewFile, download: t.downloadFile, close: t.closePreview }}
+          onClose={() => setPreviewAttachment(null)}
+        />
+      )}
     </div>
     </div>
   );

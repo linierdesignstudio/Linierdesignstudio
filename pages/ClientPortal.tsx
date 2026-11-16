@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowUpRight, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, FileCheck2, FileText, LockKeyhole, LogOut, MapPin, MessageCircle, Send, ShieldCheck, Upload, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, FileCheck2, FileText, LockKeyhole, LogOut, MapPin, MessageCircle, Search, Send, ShieldCheck, Upload, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
+import PortalFilePreview from '../components/PortalFilePreview';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type BillingItem, type ClientFeedback, type PortalNotification, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalNotification, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
 
 const copy = {
   ID: {
@@ -31,9 +33,24 @@ const copy = {
     inProgress: 'Sedang berjalan',
     documents: 'Dokumen proyek',
     documentsEmpty: 'Belum ada dokumen untuk proyek ini.',
+    documentsSearch: 'Cari nama file atau update',
+    documentsType: 'Jenis file',
+    documentsAllTypes: 'Semua jenis',
+    documentsImage: 'Gambar',
+    documentsPdf: 'PDF',
+    documentsWord: 'Word',
+    documentsSpreadsheet: 'Spreadsheet / CSV',
+    documentsOther: 'Lainnya',
+    documentsFrom: 'Dari tanggal',
+    documentsTo: 'Sampai tanggal',
+    documentsNoResults: 'Tidak ada file yang cocok dengan filter.',
     documentAttachedToUpdate: 'Dilampirkan pada update',
     viewFile: 'Buka file',
+    previewFile: 'Pratinjau file',
+    downloadFile: 'Unduh file',
+    closePreview: 'Tutup pratinjau',
     photo: 'Foto progress',
+    feedbackNav: 'Feedback',
     forgotPassword: 'Lupa password?',
     resetTitle: 'Minta reset password',
     resetIdentifier: 'ID proyek untuk reset password proyek, atau email untuk reset password akun',
@@ -152,9 +169,24 @@ const copy = {
     inProgress: 'In progress',
     documents: 'Project documents',
     documentsEmpty: 'There are no documents for this project yet.',
+    documentsSearch: 'Search file or update name',
+    documentsType: 'File type',
+    documentsAllTypes: 'All types',
+    documentsImage: 'Images',
+    documentsPdf: 'PDF',
+    documentsWord: 'Word',
+    documentsSpreadsheet: 'Spreadsheet / CSV',
+    documentsOther: 'Other',
+    documentsFrom: 'From date',
+    documentsTo: 'To date',
+    documentsNoResults: 'No files match these filters.',
     documentAttachedToUpdate: 'Attached to update',
     viewFile: 'Open file',
+    previewFile: 'Preview file',
+    downloadFile: 'Download file',
+    closePreview: 'Close preview',
     photo: 'Progress photo',
+    feedbackNav: 'Feedback',
     forgotPassword: 'Forgot password?',
     resetTitle: 'Request a password reset',
     resetIdentifier: 'Project ID for project password, or email for account password',
@@ -273,9 +305,24 @@ const copy = {
     inProgress: '进行中',
     documents: '项目文件',
     documentsEmpty: '此项目暂无文件。',
+    documentsSearch: '搜索文件名或更新标题',
+    documentsType: '文件类型',
+    documentsAllTypes: '所有类型',
+    documentsImage: '图片',
+    documentsPdf: 'PDF',
+    documentsWord: 'Word 文档',
+    documentsSpreadsheet: '表格 / CSV',
+    documentsOther: '其他',
+    documentsFrom: '开始日期',
+    documentsTo: '结束日期',
+    documentsNoResults: '没有符合筛选条件的文件。',
     documentAttachedToUpdate: '所属更新',
     viewFile: '打开文件',
+    previewFile: '预览文件',
+    downloadFile: '下载文件',
+    closePreview: '关闭预览',
     photo: '进度照片',
+    feedbackNav: '反馈',
     forgotPassword: '忘记密码？',
     resetTitle: '申请重置密码',
     resetIdentifier: '重置项目密码请输入项目编号，重置邮箱账号请输入邮箱',
@@ -386,6 +433,11 @@ const ClientPortal: React.FC = () => {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState('');
   const [notificationsRefreshToken, setNotificationsRefreshToken] = useState(0);
+  const [documentSearch, setDocumentSearch] = useState('');
+  const [documentType, setDocumentType] = useState<PortalDocumentKind | 'all'>('all');
+  const [documentDateFrom, setDocumentDateFrom] = useState('');
+  const [documentDateTo, setDocumentDateTo] = useState('');
+  const [previewAttachment, setPreviewAttachment] = useState<PortalAttachment | null>(null);
   const [projectCode, setProjectCode] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(true);
@@ -834,12 +886,28 @@ const ClientPortal: React.FC = () => {
   };
   const projectDocuments = updates.flatMap((update) =>
     update.attachments
-      .filter((attachment) => !attachment.contentType.startsWith('image/'))
       .map((attachment) => ({ ...attachment, updateTitle: update.title, updateDate: update.update_date }))
   );
+  const filteredProjectDocuments = projectDocuments.filter((attachment) => {
+    const query = documentSearch.trim().toLowerCase();
+    const matchesQuery = !query
+      || attachment.name.toLowerCase().includes(query)
+      || attachment.updateTitle.toLowerCase().includes(query);
+    const matchesType = documentType === 'all' || getPortalDocumentKind(attachment) === documentType;
+    const matchesFrom = !documentDateFrom || attachment.updateDate >= documentDateFrom;
+    const matchesTo = !documentDateTo || attachment.updateDate <= documentDateTo;
+    return matchesQuery && matchesType && matchesFrom && matchesTo;
+  });
+  const mobileNavigation = [
+    { id: 'project-updates', label: t.updated, icon: <Clock3 size={17} />, onClick: () => scrollToSection('project-updates') },
+    { id: 'project-documents', label: t.documents, icon: <FileText size={17} />, onClick: () => scrollToSection('project-documents') },
+    { id: 'project-billing', label: t.billingTitle, icon: <FileCheck2 size={17} />, onClick: () => scrollToSection('project-billing') },
+    { id: 'project-changes', label: t.changeTitle, icon: <ClipboardList size={17} />, onClick: () => scrollToSection('project-changes') },
+    { id: 'feedback', label: t.feedbackNav, icon: <MessageCircle size={17} />, onClick: () => setFeedbackChatOpen(true) },
+  ];
 
   return (
-    <div className="portal-readable min-h-screen overflow-x-clip bg-[#f5f4f0] pb-16 pt-16 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:pb-20 sm:pt-24 md:pt-32">
+    <div className={`portal-readable min-h-screen overflow-x-clip bg-[#f5f4f0] ${project ? 'pb-28 sm:pb-20' : 'pb-16 sm:pb-20'} pt-16 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:pt-24 md:pt-32`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
         <Link to="/" className="mb-5 inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-400 hover:text-neutral-950 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:border-white/25 dark:hover:text-white sm:mb-7">
           <ArrowDownLeft size={15} /> {t.back}
@@ -1038,26 +1106,73 @@ const ClientPortal: React.FC = () => {
                   <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p>
                   <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.documents}</h2>
                 </div>
-                <span className="ml-auto rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-xs tabular-nums text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">{projectDocuments.length.toString().padStart(2, '0')}</span>
+                <span className="ml-auto rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-xs tabular-nums text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">{filteredProjectDocuments.length.toString().padStart(2, '0')}</span>
               </div>
               {projectDocuments.length === 0 ? (
                 <p className="py-2 text-sm text-neutral-500">{t.documentsEmpty}</p>
               ) : (
-                <ul className="grid gap-3 md:grid-cols-2">
-                  {projectDocuments.map((attachment) => {
-                    const href = attachment.downloadUrl ?? attachment.url;
-                    return (
-                      <li key={attachment.path} className="flex min-w-0 items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-bronze-600 dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
-                        <div className="min-w-0 flex-1">
-                          {href ? <a href={href} target="_blank" rel="noreferrer" className="block truncate text-sm font-medium text-neutral-800 transition-colors hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{attachment.name}</a> : <p className="truncate text-sm font-medium">{attachment.name}</p>}
-                          <p className="mt-1 truncate text-xs text-neutral-500">{attachment.updateTitle} · {formatDate(attachment.updateDate, language)}</p>
-                        </div>
-                        {href && <a href={href} target="_blank" rel="noreferrer" aria-label={`${t.viewFile}: ${attachment.name}`} title={t.viewFile} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Download size={15} /></a>}
-                      </li>
-                    );
-                  })}
-                </ul>
+                <>
+                  <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <label className="relative sm:col-span-2 lg:col-span-1">
+                      <span className="sr-only">{t.documentsSearch}</span>
+                      <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                      <input value={documentSearch} onChange={(event) => setDocumentSearch(event.target.value)} placeholder={t.documentsSearch} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950" />
+                    </label>
+                    <label>
+                      <span className="sr-only">{t.documentsType}</span>
+                      <select value={documentType} onChange={(event) => setDocumentType(event.target.value as PortalDocumentKind | 'all')} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950 dark:[color-scheme:dark]">
+                        <option value="all">{t.documentsAllTypes}</option>
+                        <option value="image">{t.documentsImage}</option>
+                        <option value="pdf">{t.documentsPdf}</option>
+                        <option value="word">{t.documentsWord}</option>
+                        <option value="spreadsheet">{t.documentsSpreadsheet}</option>
+                        <option value="other">{t.documentsOther}</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span className="sr-only">{t.documentsFrom}</span>
+                      <input aria-label={t.documentsFrom} type="date" value={documentDateFrom} onChange={(event) => setDocumentDateFrom(event.target.value)} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-600 outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-300 dark:[color-scheme:dark]" />
+                    </label>
+                    <label>
+                      <span className="sr-only">{t.documentsTo}</span>
+                      <input aria-label={t.documentsTo} type="date" value={documentDateTo} onChange={(event) => setDocumentDateTo(event.target.value)} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-600 outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-300 dark:[color-scheme:dark]" />
+                    </label>
+                  </div>
+                  {filteredProjectDocuments.length === 0 ? (
+                    <p className="rounded-xl border border-dashed border-neutral-200 px-4 py-8 text-center text-sm text-neutral-500 dark:border-white/10">{t.documentsNoResults}</p>
+                  ) : (
+                    <ul className="grid gap-3 md:grid-cols-2">
+                      {filteredProjectDocuments.map((attachment) => {
+                        const href = attachment.downloadUrl ?? attachment.url;
+                        const isImage = getPortalDocumentKind(attachment) === 'image';
+                        const canPreview = canPreviewPortalDocument(attachment) && Boolean(attachment.url);
+                        return (
+                          <li key={attachment.path} className="flex min-w-0 items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50/70 p-3 sm:p-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                            {isImage && attachment.url ? (
+                              <button type="button" onClick={() => setPreviewAttachment(attachment)} aria-label={`${t.previewFile}: ${attachment.name}`} className="h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bronze-500 sm:h-16 sm:w-20">
+                                <img src={attachment.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                              </button>
+                            ) : (
+                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-bronze-600 dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              {canPreview ? (
+                                <button type="button" onClick={() => setPreviewAttachment(attachment)} className="block max-w-full truncate text-left text-sm font-medium text-neutral-800 transition-colors hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{attachment.name}</button>
+                              ) : href ? (
+                                <a href={href} target="_blank" rel="noreferrer" className="block truncate text-sm font-medium text-neutral-800 transition-colors hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{attachment.name}</a>
+                              ) : (
+                                <p className="truncate text-sm font-medium">{attachment.name}</p>
+                              )}
+                              <p className="mt-1 truncate text-xs text-neutral-500">{attachment.updateTitle} · {formatDate(attachment.updateDate, language)}</p>
+                            </div>
+                            {canPreview && <button type="button" onClick={() => setPreviewAttachment(attachment)} aria-label={`${t.previewFile}: ${attachment.name}`} title={t.previewFile} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Eye size={16} /></button>}
+                            {href && <a href={href} target="_blank" rel="noreferrer" aria-label={`${t.downloadFile}: ${attachment.name}`} title={t.downloadFile} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Download size={15} /></a>}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </>
               )}
             </section>
 
@@ -1183,10 +1298,10 @@ const ClientPortal: React.FC = () => {
                                 <div className="grid gap-3 sm:grid-cols-2">
                                   {update.attachments.filter((attachment) => attachment.contentType.startsWith('image/')).map((attachment) => (
                                     <div key={attachment.path} className="group relative aspect-[16/10] overflow-hidden rounded-xl bg-neutral-100 dark:bg-white/5">
-                                      <a href={attachment.url} target="_blank" rel="noreferrer" className="block h-full w-full">
+                                      <button type="button" onClick={() => setPreviewAttachment(attachment)} aria-label={`${t.previewFile}: ${attachment.name}`} className="block h-full w-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-bronze-500">
                                         <img src={attachment.url} alt={`${t.photo}: ${attachment.name}`} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
                                         <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8 text-xs text-white">{attachment.name}</span>
-                                      </a>
+                                      </button>
                                       <a
                                         href={attachment.downloadUrl ?? attachment.url}
                                         aria-label={`${t.downloadPhoto}: ${attachment.name}`}
@@ -1265,10 +1380,25 @@ const ClientPortal: React.FC = () => {
                 </form>
               </div>
             )}
-            <button type="button" onClick={() => setFeedbackChatOpen((open) => !open)} aria-label={feedbackChatOpen ? t.feedbackClose : t.feedbackOpen} aria-expanded={feedbackChatOpen} aria-controls={feedbackChatOpen ? 'client-feedback-chat' : undefined} title={feedbackChatOpen ? t.feedbackClose : t.feedbackOpen} className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#272925] text-white shadow-[0_12px_35px_rgba(27,25,20,0.28)] transition hover:-translate-y-0.5 hover:bg-bronze-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-bronze-500 dark:bg-white dark:text-neutral-950 dark:hover:bg-bronze-300">
+            <button type="button" onClick={() => setFeedbackChatOpen((open) => !open)} aria-label={feedbackChatOpen ? t.feedbackClose : t.feedbackOpen} aria-expanded={feedbackChatOpen} aria-controls={feedbackChatOpen ? 'client-feedback-chat' : undefined} title={feedbackChatOpen ? t.feedbackClose : t.feedbackOpen} className="fixed bottom-24 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#272925] text-white shadow-[0_12px_35px_rgba(27,25,20,0.28)] transition hover:-translate-y-0.5 hover:bg-bronze-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-bronze-500 dark:bg-white dark:text-neutral-950 dark:hover:bg-bronze-300 md:bottom-5">
               {feedbackChatOpen ? <X size={21} /> : <MessageCircle size={21} />}
               {!feedbackChatOpen && feedbackItems.some((item) => !item.reply) && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-bronze-500 dark:border-neutral-900" />}
             </button>
+            <nav aria-label={t.journal} className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-neutral-200 bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-[0_-8px_24px_rgba(27,25,20,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111210]/95 md:hidden">
+              {mobileNavigation.map((item) => (
+                <button key={item.id} type="button" onClick={item.onClick} aria-label={item.label} className="flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[9px] font-medium text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/[0.06] dark:hover:text-white">
+                  <span className="text-[#8c795e] dark:text-bronze-400">{item.icon}</span>
+                  <span className="w-full truncate text-center">{item.label}</span>
+                </button>
+              ))}
+            </nav>
+            {previewAttachment && (
+              <PortalFilePreview
+                attachment={previewAttachment}
+                labels={{ preview: t.previewFile, download: t.downloadFile, close: t.closePreview }}
+                onClose={() => setPreviewAttachment(null)}
+              />
+            )}
           </section>
         ) : (
           <div className="grid min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_80px_rgba(27,25,20,0.10)] sm:rounded-3xl lg:grid-cols-[1.08fr_0.92fr] dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/25">
