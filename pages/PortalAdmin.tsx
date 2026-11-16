@@ -1546,7 +1546,7 @@ const PortalAdmin: React.FC = () => {
               <Metric icon={<Users size={17} />} label={t.clientCount} value={clientDirectory.length.toString().padStart(2, '0')} />
               <Metric icon={<MessageCircle size={17} />} label={t.pendingFeedback} value={unreadFeedbackCount.toString().padStart(2, '0')} />
             </div>
-            <div className="mb-5 grid gap-5 xl:grid-cols-1">
+            <div className="mb-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
               <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-5 flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-white/10">
                   <div className="flex items-center gap-3">
@@ -1592,6 +1592,33 @@ const PortalAdmin: React.FC = () => {
                       </li>
                     ))}
                   </ol>
+                )}
+              </section>
+              <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
+                <div className="mb-5 flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-white/10">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><ImagePlus size={17} /></span>
+                    <div>
+                      <p className="text-xs text-neutral-500">{selectedProject?.project_name ?? t.chooseProject}</p>
+                      <h2 className="mt-1 font-display text-xl font-medium">{t.photoPreview}</h2>
+                    </div>
+                  </div>
+                  {selectedFiles.length > 0 && <span className="font-mono text-[9px] uppercase tracking-wider text-neutral-400">{selectedFiles.length} / 5</span>}
+                </div>
+                {previewFiles.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {previewFiles.map((file) => (
+                      <div key={file.url} className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-neutral-100 dark:bg-white/5">
+                        <img src={file.url} alt={file.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/75 to-transparent px-2 pb-2 pt-6 text-[9px] text-white">{file.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50/60 px-6 text-center dark:border-white/15 dark:bg-white/[0.02]">
+                    <ImagePlus size={22} className="mb-3 text-neutral-400" />
+                    <p className="max-w-xs text-xs leading-5 text-neutral-500">{t.noPhotoPreview}</p>
+                  </div>
                 )}
               </section>
             </div>
