@@ -106,40 +106,40 @@ const Footer: React.FC = () => {
       <div className="flex flex-col lg:flex-row w-full h-full border-b border-neutral-300 dark:border-white/10">
           
           {/* 2. LEFT SECTION: CTA & BRANDING (50% Width) */}
-          <div className="lg:w-1/2 border-r border-white/15 dark:border-white/10 bg-[#222021] text-white p-8 md:p-12 lg:p-24 flex flex-col justify-between min-h-[400px] lg:min-h-[500px]">
+          <div className="lg:w-1/2 border-r border-white/15 dark:border-white/10 bg-[#222021] text-white px-6 pt-24 pb-28 sm:px-8 sm:pt-28 sm:pb-32 md:px-12 md:pt-28 md:pb-32 lg:px-16 lg:pt-28 lg:pb-24 xl:px-20 flex flex-col justify-between min-h-[360px] sm:min-h-[420px] lg:min-h-[500px]">
               
               <div>
-                <div className="mb-12 flex flex-col items-start gap-4">
+                <div className="mb-8 flex flex-col items-start gap-3 sm:mb-10 sm:gap-4">
                   <img
                     src={logoImage}
                     alt="Linier Studio logo"
-                    className="h-[140px] sm:h-[170px] md:h-[200px] w-auto object-contain"
+                    className="h-20 sm:h-24 md:h-28 w-auto object-contain"
                   />
                   <span className="text-xs font-mono uppercase tracking-[0.2em] text-white/60 dark:text-neutral-400">
                     PT. LINIER NUSAKARYA PERSADA
                   </span>
                 </div>
-                  <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display font-bold uppercase leading-[0.9] tracking-tighter mb-8">
+                  <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-[clamp(4rem,5.2vw,6.25rem)] font-display font-bold uppercase leading-[0.9] tracking-tighter mb-6 sm:mb-8">
                      {t.footer.cta_title_1} <br/>
                      <span className="text-white/55 dark:text-neutral-400">{t.footer.cta_title_2}</span>
                   </h2>
                   <Link 
                     to="/contact" 
-                    className="inline-flex items-center gap-6 group cursor-hover"
+                    className="inline-flex items-center gap-4 sm:gap-6 group cursor-hover"
                   >
-                      <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border border-white/25 dark:border-white/20 flex items-center justify-center group-hover:bg-bronze-500 group-hover:border-bronze-500 transition-all duration-300">
-                          <ArrowUpRight size={32} className="group-hover:rotate-45 transition-transform duration-300" />
+                      <div className="w-14 h-14 md:w-16 md:h-16 rounded-full border border-white/25 dark:border-white/20 flex items-center justify-center group-hover:bg-bronze-500 group-hover:border-bronze-500 transition-all duration-300">
+                          <ArrowUpRight size={28} className="group-hover:rotate-45 transition-transform duration-300" />
                       </div>
-                      <span className="text-xl font-bold uppercase tracking-widest border-b border-transparent group-hover:border-white transition-all">
+                      <span className="text-base sm:text-lg md:text-xl font-bold uppercase tracking-widest border-b border-transparent group-hover:border-white transition-all">
                           {t.footer.cta_button}
                       </span>
                   </Link>
               </div>
 
-              <div className="mt-24 lg:mt-0">
+              <div className="mt-10 border-t border-white/15 pt-5 sm:mt-12 sm:pt-6 lg:mt-0 lg:border-0 lg:pt-0">
                    <div className="mb-6">
                        <span className="text-[10px] font-mono text-white/55 dark:text-neutral-400 uppercase tracking-widest block mb-2">{t.contact.email}</span>
-                       <a href="mailto:hello@linierstudio.com" className="text-2xl md:text-3xl font-display font-bold hover:text-bronze-500 transition-colors">
+                       <a href="mailto:hello@linierstudio.com" className="break-all text-lg sm:text-xl lg:text-2xl xl:text-3xl font-display font-bold hover:text-bronze-500 transition-colors">
                            hello@linierstudio.com
                        </a>
                    </div>
