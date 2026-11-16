@@ -28,7 +28,9 @@ const copy = {
     loading: 'Memuat portal...',
     complete: 'Selesai',
     inProgress: 'Sedang berjalan',
-    files: 'File progress',
+    documents: 'Dokumen proyek',
+    documentsEmpty: 'Belum ada dokumen untuk proyek ini.',
+    documentAttachedToUpdate: 'Dilampirkan pada update',
     viewFile: 'Buka file',
     photo: 'Foto progress',
     forgotPassword: 'Lupa password?',
@@ -137,7 +139,9 @@ const copy = {
     loading: 'Loading portal...',
     complete: 'Complete',
     inProgress: 'In progress',
-    files: 'Progress files',
+    documents: 'Project documents',
+    documentsEmpty: 'There are no documents for this project yet.',
+    documentAttachedToUpdate: 'Attached to update',
     viewFile: 'Open file',
     photo: 'Progress photo',
     forgotPassword: 'Forgot password?',
@@ -246,7 +250,9 @@ const copy = {
     loading: '正在加载门户...',
     complete: '已完成',
     inProgress: '进行中',
-    files: '进度文件',
+    documents: '项目文件',
+    documentsEmpty: '此项目暂无文件。',
+    documentAttachedToUpdate: '所属更新',
     viewFile: '打开文件',
     photo: '进度照片',
     forgotPassword: '忘记密码？',
@@ -708,6 +714,11 @@ const ClientPortal: React.FC = () => {
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+  const projectDocuments = updates.flatMap((update) =>
+    update.attachments
+      .filter((attachment) => !attachment.contentType.startsWith('image/'))
+      .map((attachment) => ({ ...attachment, updateTitle: update.title, updateDate: update.update_date }))
+  );
 
   return (
     <div className="portal-readable min-h-screen overflow-x-clip bg-[#f5f4f0] pb-16 pt-16 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:pb-20 sm:pt-24 md:pt-32">
@@ -870,6 +881,9 @@ const ClientPortal: React.FC = () => {
               <a href="#project-updates" onClick={(event) => { event.preventDefault(); scrollToSection('project-updates'); }} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-[#8c795e] hover:text-[#746349] dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-200 dark:hover:border-bronze-400">
                 <FileText size={15} /> {t.updated}
               </a>
+              <a href="#project-documents" onClick={(event) => { event.preventDefault(); scrollToSection('project-documents'); }} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-[#8c795e] hover:text-[#746349] dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-200 dark:hover:border-bronze-400">
+                <FileText size={15} /> {t.documents}
+              </a>
               <a href="#project-billing" onClick={(event) => { event.preventDefault(); scrollToSection('project-billing'); }} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-[#8c795e] hover:text-[#746349] dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-200 dark:hover:border-bronze-400">
                 <FileCheck2 size={15} /> {t.billingTitle}
               </a>
@@ -877,6 +891,36 @@ const ClientPortal: React.FC = () => {
                 <ClipboardList size={15} /> {t.changeTitle}
               </a>
             </nav>
+
+            <section id="project-documents" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
+              <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
+                <div>
+                  <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p>
+                  <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.documents}</h2>
+                </div>
+                <span className="ml-auto rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-xs tabular-nums text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">{projectDocuments.length.toString().padStart(2, '0')}</span>
+              </div>
+              {projectDocuments.length === 0 ? (
+                <p className="py-2 text-sm text-neutral-500">{t.documentsEmpty}</p>
+              ) : (
+                <ul className="grid gap-3 md:grid-cols-2">
+                  {projectDocuments.map((attachment) => {
+                    const href = attachment.downloadUrl ?? attachment.url;
+                    return (
+                      <li key={attachment.path} className="flex min-w-0 items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-bronze-600 dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
+                        <div className="min-w-0 flex-1">
+                          {href ? <a href={href} target="_blank" rel="noreferrer" className="block truncate text-sm font-medium text-neutral-800 transition-colors hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{attachment.name}</a> : <p className="truncate text-sm font-medium">{attachment.name}</p>}
+                          <p className="mt-1 truncate text-xs text-neutral-500">{attachment.updateTitle} · {formatDate(attachment.updateDate, language)}</p>
+                        </div>
+                        {href && <a href={href} target="_blank" rel="noreferrer" aria-label={`${t.viewFile}: ${attachment.name}`} title={t.viewFile} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Download size={15} /></a>}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
 
             <section id="project-billing" className="scroll-mt-24 mt-8 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:mt-10 sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
@@ -992,7 +1036,7 @@ const ClientPortal: React.FC = () => {
                       <div className="min-w-0">
                         <h3 className="font-display text-xl font-medium tracking-tight sm:text-2xl">{update.title}</h3>
                         <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-neutral-600 dark:text-neutral-400">{update.description}</p>
-                        {update.attachments.length > 0 && (
+                        {update.attachments.some((attachment) => attachment.contentType.startsWith('image/')) && (
                           <div className="mt-6 space-y-6 border-t border-neutral-100 pt-5 dark:border-white/10">
                             {update.attachments.some((attachment) => attachment.contentType.startsWith('image/')) && (
                               <section>
@@ -1013,22 +1057,6 @@ const ClientPortal: React.FC = () => {
                                         <Download size={16} />
                                       </a>
                                     </div>
-                                  ))}
-                                </div>
-                              </section>
-                            )}
-                            {update.attachments.some((attachment) => !attachment.contentType.startsWith('image/')) && (
-                              <section>
-                                <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-500">{t.files}</p>
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                  {update.attachments.filter((attachment) => !attachment.contentType.startsWith('image/')).map((attachment) => (
-                                    <a key={attachment.path} href={attachment.downloadUrl ?? attachment.url} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50/70 px-4 py-3 transition-colors hover:border-bronze-500 dark:border-white/10 dark:bg-white/[0.02]">
-                                      <span className="flex min-w-0 items-center gap-3">
-                                        <FileText size={17} className="shrink-0 text-bronze-500" />
-                                        <span className="truncate text-xs">{attachment.name}</span>
-                                      </span>
-                                      <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-neutral-500"><Download size={13} /> {t.viewFile}</span>
-                                    </a>
                                   ))}
                                 </div>
                               </section>

@@ -91,6 +91,10 @@ const copy = {
     attachmentLabel: 'Lampiran progress',
     photo: 'Foto progress',
     progressFiles: 'File progress',
+    documents: 'Dokumen',
+    documentsDescription: 'Dokumen yang dilampirkan pada update proyek. Buka bagian Progress proyek untuk mengubah atau menghapus lampiran.',
+    documentsEmpty: 'Belum ada dokumen pada proyek ini.',
+    documentsLoading: 'Memuat dokumen proyek...',
     photoHint: 'JPG, PNG, WEBP · Maksimal 5 lampiran gabungan per update.',
     documentHint: 'PDF, DOC, DOCX, XLSX, TXT, CSV · Maksimal 5 lampiran gabungan per update.',
     choosePhotos: 'Pilih foto',
@@ -283,6 +287,10 @@ const copy = {
     attachmentLabel: 'Progress attachments',
     photo: 'Progress photos',
     progressFiles: 'Progress files',
+    documents: 'Documents',
+    documentsDescription: 'Documents attached to project updates. Open Project progress to edit or remove attachments.',
+    documentsEmpty: 'There are no documents for this project yet.',
+    documentsLoading: 'Loading project documents...',
     photoHint: 'JPG, PNG, WEBP · Up to 5 combined attachments per update.',
     documentHint: 'PDF, DOC, DOCX, XLSX, TXT, CSV · Up to 5 combined attachments per update.',
     choosePhotos: 'Choose photos',
@@ -475,6 +483,10 @@ const copy = {
     attachmentLabel: '进度附件',
     photo: '进度照片',
     progressFiles: '进度文件',
+    documents: '项目文件',
+    documentsDescription: '项目更新中附带的文件。请前往项目进度修改或删除附件。',
+    documentsEmpty: '此项目暂无文件。',
+    documentsLoading: '正在加载项目文件...',
     photoHint: 'JPG、PNG、WEBP · 每次更新最多 5 个附件。',
     documentHint: 'PDF、DOC、DOCX、XLSX、TXT、CSV · 每次更新最多 5 个附件。',
     choosePhotos: '选择照片',
@@ -648,6 +660,7 @@ const PortalAdmin: React.FC = () => {
   const [issuedPassword, setIssuedPassword] = useState<IssuedPassword | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [adminUpdates, setAdminUpdates] = useState<PortalUpdate[]>([]);
+  const [loadingAdminUpdates, setLoadingAdminUpdates] = useState(false);
   const [editingUpdateId, setEditingUpdateId] = useState('');
   const [editingAttachments, setEditingAttachments] = useState<PortalAttachment[]>([]);
   const [error, setError] = useState('');
@@ -708,9 +721,11 @@ const PortalAdmin: React.FC = () => {
     let active = true;
     if (!authenticated || !selectedProjectId) {
       setAdminUpdates([]);
+      setLoadingAdminUpdates(false);
       return () => { active = false; };
     }
 
+    setLoadingAdminUpdates(true);
     loadAdminUpdates(selectedProjectId)
       .then((updates) => {
         if (active) setAdminUpdates(updates);
@@ -719,6 +734,9 @@ const PortalAdmin: React.FC = () => {
         if (active) {
           setError(cause instanceof Error ? cause.message : 'Riwayat update tidak dapat dimuat.');
         }
+      })
+      .finally(() => {
+        if (active) setLoadingAdminUpdates(false);
       });
     return () => { active = false; };
   }, [authenticated, selectedProjectId]);
@@ -1333,6 +1351,17 @@ const PortalAdmin: React.FC = () => {
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId);
   const selectedUpdate = adminUpdates.find((update) => update.id === editingUpdateId);
+  const selectedProjectDocuments = adminUpdates.flatMap((update) =>
+    update.attachments
+      .filter((attachment) => !attachment.contentType.startsWith('image/'))
+      .map((attachment) => ({
+        ...attachment,
+        updateId: update.id,
+        updateTitle: update.title,
+        updateDate: update.update_date,
+        updateAttachments: update.attachments,
+      }))
+  );
   const clientDirectory = Array.from(projects.reduce((clients, project) => {
     const key = project.client_email?.trim().toLowerCase() || project.id;
     const client = clients.get(key) ?? {
@@ -1368,6 +1397,7 @@ const PortalAdmin: React.FC = () => {
   const navigation = [
     { id: 'admin-dashboard', label: t.dashboard, icon: <LayoutDashboard size={17} /> },
     { id: 'admin-progress', label: t.projectProgress, icon: <ChartNoAxesColumn size={17} /> },
+    { id: 'admin-documents', label: t.documents, icon: <FileText size={17} /> },
     { id: 'admin-clients', label: t.clients, icon: <Users size={17} /> },
     { id: 'admin-feedback', label: t.feedback, icon: <MessageCircle size={17} /> },
     { id: 'admin-billing', label: t.billingNav, icon: <FileCheck2 size={17} /> },
@@ -1834,6 +1864,77 @@ const PortalAdmin: React.FC = () => {
                   </div>
                   <div className="mt-5 flex justify-end"><button disabled={busy || !selectedProjectId} className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 text-xs font-medium text-white transition-colors hover:bg-bronze-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-neutral-950"><Plus size={14} /> {t.changeSubmitProposal}</button></div>
                 </form>
+              </section>
+            )}
+            {activeSection === 'admin-documents' && (
+              <section id="admin-documents" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
+                  <div>
+                    <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{selectedProject?.project_code ?? t.documents}</p>
+                    <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.documents}</h2>
+                  </div>
+                  <span className="ml-auto rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-xs tabular-nums text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">{selectedProjectDocuments.length.toString().padStart(2, '0')}</span>
+                </div>
+                <p className="mb-5 text-sm leading-6 text-neutral-500">{t.documentsDescription}</p>
+                {projects.length === 0 ? (
+                  <p className="text-sm text-neutral-500">{t.emptyProjects}</p>
+                ) : (
+                  <>
+                    <label className="mb-5 block max-w-xl">
+                      <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.projects}</span>
+                      <select
+                        value={selectedProjectId}
+                        onChange={(event) => {
+                          setAdminUpdates([]);
+                          setEditingUpdateId('');
+                          setEditingAttachments([]);
+                          setLoadingAdminUpdates(Boolean(event.target.value));
+                          setSelectedProjectId(event.target.value);
+                        }}
+                        className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950 dark:[color-scheme:dark]"
+                      >
+                        {projects.map((project) => <option key={project.id} value={project.id}>{project.project_code} — {project.project_name}</option>)}
+                      </select>
+                    </label>
+                    {loadingAdminUpdates ? (
+                      <p className="py-4 text-sm text-neutral-500">{t.documentsLoading}</p>
+                    ) : selectedProjectDocuments.length === 0 ? (
+                      <p className="py-4 text-sm text-neutral-500">{t.documentsEmpty}</p>
+                    ) : (
+                      <ul className="grid gap-3 md:grid-cols-2">
+                        {selectedProjectDocuments.map((attachment) => {
+                          const href = attachment.downloadUrl ?? attachment.url;
+                          return (
+                            <li key={attachment.path} className="flex min-w-0 items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-bronze-600 dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
+                              <div className="min-w-0 flex-1">
+                                {href ? <a href={href} target="_blank" rel="noreferrer" className="block truncate text-sm font-medium text-neutral-800 transition-colors hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{attachment.name}</a> : <p className="truncate text-sm font-medium">{attachment.name}</p>}
+                                <p className="mt-1 truncate text-xs text-neutral-500">{attachment.updateTitle} · {formatAdminDate(attachment.updateDate, language)}</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingUpdateId(attachment.updateId);
+                                  setEditingAttachments(attachment.updateAttachments);
+                                  setSelectedFiles([]);
+                                  setError('');
+                                  setNotice('');
+                                  if (imageInputRef.current) imageInputRef.current.value = '';
+                                  if (documentInputRef.current) documentInputRef.current.value = '';
+                                  openAdminPage('admin-progress');
+                                }}
+                                className="shrink-0 rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-700 dark:border-white/10 dark:text-neutral-300 dark:hover:text-bronze-300"
+                              >
+                                {t.editUpdate}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </>
+                )}
               </section>
             )}
             {activeSection === 'admin-resets' && (
