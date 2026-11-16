@@ -110,14 +110,14 @@ const Footer: React.FC = () => {
               
               <div>
                 <div className="mb-8 flex items-center gap-4 sm:mb-10 sm:gap-5 md:gap-6">
-                  <div className="relative h-20 w-20 shrink-0 overflow-hidden sm:h-24 sm:w-24 md:h-28 md:w-28 lg:h-32 lg:w-32">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden sm:h-20 sm:w-20 md:h-24 md:w-24 lg:h-28 lg:w-28">
                     <img
                       src={logoImage}
                       alt="Linier Studio logo"
-                      className="absolute left-1/2 top-1/2 h-[280%] w-[280%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain"
+                      className="absolute left-1/2 top-1/2 h-[250%] w-[250%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain"
                     />
                   </div>
-                  <span className="text-sm font-mono uppercase leading-[1.5] tracking-[0.12em] text-white/70 dark:text-neutral-400 sm:text-base md:text-lg lg:text-xl">
+                  <span className="text-xs font-mono uppercase leading-[1.5] tracking-[0.12em] text-white/70 dark:text-neutral-400 sm:text-sm md:text-base lg:text-lg">
                     PT. LINIER<br />
                     NUSA KARYA<br />
                     PERSADA
