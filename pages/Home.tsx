@@ -23,7 +23,7 @@ const getResistedFillProgress = (progress: number, start: number, end: number) =
   return 1 - Math.pow(1 - segmentProgress, 2);
 };
 
-const NEXT_STEP_PAUSE_PROGRESS = 0.04;
+const NEXT_STEP_PAUSE_PROGRESS = 0.1;
 
 const Home: React.FC = () => {
   const containerRef = useRef(null);
