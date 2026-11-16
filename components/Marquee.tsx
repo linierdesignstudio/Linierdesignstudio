@@ -11,7 +11,7 @@ const Marquee: React.FC = () => {
         {[...Array(4)].map((_, i) => (
           <span 
             key={i} 
-            className="text-4xl sm:text-6xl md:text-8xl font-display font-bold tracking-tighter mx-5 sm:mx-8 text-[#B7FF00] uppercase opacity-100"
+            className="text-4xl sm:text-6xl md:text-8xl font-display font-bold tracking-tighter mx-5 sm:mx-8 text-bronze-500 uppercase opacity-100"
           >
             {t.home.marquee}
           </span>
