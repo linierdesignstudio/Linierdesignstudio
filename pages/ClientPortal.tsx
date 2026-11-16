@@ -882,9 +882,9 @@ const ClientPortal: React.FC = () => {
   const openNotification = async (notification: PortalNotification) => {
     if (!project) return;
     try {
-      await portalRequest('/api/portal/notifications', {
+      await portalRequest(`/api/portal/notifications?projectId=${encodeURIComponent(project.id)}`, {
         method: 'PATCH',
-        body: JSON.stringify({ notificationId: notification.id, projectId: project.id }),
+        body: JSON.stringify({ notificationId: notification.id }),
       });
       setNotifications((current) => current.map((item) =>
         item.id === notification.id ? { ...item, read_at: item.read_at ?? new Date().toISOString() } : item
