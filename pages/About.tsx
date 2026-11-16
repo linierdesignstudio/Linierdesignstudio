@@ -4,7 +4,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import ScrollHighlightText from '../components/ScrollHighlightText';
 import RevealOnScroll from '../components/RevealOnScroll';
 import RevealSentences from '../components/RevealSentences';
-import AboutHeroAndra from '../components/AboutHeroAndra';
+import AboutBrandEffect from '../components/AboutBrandEffect';
 import TextWave from '../components/TextWave';
 
 const About: React.FC = () => {
@@ -47,8 +47,7 @@ const About: React.FC = () => {
   return (
     <div ref={containerRef} className="w-full bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white selection:bg-bronze-500 selection:text-white">
       
-      {/* NEW HERO SECTION INSPIRED BY REFERENCE */}
-      <AboutHeroAndra />
+      <AboutBrandEffect />
 
       {/* HEADER SECTION (Restored) */}
       <section className="relative pt-24 md:pt-32 pb-16 px-6 md:px-12 overflow-hidden flex flex-col gap-12 bg-white dark:bg-neutral-950 border-t border-neutral-200 dark:border-white/5">
@@ -64,9 +63,9 @@ const About: React.FC = () => {
                 <span className="text-xs font-mono uppercase tracking-widest text-bronze-500">Linier Studio</span>
             </motion.div>
             
-            <h1 className="text-5xl sm:text-7xl md:text-[9vw] leading-[0.85] font-display font-bold uppercase tracking-tighter text-neutral-900 dark:text-white mb-8">
+            <h2 className="text-5xl sm:text-7xl md:text-[9vw] leading-[0.85] font-display font-bold uppercase tracking-tighter text-neutral-900 dark:text-white mb-8">
                 <TextWave text={t.about.title} />
-            </h1>
+            </h2>
             
             <motion.div 
                initial={{ opacity: 0, y: 20 }}
