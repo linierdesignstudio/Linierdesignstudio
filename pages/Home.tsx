@@ -18,6 +18,11 @@ import { PROJECTS } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CardHoverReveal, CardHoverRevealMain, CardHoverRevealContent } from '../components/ui/reveal-on-hover';
 
+const getResistedFillProgress = (progress: number, start: number, end: number) => {
+  const segmentProgress = Math.max(0, Math.min(1, (progress - start) / (end - start)));
+  return segmentProgress * segmentProgress * (3 - 2 * segmentProgress);
+};
+
 const Home: React.FC = () => {
   const containerRef = useRef(null);
   const { t, language } = useLanguage();
@@ -38,9 +43,9 @@ const Home: React.FC = () => {
     offset: ["start start", "end end"]
   });
   const nextStepFills = [
-    useTransform(nextStepsProgress, [0.25, 0.5], [0, 1]),
-    useTransform(nextStepsProgress, [0.5, 0.75], [0, 1]),
-    useTransform(nextStepsProgress, [0.75, 1], [0, 1]),
+    useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.25, 0.5)),
+    useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.5, 0.75)),
+    useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.75, 1)),
   ];
   const [activeNextStep, setActiveNextStep] = useState(0);
   useMotionValueEvent(nextStepsProgress, 'change', (progress) => {
