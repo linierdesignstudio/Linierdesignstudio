@@ -71,16 +71,9 @@ const AboutBrandEffect: React.FC = () => {
   const { language } = useLanguage();
   const sectionRef = useRef<HTMLElement>(null);
   const copy = effectCopy[language];
-  const { scrollY } = useScroll();
-  const scrollYProgress = useTransform(scrollY, (current) => {
-    const section = sectionRef.current;
-    if (!section) return 0;
-
-    const sectionTop = section.getBoundingClientRect().top + current;
-    const scrollRange = section.offsetHeight - window.innerHeight;
-    if (scrollRange <= 0) return 1;
-
-    return Math.max(0, Math.min(1, (current - sectionTop) / scrollRange));
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end end'],
   });
 
   const backgroundColor = useTransform(scrollYProgress, [0, 0.24, 0.56], ['#f1f1ee', '#f1f1ee', '#080909']);
