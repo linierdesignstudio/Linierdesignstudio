@@ -20,8 +20,10 @@ import { CardHoverReveal, CardHoverRevealMain, CardHoverRevealContent } from '..
 
 const getResistedFillProgress = (progress: number, start: number, end: number) => {
   const segmentProgress = Math.max(0, Math.min(1, (progress - start) / (end - start)));
-  return segmentProgress * segmentProgress * (3 - 2 * segmentProgress);
+  return 1 - Math.pow(1 - segmentProgress, 2);
 };
+
+const NEXT_STEP_PAUSE_PROGRESS = 0.04;
 
 const Home: React.FC = () => {
   const containerRef = useRef(null);
@@ -43,9 +45,9 @@ const Home: React.FC = () => {
     offset: ["start start", "end end"]
   });
   const nextStepFills = [
-    useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.25, 0.5)),
-    useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.5, 0.75)),
-    useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.75, 1)),
+    useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.25, 0.5 - NEXT_STEP_PAUSE_PROGRESS)),
+    useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.5, 0.75 - NEXT_STEP_PAUSE_PROGRESS)),
+    useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.75, 1 - NEXT_STEP_PAUSE_PROGRESS)),
   ];
   const [activeNextStep, setActiveNextStep] = useState(0);
   useMotionValueEvent(nextStepsProgress, 'change', (progress) => {
