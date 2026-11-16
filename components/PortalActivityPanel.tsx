@@ -34,7 +34,12 @@ const PortalActivityPanel: React.FC<PortalActivityPanelProps> = ({
   formatDate,
 }) => {
   const actions = notifications
-    .filter((notification) => notification.action_required && !notification.resolved_at)
+    .filter((notification) =>
+      notification.action_required
+      && !notification.resolved_at
+      && notification.event_type !== 'feedback_received'
+      && notification.event_type !== 'feedback_replied'
+    )
     .slice(0, 5);
   const unreadCount = notifications.filter((notification) => !notification.read_at).length;
 
