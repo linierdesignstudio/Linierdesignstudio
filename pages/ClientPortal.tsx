@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDownLeft, ArrowUpRight, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, FileCheck2, FileText, LockKeyhole, LogOut, MapPin, MessageCircle, Send, ShieldCheck, Upload, X } from 'lucide-react';
+import PortalActivityPanel from '../components/PortalActivityPanel';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type BillingItem, type ClientFeedback, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { portalRequest, type BillingItem, type ClientFeedback, type PortalNotification, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 
 const copy = {
   ID: {
@@ -115,6 +116,16 @@ const copy = {
     changeConfirmReject: 'Tolak usulan perubahan ini?',
     changeRequestSent: 'Permintaan perubahan berhasil dikirim.',
     changeDecisionSaved: 'Tanggapan Anda berhasil disimpan.',
+    actionCenter: 'Perlu tindakan',
+    actionCenterEmpty: 'Tidak ada tindakan yang menunggu.',
+    activityCenter: 'Aktivitas terbaru',
+    activityCenterEmpty: 'Belum ada notifikasi.',
+    needsAttention: 'Perlu ditindaklanjuti',
+    unread: 'belum dibaca',
+    notificationRefresh: 'Perbarui aktivitas',
+    notificationLoading: 'Memuat aktivitas...',
+    notificationOpen: 'Buka aktivitas',
+    notificationLoadFailed: 'Aktivitas portal tidak dapat dimuat.',
   },
   EN: {
     eyebrow: 'LINIER STUDIO / CLIENT PORTAL',
@@ -226,6 +237,16 @@ const copy = {
     changeConfirmReject: 'Reject this change proposal?',
     changeRequestSent: 'Change request sent.',
     changeDecisionSaved: 'Your response has been saved.',
+    actionCenter: 'Needs your attention',
+    actionCenterEmpty: 'There are no pending actions.',
+    activityCenter: 'Recent activity',
+    activityCenterEmpty: 'There are no notifications yet.',
+    needsAttention: 'Action needed',
+    unread: 'unread',
+    notificationRefresh: 'Refresh activity',
+    notificationLoading: 'Loading activity...',
+    notificationOpen: 'Open activity',
+    notificationLoadFailed: 'Portal activity could not be loaded.',
   },
   CN: {
     eyebrow: 'LINIER STUDIO / 客户门户',
@@ -337,6 +358,16 @@ const copy = {
     changeConfirmReject: '拒绝此变更提案？',
     changeRequestSent: '变更申请已发送。',
     changeDecisionSaved: '您的回复已保存。',
+    actionCenter: '待处理事项',
+    actionCenterEmpty: '目前没有待处理事项。',
+    activityCenter: '最新动态',
+    activityCenterEmpty: '暂无通知。',
+    needsAttention: '需要处理',
+    unread: '未读',
+    notificationRefresh: '刷新动态',
+    notificationLoading: '正在加载动态...',
+    notificationOpen: '打开动态',
+    notificationLoadFailed: '无法加载门户动态。',
   },
 } as const;
 
@@ -351,6 +382,10 @@ const ClientPortal: React.FC = () => {
   const [feedbackItems, setFeedbackItems] = useState<ClientFeedback[]>([]);
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
   const [changeOrders, setChangeOrders] = useState<ProjectChangeOrder[]>([]);
+  const [notifications, setNotifications] = useState<PortalNotification[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState('');
+  const [notificationsRefreshToken, setNotificationsRefreshToken] = useState(0);
   const [projectCode, setProjectCode] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(true);
@@ -487,6 +522,40 @@ const ClientPortal: React.FC = () => {
       });
     return () => { active = false; };
   }, [project?.id]);
+
+  useEffect(() => {
+    let active = true;
+    if (!project) {
+      setNotifications([]);
+      setNotificationsError('');
+      setNotificationsLoading(false);
+      return () => { active = false; };
+    }
+
+    const refresh = async () => {
+      setNotificationsLoading(true);
+      setNotificationsError('');
+      try {
+        const result = await portalRequest<{ notifications: PortalNotification[] }>(
+          `/api/portal/notifications?projectId=${encodeURIComponent(project.id)}`
+        );
+        if (active) setNotifications(result.notifications);
+      } catch (cause) {
+        if (active) setNotificationsError(cause instanceof Error ? cause.message : t.notificationLoadFailed);
+      } finally {
+        if (active) setNotificationsLoading(false);
+      }
+    };
+
+    void refresh();
+    const interval = window.setInterval(() => void refresh(), 60_000);
+    window.addEventListener('focus', refresh);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [project?.id, notificationsRefreshToken, language]);
 
   useEffect(() => {
     if (feedbackChatOpen) {
@@ -714,6 +783,55 @@ const ClientPortal: React.FC = () => {
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+  const getNotificationLabel = (eventType: PortalNotification['event_type']) => {
+    switch (eventType) {
+      case 'project_update':
+      case 'project_update_edited':
+        return t.updated;
+      case 'feedback_received':
+      case 'feedback_replied':
+        return t.feedbackReply;
+      case 'billing_created':
+        return t.billingTitle;
+      case 'payment_review':
+        return t.billingPending;
+      case 'payment_paid':
+        return t.billingPaid;
+      case 'payment_rejected':
+        return t.billingRejected;
+      case 'change_requested':
+        return t.changeTitle;
+      case 'change_proposed':
+        return t.changePending;
+      case 'change_decided':
+        return t.changeTitle;
+    }
+  };
+  const openNotification = async (notification: PortalNotification) => {
+    if (!project) return;
+    try {
+      await portalRequest('/api/portal/notifications', {
+        method: 'PATCH',
+        body: JSON.stringify({ notificationId: notification.id, projectId: project.id }),
+      });
+      setNotifications((current) => current.map((item) =>
+        item.id === notification.id ? { ...item, read_at: item.read_at ?? new Date().toISOString() } : item
+      ));
+    } catch (cause) {
+      setNotificationsError(cause instanceof Error ? cause.message : t.notificationLoadFailed);
+      return;
+    }
+
+    if (notification.event_type === 'feedback_replied') {
+      setFeedbackChatOpen(true);
+    } else if (['billing_created', 'payment_review', 'payment_paid', 'payment_rejected'].includes(notification.event_type)) {
+      scrollToSection('project-billing');
+    } else if (['change_requested', 'change_proposed', 'change_decided'].includes(notification.event_type)) {
+      scrollToSection('project-changes');
+    } else {
+      scrollToSection('project-updates');
+    }
+  };
   const projectDocuments = updates.flatMap((update) =>
     update.attachments
       .filter((attachment) => !attachment.contentType.startsWith('image/'))
@@ -812,6 +930,27 @@ const ClientPortal: React.FC = () => {
             </div>
 
             {error && <ErrorBanner message={error} />}
+
+            <PortalActivityPanel
+              notifications={notifications}
+              labels={{
+                actions: t.actionCenter,
+                activity: t.activityCenter,
+                emptyActions: t.actionCenterEmpty,
+                emptyActivity: t.activityCenterEmpty,
+                needsAttention: t.needsAttention,
+                unread: t.unread,
+                refresh: t.notificationRefresh,
+                loading: t.notificationLoading,
+                open: t.notificationOpen,
+              }}
+              error={notificationsError}
+              loading={notificationsLoading}
+              onRefresh={() => setNotificationsRefreshToken((current) => current + 1)}
+              onOpen={openNotification}
+              getEventLabel={getNotificationLabel}
+              formatDate={(value) => formatDateTime(value, language)}
+            />
 
             {passwordChangeOpen && (
               <form onSubmit={changePassword} className="mb-5 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:mb-6 sm:p-8 dark:border-white/10 dark:bg-neutral-900">

@@ -150,6 +150,379 @@ create table if not exists public.project_change_orders (
 create index if not exists project_change_orders_project_created_idx
   on public.project_change_orders (project_id, created_at desc);
 
+create table if not exists public.portal_notifications (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.client_projects(id) on delete cascade,
+  audience text not null check (audience in ('admin', 'client')),
+  event_type text not null check (event_type in (
+    'project_update',
+    'project_update_edited',
+    'feedback_received',
+    'feedback_replied',
+    'billing_created',
+    'payment_review',
+    'payment_paid',
+    'payment_rejected',
+    'change_requested',
+    'change_proposed',
+    'change_decided'
+  )),
+  entity_id uuid not null,
+  summary text not null,
+  action_required boolean not null default false,
+  created_at timestamptz not null default now(),
+  read_at timestamptz,
+  resolved_at timestamptz
+);
+
+create index if not exists portal_notifications_audience_date_idx
+  on public.portal_notifications (audience, created_at desc);
+
+create index if not exists portal_notifications_project_date_idx
+  on public.portal_notifications (audience, project_id, created_at desc);
+
+create index if not exists portal_notifications_open_actions_idx
+  on public.portal_notifications (audience, project_id, created_at desc)
+  where action_required and resolved_at is null;
+
+create or replace function public.portal_emit_notification(
+  p_project_id uuid,
+  p_audience text,
+  p_event_type text,
+  p_entity_id uuid,
+  p_summary text,
+  p_action_required boolean default false
+)
+returns void
+language sql
+security definer
+set search_path = public, pg_temp
+as $$
+  insert into public.portal_notifications (
+    project_id, audience, event_type, entity_id, summary, action_required
+  )
+  values (
+    p_project_id, p_audience, p_event_type, p_entity_id, p_summary, p_action_required
+  );
+$$;
+
+create or replace function public.portal_resolve_notifications(
+  p_project_id uuid,
+  p_audience text,
+  p_entity_id uuid,
+  p_event_types text[]
+)
+returns void
+language sql
+security definer
+set search_path = public, pg_temp
+as $$
+  update public.portal_notifications
+    set action_required = false,
+        resolved_at = coalesce(resolved_at, now())
+    where project_id = p_project_id
+      and audience = p_audience
+      and entity_id = p_entity_id
+      and event_type = any(p_event_types)
+      and action_required
+      and resolved_at is null;
+$$;
+
+create or replace function public.portal_notify_project_update()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  perform public.portal_emit_notification(
+    new.project_id, 'client', 'project_update', new.id, new.title
+  );
+  return new;
+end;
+$$;
+
+create or replace function public.portal_notify_project_update_edited()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if new.title is distinct from old.title
+    or new.description is distinct from old.description
+    or new.progress_percent is distinct from old.progress_percent
+    or new.update_date is distinct from old.update_date
+    or new.attachments is distinct from old.attachments then
+    perform public.portal_emit_notification(
+      new.project_id, 'client', 'project_update_edited', new.id, new.title
+    );
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.portal_notify_feedback_created()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  perform public.portal_emit_notification(
+    new.project_id, 'admin', 'feedback_received', new.id, new.subject, true
+  );
+  return new;
+end;
+$$;
+
+create or replace function public.portal_notify_feedback_replied()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if new.replied_at is not null and new.replied_at is distinct from old.replied_at then
+    perform public.portal_resolve_notifications(
+      new.project_id, 'admin', new.id, array['feedback_received']
+    );
+    perform public.portal_emit_notification(
+      new.project_id, 'client', 'feedback_replied', new.id, new.subject
+    );
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.portal_notify_billing_created()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  perform public.portal_emit_notification(
+    new.project_id, 'client', 'billing_created', new.id, new.title, true
+  );
+  return new;
+end;
+$$;
+
+create or replace function public.portal_notify_billing_status()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if new.status is not distinct from old.status then
+    return new;
+  end if;
+
+  if new.status = 'pending_review' then
+    perform public.portal_resolve_notifications(
+      new.project_id, 'client', new.id, array['billing_created', 'payment_rejected']
+    );
+    perform public.portal_emit_notification(
+      new.project_id, 'admin', 'payment_review', new.id, new.title, true
+    );
+  elsif new.status = 'paid' then
+    perform public.portal_resolve_notifications(
+      new.project_id, 'admin', new.id, array['payment_review']
+    );
+    perform public.portal_resolve_notifications(
+      new.project_id, 'client', new.id, array['billing_created', 'payment_rejected']
+    );
+    perform public.portal_emit_notification(
+      new.project_id, 'client', 'payment_paid', new.id, new.title
+    );
+  elsif new.status = 'rejected' then
+    perform public.portal_resolve_notifications(
+      new.project_id, 'admin', new.id, array['payment_review']
+    );
+    perform public.portal_resolve_notifications(
+      new.project_id, 'client', new.id, array['billing_created', 'payment_rejected']
+    );
+    perform public.portal_emit_notification(
+      new.project_id, 'client', 'payment_rejected', new.id, new.title, true
+    );
+  elsif new.status = 'unpaid' and old.status = 'uploading' then
+    perform public.portal_emit_notification(
+      new.project_id, 'client', 'billing_created', new.id, new.title, true
+    );
+  end if;
+
+  return new;
+end;
+$$;
+
+create or replace function public.portal_notify_change_order_created()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if new.requested_by = 'client' then
+    perform public.portal_emit_notification(
+      new.project_id, 'admin', 'change_requested', new.id, new.title, true
+    );
+  elsif new.status = 'pending_approval' then
+    perform public.portal_emit_notification(
+      new.project_id, 'client', 'change_proposed', new.id, new.title, true
+    );
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.portal_notify_change_order_updated()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if new.status = 'pending_approval'
+    and (old.status is distinct from new.status or old.proposed_at is distinct from new.proposed_at) then
+    perform public.portal_resolve_notifications(
+      new.project_id, 'admin', new.id, array['change_requested']
+    );
+    perform public.portal_resolve_notifications(
+      new.project_id, 'client', new.id, array['change_proposed']
+    );
+    perform public.portal_emit_notification(
+      new.project_id, 'client', 'change_proposed', new.id, new.title, true
+    );
+  elsif old.status = 'pending_approval' and new.status in ('approved', 'rejected') then
+    perform public.portal_resolve_notifications(
+      new.project_id, 'client', new.id, array['change_proposed']
+    );
+    perform public.portal_emit_notification(
+      new.project_id, 'admin', 'change_decided', new.id, new.title
+    );
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists project_updates_notify_insert on public.project_updates;
+create trigger project_updates_notify_insert
+  after insert on public.project_updates
+  for each row execute function public.portal_notify_project_update();
+
+drop trigger if exists project_updates_notify_edit on public.project_updates;
+create trigger project_updates_notify_edit
+  after update on public.project_updates
+  for each row execute function public.portal_notify_project_update_edited();
+
+drop trigger if exists client_feedback_notify_insert on public.client_feedback;
+create trigger client_feedback_notify_insert
+  after insert on public.client_feedback
+  for each row execute function public.portal_notify_feedback_created();
+
+drop trigger if exists client_feedback_notify_reply on public.client_feedback;
+create trigger client_feedback_notify_reply
+  after update of reply, replied_at on public.client_feedback
+  for each row execute function public.portal_notify_feedback_replied();
+
+drop trigger if exists project_billing_notify_insert on public.project_billing_items;
+create trigger project_billing_notify_insert
+  after insert on public.project_billing_items
+  for each row execute function public.portal_notify_billing_created();
+
+drop trigger if exists project_billing_notify_status on public.project_billing_items;
+create trigger project_billing_notify_status
+  after update of status on public.project_billing_items
+  for each row execute function public.portal_notify_billing_status();
+
+drop trigger if exists project_change_orders_notify_insert on public.project_change_orders;
+create trigger project_change_orders_notify_insert
+  after insert on public.project_change_orders
+  for each row execute function public.portal_notify_change_order_created();
+
+drop trigger if exists project_change_orders_notify_update on public.project_change_orders;
+create trigger project_change_orders_notify_update
+  after update of status, proposed_at on public.project_change_orders
+  for each row execute function public.portal_notify_change_order_updated();
+
+insert into public.portal_notifications (
+  project_id, audience, event_type, entity_id, summary, action_required, created_at
+)
+select feedback.project_id, 'admin', 'feedback_received', feedback.id, feedback.subject, true, feedback.created_at
+  from public.client_feedback as feedback
+  where feedback.reply is null
+    and not exists (
+      select 1 from public.portal_notifications as notification
+      where notification.audience = 'admin'
+        and notification.event_type = 'feedback_received'
+        and notification.entity_id = feedback.id
+        and notification.resolved_at is null
+    );
+
+insert into public.portal_notifications (
+  project_id, audience, event_type, entity_id, summary, action_required, created_at
+)
+select billing.project_id, 'admin', 'payment_review', billing.id, billing.title, true, coalesce(billing.payment_proof_submitted_at, billing.created_at)
+  from public.project_billing_items as billing
+  where billing.status = 'pending_review'
+    and not exists (
+      select 1 from public.portal_notifications as notification
+      where notification.audience = 'admin'
+        and notification.event_type = 'payment_review'
+        and notification.entity_id = billing.id
+        and notification.resolved_at is null
+    );
+
+insert into public.portal_notifications (
+  project_id, audience, event_type, entity_id, summary, action_required, created_at
+)
+select billing.project_id,
+       'client',
+       case when billing.status = 'rejected' then 'payment_rejected' else 'billing_created' end,
+       billing.id,
+       billing.title,
+       true,
+       billing.created_at
+  from public.project_billing_items as billing
+  where billing.status in ('unpaid', 'rejected')
+    and not exists (
+      select 1 from public.portal_notifications as notification
+      where notification.audience = 'client'
+        and notification.event_type = case when billing.status = 'rejected' then 'payment_rejected' else 'billing_created' end
+        and notification.entity_id = billing.id
+        and notification.resolved_at is null
+    );
+
+insert into public.portal_notifications (
+  project_id, audience, event_type, entity_id, summary, action_required, created_at
+)
+select change_order.project_id, 'admin', 'change_requested', change_order.id, change_order.title, true, change_order.created_at
+  from public.project_change_orders as change_order
+  where change_order.status = 'requested'
+    and not exists (
+      select 1 from public.portal_notifications as notification
+      where notification.audience = 'admin'
+        and notification.event_type = 'change_requested'
+        and notification.entity_id = change_order.id
+        and notification.resolved_at is null
+    );
+
+insert into public.portal_notifications (
+  project_id, audience, event_type, entity_id, summary, action_required, created_at
+)
+select change_order.project_id, 'client', 'change_proposed', change_order.id, change_order.title, true, coalesce(change_order.proposed_at, change_order.created_at)
+  from public.project_change_orders as change_order
+  where change_order.status = 'pending_approval'
+    and not exists (
+      select 1 from public.portal_notifications as notification
+      where notification.audience = 'client'
+        and notification.event_type = 'change_proposed'
+        and notification.entity_id = change_order.id
+        and notification.resolved_at is null
+    );
+
 alter table public.project_password_reset_requests
   add column if not exists credential_type text not null default 'project'
   check (credential_type in ('project', 'account'));
@@ -167,6 +540,7 @@ alter table public.project_password_reset_requests enable row level security;
 alter table public.client_feedback enable row level security;
 alter table public.project_billing_items enable row level security;
 alter table public.project_change_orders enable row level security;
+alter table public.portal_notifications enable row level security;
 
 create or replace function public.portal_allow_login_attempt(
   p_project_id uuid,
@@ -532,7 +906,7 @@ grant execute on function public.portal_delete_project(uuid) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
 grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
 
-revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.project_change_orders from anon, authenticated;
+revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.project_change_orders, public.portal_notifications from anon, authenticated;
 grant select, insert on public.client_projects to service_role;
 grant select, insert, update, delete on public.project_updates to service_role;
 grant select, insert, update, delete on public.project_login_attempts to service_role;
@@ -540,6 +914,7 @@ grant select, insert, update on public.project_password_reset_requests to servic
 grant select, insert, update on public.client_feedback to service_role;
 grant select, insert, update, delete on public.project_billing_items to service_role;
 grant select, insert, update, delete on public.project_change_orders to service_role;
+grant select, insert, update, delete on public.portal_notifications to service_role;
 grant update on public.client_projects to service_role;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

@@ -60,6 +60,33 @@ export interface AdminFeedback extends ClientFeedback {
   client_email: string | null;
 }
 
+export type PortalNotificationEvent =
+  | 'project_update'
+  | 'project_update_edited'
+  | 'feedback_received'
+  | 'feedback_replied'
+  | 'billing_created'
+  | 'payment_review'
+  | 'payment_paid'
+  | 'payment_rejected'
+  | 'change_requested'
+  | 'change_proposed'
+  | 'change_decided';
+
+export interface PortalNotification {
+  id: string;
+  project_id: string;
+  project_code: string;
+  project_name: string;
+  event_type: PortalNotificationEvent;
+  entity_id: string;
+  summary: string;
+  action_required: boolean;
+  created_at: string;
+  read_at: string | null;
+  resolved_at: string | null;
+}
+
 export type BillingStatus = 'unpaid' | 'uploading' | 'pending_review' | 'rejected' | 'paid';
 
 export interface BillingItem {

@@ -6,6 +6,7 @@ import {
   createStorageUploadUrl,
   deleteStorageObjects,
   getSession,
+  requireProjectAccess,
   requireRole,
   supabaseRequest,
 } from './portal.js';
@@ -255,14 +256,6 @@ function parseProofFile(value: unknown): ProofFile {
     throw new HttpError(400, 'Bukti harus berupa JPG, PNG, WEBP, atau PDF dengan ukuran maksimal 5 MB.');
   }
   return { name, contentType, size };
-}
-
-async function requireProjectAccess(projectId: string, subject: string): Promise<void> {
-  if (projectId === subject) return;
-  const projects = await supabaseRequest<Array<{ id: string }>>(
-    `client_projects?select=id&id=eq.${encodeURIComponent(projectId)}&client_email=eq.${encodeURIComponent(subject)}&limit=1`
-  );
-  if (!projects[0]) throw new HttpError(403, 'Anda tidak memiliki akses ke proyek ini.');
 }
 
 function getProjectId(request: ApiRequest, subject: string): string {

@@ -8,6 +8,7 @@ import adminProjects from '../server/portal/admin-projects.js';
 import adminSession from '../server/portal/admin-session.js';
 import adminUpdates from '../server/portal/admin-updates.js';
 import adminUploads from '../server/portal/admin-uploads.js';
+import notifications from '../server/portal/notifications.js';
 import clientBilling from '../server/portal/client-billing.js';
 import clientChangeOrders from '../server/portal/client-change-orders.js';
 import clientChangePassword from '../server/portal/client-change-password.js';
@@ -26,6 +27,7 @@ const routes: Record<string, (request: ApiRequest, response: ApiResponse) => Pro
   'api/portal/admin/session': adminSession,
   'api/portal/admin/updates': adminUpdates,
   'api/portal/admin/uploads': adminUploads,
+  'api/portal/notifications': notifications,
   'api/portal/client/billing': clientBilling,
   'api/portal/client/change-orders': clientChangeOrders,
   'api/portal/client/change-password': clientChangePassword,

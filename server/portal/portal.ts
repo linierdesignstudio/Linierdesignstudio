@@ -243,6 +243,14 @@ export async function getProjectById(id: string): Promise<ProjectRecord | null> 
   return projects[0] ?? null;
 }
 
+export async function requireProjectAccess(projectId: string, subject: string): Promise<void> {
+  if (projectId === subject) return;
+  const projects = await supabaseRequest<Array<{ id: string }>>(
+    `client_projects?select=id&id=eq.${encodeURIComponent(projectId)}&client_email=eq.${encodeURIComponent(subject)}&limit=1`
+  );
+  if (!projects[0]) throw new HttpError(403, 'Anda tidak memiliki akses ke proyek ini.');
+}
+
 export function createAdminSession(email: string, password: string): 'admin' | 'staff' | null {
   const configuredEmail = process.env.PORTAL_ADMIN_EMAIL?.trim().toLowerCase();
   const configuredPassword = process.env.PORTAL_ADMIN_PASSWORD;

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDownLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, FileCheck2, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
+import PortalActivityPanel from '../components/PortalActivityPanel';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type AdminFeedback, type BillingItem, type PasswordResetRequest, type PortalAttachment, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { portalRequest, type AdminFeedback, type BillingItem, type PasswordResetRequest, type PortalAttachment, type PortalNotification, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 import { Language } from '../types';
 
 const copy = {
@@ -116,6 +117,16 @@ const copy = {
     timeline: 'Timeline proyek',
     photoPreview: 'Preview foto progress',
     noPhotoPreview: 'Foto yang dipilih untuk update akan tampil di sini.',
+    actionCenter: 'Perlu tindakan',
+    actionCenterEmpty: 'Tidak ada tindakan admin yang menunggu.',
+    activityCenter: 'Aktivitas terbaru',
+    activityCenterEmpty: 'Belum ada notifikasi.',
+    needsAttention: 'Perlu ditindaklanjuti',
+    unread: 'belum dibaca',
+    notificationRefresh: 'Perbarui aktivitas',
+    notificationLoading: 'Memuat aktivitas...',
+    notificationOpen: 'Buka aktivitas',
+    notificationLoadFailed: 'Aktivitas portal tidak dapat dimuat.',
     noDate: 'Tanggal mulai belum diatur',
     adminDashboard: 'Dashboard admin',
     studioAdmin: 'Admin studio',
@@ -312,6 +323,16 @@ const copy = {
     timeline: 'Project timeline',
     photoPreview: 'Progress photo preview',
     noPhotoPreview: 'Photos selected for the update will appear here.',
+    actionCenter: 'Needs attention',
+    actionCenterEmpty: 'There are no pending admin actions.',
+    activityCenter: 'Recent activity',
+    activityCenterEmpty: 'There are no notifications yet.',
+    needsAttention: 'Action needed',
+    unread: 'unread',
+    notificationRefresh: 'Refresh activity',
+    notificationLoading: 'Loading activity...',
+    notificationOpen: 'Open activity',
+    notificationLoadFailed: 'Portal activity could not be loaded.',
     noDate: 'Start date not set',
     adminDashboard: 'Admin dashboard',
     studioAdmin: 'Studio admin',
@@ -508,6 +529,16 @@ const copy = {
     timeline: '项目时间线',
     photoPreview: '进度照片预览',
     noPhotoPreview: '所选更新照片将在此显示。',
+    actionCenter: '待处理事项',
+    actionCenterEmpty: '目前没有待处理的管理员事项。',
+    activityCenter: '最新动态',
+    activityCenterEmpty: '暂无通知。',
+    needsAttention: '需要处理',
+    unread: '未读',
+    notificationRefresh: '刷新动态',
+    notificationLoading: '正在加载动态...',
+    notificationOpen: '打开动态',
+    notificationLoadFailed: '无法加载门户动态。',
     noDate: '未设置开始日期',
     adminDashboard: '管理员仪表板',
     studioAdmin: '工作室管理员',
@@ -660,6 +691,10 @@ const PortalAdmin: React.FC = () => {
   const [issuedPassword, setIssuedPassword] = useState<IssuedPassword | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [adminUpdates, setAdminUpdates] = useState<PortalUpdate[]>([]);
+  const [notifications, setNotifications] = useState<PortalNotification[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState('');
+  const [notificationsRefreshToken, setNotificationsRefreshToken] = useState(0);
   const [loadingAdminUpdates, setLoadingAdminUpdates] = useState(false);
   const [editingUpdateId, setEditingUpdateId] = useState('');
   const [editingAttachments, setEditingAttachments] = useState<PortalAttachment[]>([]);
@@ -716,6 +751,37 @@ const PortalAdmin: React.FC = () => {
       });
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (!authenticated) {
+      setNotifications([]);
+      setNotificationsLoading(false);
+      return () => { active = false; };
+    }
+
+    const refresh = async () => {
+      setNotificationsLoading(true);
+      setNotificationsError('');
+      try {
+        const result = await portalRequest<{ notifications: PortalNotification[] }>('/api/portal/notifications');
+        if (active) setNotifications(result.notifications);
+      } catch (cause) {
+        if (active) setNotificationsError(cause instanceof Error ? cause.message : t.notificationLoadFailed);
+      } finally {
+        if (active) setNotificationsLoading(false);
+      }
+    };
+
+    void refresh();
+    const interval = window.setInterval(() => void refresh(), 60_000);
+    window.addEventListener('focus', refresh);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [authenticated, notificationsRefreshToken, language]);
 
   useEffect(() => {
     let active = true;
@@ -1398,6 +1464,59 @@ const PortalAdmin: React.FC = () => {
     setActiveSection(sectionId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  const getNotificationLabel = (eventType: PortalNotification['event_type']) => {
+    switch (eventType) {
+      case 'project_update':
+      case 'project_update_edited':
+        return t.projectProgress;
+      case 'feedback_received':
+      case 'feedback_replied':
+        return t.feedback;
+      case 'billing_created':
+        return t.billingTitle;
+      case 'payment_review':
+        return t.billingPending;
+      case 'payment_paid':
+        return t.billingPaid;
+      case 'payment_rejected':
+        return t.billingRejected;
+      case 'change_requested':
+      case 'change_proposed':
+      case 'change_decided':
+        return t.changeOrdersTitle;
+    }
+    return t.activityCenter;
+  };
+  const openNotification = async (notification: PortalNotification) => {
+    try {
+      await portalRequest('/api/portal/notifications', {
+        method: 'PATCH',
+        body: JSON.stringify({ notificationId: notification.id }),
+      });
+      setNotifications((current) => current.map((item) =>
+        item.id === notification.id ? { ...item, read_at: item.read_at ?? new Date().toISOString() } : item
+      ));
+    } catch (cause) {
+      setNotificationsError(cause instanceof Error ? cause.message : t.notificationLoadFailed);
+      return;
+    }
+
+    setSelectedProjectId(notification.project_id);
+    if (notification.event_type === 'feedback_received' || notification.event_type === 'feedback_replied') {
+      openAdminPage('admin-feedback');
+    } else if (notification.event_type === 'billing_created'
+      || notification.event_type === 'payment_review'
+      || notification.event_type === 'payment_paid'
+      || notification.event_type === 'payment_rejected') {
+      openAdminPage('admin-billing');
+    } else if (notification.event_type === 'change_requested'
+      || notification.event_type === 'change_proposed'
+      || notification.event_type === 'change_decided') {
+      openAdminPage('admin-changes');
+    } else {
+      openAdminPage('admin-progress');
+    }
+  };
   const toggleTheme = () => {
     const nextIsDark = !document.documentElement.classList.contains('dark');
     document.documentElement.classList.toggle('dark', nextIsDark);
@@ -1556,6 +1675,26 @@ const PortalAdmin: React.FC = () => {
               <Metric icon={<Users size={17} />} label={t.clientCount} value={clientDirectory.length.toString().padStart(2, '0')} />
               <Metric icon={<MessageCircle size={17} />} label={t.pendingFeedback} value={unreadFeedbackCount.toString().padStart(2, '0')} />
             </div>
+            <PortalActivityPanel
+              notifications={notifications}
+              labels={{
+                actions: t.actionCenter,
+                activity: t.activityCenter,
+                emptyActions: t.actionCenterEmpty,
+                emptyActivity: t.activityCenterEmpty,
+                needsAttention: t.needsAttention,
+                unread: t.unread,
+                refresh: t.notificationRefresh,
+                loading: t.notificationLoading,
+                open: t.notificationOpen,
+              }}
+              error={notificationsError}
+              loading={notificationsLoading}
+              onRefresh={() => setNotificationsRefreshToken((current) => current + 1)}
+              onOpen={openNotification}
+              getEventLabel={getNotificationLabel}
+              formatDate={(value) => formatAdminDateTime(value, language)}
+            />
             <div className="mb-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
               <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-5 flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-white/10">

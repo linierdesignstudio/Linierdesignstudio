@@ -1,6 +1,6 @@
 import type { ApiRequest, ApiResponse } from './http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from './http.js';
-import { getSession, requireRole, supabaseRequest } from './portal.js';
+import { getSession, requireProjectAccess, requireRole, supabaseRequest } from './portal.js';
 
 interface ChangeOrderRecord {
   id: string;
@@ -85,14 +85,6 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   } catch (error) {
     sendError(response, error);
   }
-}
-
-async function requireProjectAccess(projectId: string, subject: string): Promise<void> {
-  if (projectId === subject) return;
-  const projects = await supabaseRequest<Array<{ id: string }>>(
-    `client_projects?select=id&id=eq.${encodeURIComponent(projectId)}&client_email=eq.${encodeURIComponent(subject)}&limit=1`
-  );
-  if (!projects[0]) throw new HttpError(403, 'Anda tidak memiliki akses ke proyek ini.');
 }
 
 function getProjectId(request: ApiRequest, subject: string): string {
