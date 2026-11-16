@@ -8,6 +8,10 @@ interface CardHoverRevealContextValue {
   isHovered: boolean
   setIsHovered: React.Dispatch<React.SetStateAction<boolean>>
 }
+interface CardHoverRevealProps extends React.HTMLAttributes<HTMLDivElement> {
+  isTouchActive?: boolean
+  onTouchReveal?: () => void
+}
 const CardHoverRevealContext = React.createContext<CardHoverRevealContextValue>(
   {} as CardHoverRevealContextValue
 )
@@ -22,18 +26,28 @@ const useCardHoverRevealContext = () => {
 }
 const CardHoverReveal = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-  const [isHovered, setIsHovered] = React.useState<boolean>(false)
+  CardHoverRevealProps
+>(({ className, isTouchActive = false, onTouchReveal, onClick, ...props }, ref) => {
+  const [isPointerHovered, setIsPointerHovered] = React.useState<boolean>(false)
+  const isHovered = isPointerHovered || isTouchActive
 
-  const handleMouseEnter = () => setIsHovered(true)
-  const handleMouseLeave = () => setIsHovered(false)
+  const handleMouseEnter = () => setIsPointerHovered(true)
+  const handleMouseLeave = () => setIsPointerHovered(false)
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches
+      || window.matchMedia('(max-width: 767px)').matches
+    if (isTouchDevice && event.detail > 0 && !isTouchActive) {
+      event.preventDefault()
+      onTouchReveal?.()
+    }
+    onClick?.(event)
+  }
 
   return (
     <CardHoverRevealContext.Provider
       value={{
         isHovered,
-        setIsHovered,
+        setIsHovered: setIsPointerHovered,
       }}
     >
       <div
@@ -41,6 +55,7 @@ const CardHoverReveal = React.forwardRef<
         className={cn("relative overflow-hidden", className)}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
         {...props}
       />
     </CardHoverRevealContext.Provider>

@@ -47,6 +47,7 @@ const Home: React.FC = () => {
 
   // -- Interactive Project List Logic --
   const [activeProject, setActiveProject] = useState<string | null>(null);
+  const [activeEssentialElementId, setActiveEssentialElementId] = useState<number | null>(null);
 
   // -- Audio Player Visibility Sync --
   const [isAudioVisible, setIsAudioVisible] = useState(() => {
@@ -488,7 +489,14 @@ const Home: React.FC = () => {
       <div className="w-full h-px bg-neutral-200 dark:bg-neutral-800 relative z-50" />
 
       {/* THE ELEMENTS (Updated to Link) */}
-      <section className="py-24 md:py-32 flex flex-col justify-center bg-neutral-100 dark:bg-neutral-900 transition-colors duration-500 relative z-50">
+      <section
+        className="py-24 md:py-32 flex flex-col justify-center bg-neutral-100 dark:bg-neutral-900 transition-colors duration-500 relative z-50"
+        onClick={(event) => {
+          if (event.target instanceof Element && !event.target.closest('[data-essential-card]')) {
+            setActiveEssentialElementId(null);
+          }
+        }}
+      >
         <div className="container mx-auto px-6 md:px-12">
            <RevealOnScroll>
                <div className="flex flex-col md:flex-row justify-between items-end mb-16 border-b border-neutral-300 dark:border-neutral-800 pb-8 gap-6 md:gap-0">
@@ -512,7 +520,12 @@ const Home: React.FC = () => {
               {(t.elements || []).map((item: { id: number; title: string; subtitle: string; desc: string; image: string }, i: number) => (
                  <RevealOnScroll key={i} delay={i * 0.1}>
                      <Link to={`/journal/${item.id}`}>
-                        <CardHoverReveal className="w-full h-[500px] md:h-[600px] rounded-sm cursor-pointer bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 group">
+                        <CardHoverReveal
+                          data-essential-card
+                          isTouchActive={activeEssentialElementId === item.id}
+                          onTouchReveal={() => setActiveEssentialElementId(item.id)}
+                          className="w-full h-[500px] md:h-[600px] rounded-sm cursor-pointer bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 group"
+                        >
                         <CardHoverRevealMain>
                             <img
                             src={item.id === 2 ? textureMaterialBoard : item.image}
@@ -527,14 +540,14 @@ const Home: React.FC = () => {
                             </div>
                         </CardHoverRevealMain>
 
-                        <CardHoverRevealContent className="rounded-none bg-white dark:bg-white/40 dark:bg-neutral-950/40 backdrop-blur-md border-t border-neutral-200 dark:border-white/20 text-neutral-900 dark:text-white flex flex-col justify-end h-full">
-                            <div className="space-y-6">
-                                <div className="w-12 h-12 border border-neutral-300 dark:border-white/20 rounded-full flex items-center justify-center text-sm font-mono text-bronze-500">
+                        <CardHoverRevealContent className="max-sm:!inset-4 max-sm:!p-5 max-sm:!bg-white/95 max-sm:!text-neutral-900 max-sm:!justify-center rounded-none bg-white dark:bg-white/40 dark:bg-neutral-950/40 backdrop-blur-md border-t border-neutral-200 dark:border-white/20 text-neutral-900 dark:text-white flex flex-col justify-end h-full">
+                            <div className="space-y-6 max-sm:space-y-4">
+                                <div className="w-12 h-12 max-sm:w-10 max-sm:h-10 border border-neutral-300 dark:border-white/20 rounded-full flex items-center justify-center text-sm font-mono text-bronze-500">
                                     0{i+1}
                                 </div>
 
                                 <div>
-                                    <h3 className="text-3xl md:text-5xl font-display font-bold leading-none tracking-tighter uppercase mb-2">
+                                    <h3 className="text-3xl max-sm:text-2xl md:text-5xl font-display font-bold leading-none tracking-tighter uppercase mb-2">
                                         {item.title}
                                     </h3>
                                     <p className="text-xs font-bold uppercase tracking-widest text-neutral-600 dark:text-neutral-400">
@@ -542,11 +555,11 @@ const Home: React.FC = () => {
                                     </p>
                                 </div>
 
-                                <p className="text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed border-l border-bronze-500 pl-4">
+                                <p className="text-lg max-sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed border-l border-bronze-500 pl-4">
                                     "{item.desc}"
                                 </p>
 
-                                <div className="pt-6 border-t border-neutral-300 dark:border-white/10 flex items-center justify-between w-full">
+                                <div className="pt-6 max-sm:pt-4 border-t border-neutral-300 dark:border-white/10 flex items-center justify-between w-full">
                                 <span className="text-[10px] uppercase tracking-[0.2em]">{t.home.read_article}</span>
                                 <ArrowUpRight size={18} className="text-bronze-500" />
                                 </div>
