@@ -409,7 +409,7 @@ const Home: React.FC = () => {
       {/* Next Steps */}
       <section
         ref={nextStepsRef}
-        className="relative z-50 h-[400svh] overflow-clip border-y border-neutral-200 bg-neutral-950 text-white dark:border-neutral-800"
+        className="relative z-50 h-[500svh] overflow-clip border-y border-neutral-200 bg-neutral-950 text-white dark:border-neutral-800"
       >
         <div className="sticky top-0 h-[100svh] overflow-hidden bg-[#050607]">
           <div
