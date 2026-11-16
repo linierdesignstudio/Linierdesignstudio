@@ -2,7 +2,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import heroImage from '../1.jpeg';
 import textureMaterialBoard from '../Modern Tropical Material Board.png';
-import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, Plus, ArrowRight, Music } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import TextReveal from '../components/TextReveal';
@@ -44,16 +44,21 @@ const Home: React.FC = () => {
     target: nextStepsRef,
     offset: ["start start", "end end"]
   });
+  const nextStepsDampedProgress = useSpring(nextStepsProgress, {
+    stiffness: 80,
+    damping: 26,
+    mass: 1,
+  });
   const nextStepFills = [
-    useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.25, 0.5 - NEXT_STEP_PAUSE_PROGRESS)),
-    useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.5, 0.75 - NEXT_STEP_PAUSE_PROGRESS)),
-    useTransform(nextStepsProgress, (progress) => getResistedFillProgress(progress, 0.75, 1 - NEXT_STEP_PAUSE_PROGRESS)),
+    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.25, 0.5 - NEXT_STEP_PAUSE_PROGRESS)),
+    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.5, 0.75 - NEXT_STEP_PAUSE_PROGRESS)),
+    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.75, 1 - NEXT_STEP_PAUSE_PROGRESS)),
   ];
   const nextStepsIntroTitleY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-8vh']);
   const nextStepsIntroDescriptionY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-14vh']);
   const nextStepsIntroCtaY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-20vh']);
   const [activeNextStep, setActiveNextStep] = useState(0);
-  useMotionValueEvent(nextStepsProgress, 'change', (progress) => {
+  useMotionValueEvent(nextStepsDampedProgress, 'change', (progress) => {
     const nextStep = Math.min(3, Math.max(0, Math.floor(progress * 4)));
     setActiveNextStep((current) => current === nextStep ? current : nextStep);
   });
