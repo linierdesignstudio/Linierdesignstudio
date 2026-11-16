@@ -52,6 +52,15 @@ const Home: React.FC = () => {
   const nextStepsIntroTitleY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-8vh']);
   const nextStepsIntroDescriptionY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-14vh']);
   const nextStepsIntroCtaY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-20vh']);
+  const nextStepSlideProgress = useTransform(nextStepsProgress, (progress) => {
+    const step = Math.min(3, Math.max(1, Math.floor(progress * 4)));
+    const start = step * 0.25;
+    const end = start + 0.25 - NEXT_STEP_PAUSE_PROGRESS;
+    return Math.max(0, Math.min(1, (progress - start) / (end - start)));
+  });
+  const nextStepTitleY = useTransform(nextStepSlideProgress, [0, 1], ['0vh', '-12vh']);
+  const nextStepSubtitleY = useTransform(nextStepSlideProgress, [0, 1], ['0vh', '-8vh']);
+  const nextStepDescriptionY = useTransform(nextStepSlideProgress, [0, 1], ['0vh', '-4vh']);
   const [activeNextStep, setActiveNextStep] = useState(0);
   useMotionValueEvent(nextStepsProgress, 'change', (progress) => {
     const nextStep = Math.min(3, Math.max(0, Math.floor(progress * 4)));
@@ -495,16 +504,25 @@ const Home: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <h2 className="font-display text-[clamp(3.5rem,5.4vw,7.5rem)] font-bold leading-[0.95] tracking-[-0.055em]">
+                  <motion.h2
+                    style={{ y: nextStepTitleY }}
+                    className="font-display text-[clamp(3.5rem,5.4vw,7.5rem)] font-bold leading-[0.95] tracking-[-0.055em]"
+                  >
                     {activeNextStepsSlide?.title}
                     <span className="text-lime-400">.</span>
-                  </h2>
-                  <p className="mt-3 text-lg font-medium tracking-tight text-white/90 sm:text-xl md:text-2xl">
+                  </motion.h2>
+                  <motion.p
+                    style={{ y: nextStepSubtitleY }}
+                    className="mt-3 text-lg font-medium tracking-tight text-white/90 sm:text-xl md:text-2xl"
+                  >
                     {activeNextStepsSlide?.subtitle}
-                  </p>
-                  <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-white/60 sm:text-sm">
+                  </motion.p>
+                  <motion.p
+                    style={{ y: nextStepDescriptionY }}
+                    className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-white/60 sm:text-sm"
+                  >
                     {activeNextStepsSlide?.description}
-                  </p>
+                  </motion.p>
                 </motion.div>
               )}
             </AnimatePresence>
