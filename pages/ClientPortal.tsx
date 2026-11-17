@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowLeft, ArrowUpRight, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, LockKeyhole, LogOut, MapPin, MessageCircle, Phone, Search, Send, ShieldCheck, Upload, X } from 'lucide-react';
+import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, LockKeyhole, LogOut, MapPin, MessageCircle, Phone, Search, Send, ShieldCheck, Upload, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
@@ -479,7 +479,7 @@ const ClientPortal: React.FC = () => {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState('');
   const [notificationsRefreshToken, setNotificationsRefreshToken] = useState(0);
-  const [showAllActivity, setShowAllActivity] = useState(false);
+  const [activeSection, setActiveSection] = useState('client-dashboard');
   const [documentSearch, setDocumentSearch] = useState('');
   const [documentType, setDocumentType] = useState<PortalDocumentKind | 'all'>('all');
   const [documentDateFrom, setDocumentDateFrom] = useState('');
@@ -846,8 +846,8 @@ const ClientPortal: React.FC = () => {
       setProject(null);
       setProjects([]);
       setUpdates([]);
+      setActiveSection('client-dashboard');
       setFeedbackChatOpen(false);
-      setShowAllActivity(false);
       setError('');
       setResetMode(false);
       closePasswordChange();
@@ -882,20 +882,16 @@ const ClientPortal: React.FC = () => {
     }
   };
 
-  const scrollToSection = (sectionId: string) => {
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-  const openActivityPage = () => {
-    setShowAllActivity(true);
+  const openClientPage = (sectionId: string) => {
+    setActiveSection(sectionId);
+    setFeedbackChatOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  const openActivityPage = () => {
+    openClientPage('client-activity');
+  };
   const openProjectSection = (sectionId: string) => {
-    if (showAllActivity) {
-      setShowAllActivity(false);
-      window.setTimeout(() => scrollToSection(sectionId), 0);
-      return;
-    }
-    scrollToSection(sectionId);
+    openClientPage(sectionId);
   };
   const getNotificationLabel = (eventType: PortalNotification['event_type']) => {
     switch (eventType) {
@@ -937,7 +933,7 @@ const ClientPortal: React.FC = () => {
     }
 
     if (notification.event_type === 'feedback_replied') {
-      setShowAllActivity(false);
+      openProjectSection('client-dashboard');
       setFeedbackChatOpen(true);
     } else if (['billing_created', 'payment_review', 'payment_paid', 'payment_rejected'].includes(notification.event_type)) {
       openProjectSection('project-billing');
@@ -961,14 +957,31 @@ const ClientPortal: React.FC = () => {
     const matchesTo = !documentDateTo || attachment.updateDate <= documentDateTo;
     return matchesQuery && matchesType && matchesFrom && matchesTo;
   });
-  const mobileNavigation = [
-    { id: 'client-dashboard', label: t.dashboardNav, icon: <LayoutDashboard size={17} />, onClick: () => scrollToSection('client-dashboard') },
-    { id: 'project-updates', label: t.updated, icon: <Clock3 size={17} />, onClick: () => scrollToSection('project-updates') },
-    { id: 'project-documents', label: t.documents, icon: <FileText size={17} />, onClick: () => scrollToSection('project-documents') },
-    { id: 'project-billing', label: t.billingTitle, icon: <FileCheck2 size={17} />, onClick: () => scrollToSection('project-billing') },
-    { id: 'project-changes', label: t.changeTitle, icon: <ClipboardList size={17} />, onClick: () => scrollToSection('project-changes') },
-    { id: 'feedback', label: t.feedbackNav, icon: <MessageCircle size={17} />, onClick: () => setFeedbackChatOpen(true) },
+  const portalNavigation = [
+    { id: 'client-dashboard', label: t.dashboardNav, icon: <LayoutDashboard size={17} /> },
+    { id: 'client-activity', label: t.activityCenter, icon: <Activity size={17} /> },
+    { id: 'project-updates', label: t.updated, icon: <Clock3 size={17} /> },
+    { id: 'project-documents', label: t.documents, icon: <FileText size={17} /> },
+    { id: 'project-billing', label: t.billingTitle, icon: <FileCheck2 size={17} /> },
+    { id: 'project-changes', label: t.changeTitle, icon: <ClipboardList size={17} /> },
   ];
+  const mobileNavigation = (
+    <nav aria-label={t.journal} className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-neutral-200 bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-[0_-8px_24px_rgba(27,25,20,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111210]/95 md:hidden">
+      {portalNavigation.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          onClick={() => openProjectSection(item.id)}
+          aria-label={item.label}
+          aria-current={activeSection === item.id ? 'page' : undefined}
+          className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-[8px] font-medium transition-colors ${activeSection === item.id ? 'text-bronze-700 dark:text-bronze-300' : 'text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-white/[0.06]'}`}
+        >
+          <span>{item.icon}</span>
+          <span className="w-full truncate text-center">{item.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
   const dashboardCards = [
     { id: 'project-updates', label: t.updated, count: updates.length, icon: <Clock3 size={18} /> },
     { id: 'project-documents', label: t.documents, count: projectDocuments.length, icon: <FileText size={18} /> },
@@ -983,8 +996,51 @@ const ClientPortal: React.FC = () => {
           <Link to="/" className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-400 hover:text-neutral-950 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:border-white/25 dark:hover:text-white">
             <ArrowDownLeft size={15} /> {t.back}
           </Link>
-          <PortalLanguageSwitcher language={language} onChange={setLanguage} />
+          <div className="flex items-center gap-2">
+            {project && !loading && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (passwordChangeOpen) {
+                      closePasswordChange();
+                    } else {
+                      setPasswordChangeOpen(true);
+                      setPasswordChangeError('');
+                      setPasswordChangeNotice('');
+                    }
+                  }}
+                  aria-label={t.changePassword}
+                  title={t.changePassword}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-neutral-400 hover:text-neutral-900 dark:border-white/15 dark:bg-[#181916] dark:text-neutral-200 dark:hover:border-white/30"
+                >
+                  <LockKeyhole size={15} />
+                </button>
+                <button type="button" onClick={signOut} aria-label={t.logout} title={t.logout} className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-red-300 hover:text-red-600 dark:border-white/15 dark:bg-[#181916] dark:text-neutral-200 dark:hover:border-red-400/40">
+                  <LogOut size={15} />
+                </button>
+              </>
+            )}
+            <PortalLanguageSwitcher language={language} onChange={setLanguage} />
+          </div>
         </div>
+
+        {project && !loading && (
+          <nav aria-label={t.journal} className="mb-6 hidden grid-cols-3 gap-2 md:grid lg:grid-cols-6">
+            {portalNavigation.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => openProjectSection(item.id)}
+                aria-current={activeSection === item.id ? 'page' : undefined}
+                className={`flex min-w-0 items-center justify-center gap-2 rounded-xl border px-3 py-3 text-xs font-medium transition-colors ${activeSection === item.id ? 'border-[#8c795e]/30 bg-[#f4f1eb] text-[#746349] dark:border-bronze-400/20 dark:bg-white/[0.07] dark:text-bronze-300' : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-400 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:border-white/25'}`}
+              >
+                <span className="shrink-0">{item.icon}</span>
+                <span className="truncate">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+        )}
 
         {loading ? (
           <div className="mx-auto flex min-h-[40vh] max-w-md flex-col items-center justify-center rounded-2xl border border-neutral-200 bg-white p-6 text-center shadow-sm sm:min-h-[50vh] sm:rounded-3xl sm:p-10 dark:border-white/10 dark:bg-neutral-900">
@@ -992,14 +1048,39 @@ const ClientPortal: React.FC = () => {
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">{t.loading}</p>
           </div>
         ) : project ? (
-          showAllActivity ? (
           <section className="space-y-5">
+            {error && <ErrorBanner message={error} />}
+            {passwordChangeOpen && (
+              <form onSubmit={changePassword} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                <div className="mb-6">
+                  <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-bronze-600 dark:text-bronze-400">{t.changePassword}</p>
+                  <p className="text-sm text-neutral-500">{t.passwordMinLength}</p>
+                </div>
+                <div className="grid gap-5 md:grid-cols-3">
+                  <PasswordField label={t.currentPassword} value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" />
+                  <PasswordField label={t.newPassword} value={newPassword} onChange={setNewPassword} autoComplete="new-password" minLength={8} />
+                  <PasswordField label={t.confirmPassword} value={confirmNewPassword} onChange={setConfirmNewPassword} autoComplete="new-password" minLength={8} />
+                </div>
+                {passwordChangeError && <div className="mt-5"><ErrorBanner message={passwordChangeError} /></div>}
+                {passwordChangeNotice && <p role="status" className="mt-5 border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-xs leading-5 text-emerald-700 dark:text-emerald-300">{passwordChangeNotice}</p>}
+                <div className="mt-6 flex flex-wrap justify-end gap-3">
+                  <button type="button" onClick={closePasswordChange} className="rounded-full border border-neutral-300 px-5 py-3 font-mono text-[10px] uppercase tracking-widest text-neutral-600 transition-colors hover:border-neutral-500 dark:border-white/20 dark:text-neutral-300">
+                    {t.cancel}
+                  </button>
+                  <button disabled={passwordChanging} className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-5 py-3 font-mono text-[10px] uppercase tracking-widest text-white transition-colors hover:bg-bronze-600 disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
+                    {passwordChanging ? t.savingPassword : t.savePassword} <ArrowUpRight size={15} />
+                  </button>
+                </div>
+              </form>
+            )}
+            {activeSection === 'client-activity' && (
+            <>
             <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6 dark:border-white/10 dark:bg-neutral-900">
               <div>
                 <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{project.project_code}</p>
                 <h1 className="mt-1 font-display text-2xl font-medium tracking-tight">{t.activityCenter}</h1>
               </div>
-              <button type="button" onClick={() => setShowAllActivity(false)} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-2.5 text-xs font-medium text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-700 dark:border-white/10 dark:text-neutral-300 dark:hover:text-bronze-300">
+              <button type="button" onClick={() => openProjectSection('client-dashboard')} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-2.5 text-xs font-medium text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-700 dark:border-white/10 dark:text-neutral-300 dark:hover:text-bronze-300">
                 <ArrowLeft size={14} /> {t.activityBack}
               </button>
             </header>
@@ -1025,15 +1106,16 @@ const ClientPortal: React.FC = () => {
               getEventLabel={getNotificationLabel}
               formatDate={(value) => formatDateTime(value, language)}
             />
-          </section>
-          ) : (
-          <section>
+            </>
+            )}
+            {activeSection === 'client-dashboard' && (
+            <>
             <div className="relative mb-5 min-w-0 overflow-hidden rounded-2xl bg-[#23241f] p-4 text-white shadow-[0_30px_90px_rgba(27,25,20,0.22)] sm:mb-6 sm:rounded-[2rem] sm:p-9 lg:p-12">
               <img src={clientPortalImage} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-25" />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#171814]/95 via-[#1d1e19]/80 to-[#25241f]/35" />
               <div className="pointer-events-none absolute -right-24 -top-40 h-96 w-96 rounded-full border border-white/[0.09]" />
               <div className="pointer-events-none absolute -right-12 -top-28 h-72 w-72 rounded-full border border-white/[0.09]" />
-              <div className="relative grid gap-10 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+              <div className="relative grid gap-10">
                 <div className="min-w-0">
                   <p className="mb-5 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/70 sm:text-[11px]">
                     <span>{t.eyebrow}</span><span className="text-white/30">/</span><span>{project.project_code}</span>
@@ -1072,26 +1154,6 @@ const ClientPortal: React.FC = () => {
                       </select>
                     </label>
                   )}
-                </div>
-                <div className="flex flex-wrap gap-2.5 md:justify-end">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (passwordChangeOpen) {
-                        closePasswordChange();
-                      } else {
-                        setPasswordChangeOpen(true);
-                        setPasswordChangeError('');
-                        setPasswordChangeNotice('');
-                      }
-                    }}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-4 py-2.5 text-xs font-medium text-white/90 transition-colors hover:border-white/60 hover:bg-white/10 hover:text-white"
-                  >
-                    <LockKeyhole size={14} /> {t.changePassword}
-                  </button>
-                  <button onClick={signOut} className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-4 py-2.5 text-xs font-medium text-white/90 transition-colors hover:border-white/60 hover:bg-white/10 hover:text-white">
-                    <LogOut size={14} /> {t.logout}
-                  </button>
                 </div>
               </div>
               <div className="relative mt-8 flex flex-col gap-6 border-t border-white/15 pt-6 sm:mt-10 sm:flex-row sm:items-center sm:justify-between sm:pt-7">
@@ -1139,8 +1201,6 @@ const ClientPortal: React.FC = () => {
               </div>
             </section>
 
-            {error && <ErrorBanner message={error} />}
-
             <PortalActivityPanel
               notifications={notifications}
               labels={{
@@ -1163,30 +1223,6 @@ const ClientPortal: React.FC = () => {
               getEventLabel={getNotificationLabel}
               formatDate={(value) => formatDateTime(value, language)}
             />
-
-            {passwordChangeOpen && (
-              <form onSubmit={changePassword} className="mb-5 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:mb-6 sm:p-8 dark:border-white/10 dark:bg-neutral-900">
-                <div className="mb-6">
-                  <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-bronze-600 dark:text-bronze-400">{t.changePassword}</p>
-                  <p className="text-sm text-neutral-500">{t.passwordMinLength}</p>
-                </div>
-                <div className="grid gap-5 md:grid-cols-3">
-                  <PasswordField label={t.currentPassword} value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" />
-                  <PasswordField label={t.newPassword} value={newPassword} onChange={setNewPassword} autoComplete="new-password" minLength={8} />
-                  <PasswordField label={t.confirmPassword} value={confirmNewPassword} onChange={setConfirmNewPassword} autoComplete="new-password" minLength={8} />
-                </div>
-                {passwordChangeError && <div className="mt-5"><ErrorBanner message={passwordChangeError} /></div>}
-                {passwordChangeNotice && <p role="status" className="mt-5 border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-xs leading-5 text-emerald-700 dark:text-emerald-300">{passwordChangeNotice}</p>}
-                <div className="mt-6 flex flex-wrap justify-end gap-3">
-                  <button type="button" onClick={closePasswordChange} className="rounded-full border border-neutral-300 px-5 py-3 font-mono text-[10px] uppercase tracking-widest text-neutral-600 transition-colors hover:border-neutral-500 dark:border-white/20 dark:text-neutral-300">
-                    {t.cancel}
-                  </button>
-                  <button disabled={passwordChanging} className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-5 py-3 font-mono text-[10px] uppercase tracking-widest text-white transition-colors hover:bg-bronze-600 disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
-                    {passwordChanging ? t.savingPassword : t.savePassword} <ArrowUpRight size={15} />
-                  </button>
-                </div>
-              </form>
-            )}
 
             <div className="grid gap-3 sm:gap-4 md:grid-cols-[1.3fr_0.9fr]">
               <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-[0_18px_50px_rgba(27,25,20,0.05)] sm:rounded-3xl sm:p-8 dark:border-white/10 dark:bg-neutral-900">
@@ -1227,8 +1263,10 @@ const ClientPortal: React.FC = () => {
                 {project.start_date && <p className="mt-8 border-t border-neutral-400/30 pt-4 text-xs text-neutral-500 dark:border-white/10 dark:text-neutral-400">{formatDate(project.start_date, language)}</p>}
               </div>
             </div>
+            </>
+            )}
 
-            <section id="project-documents" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
+            {activeSection === 'project-documents' && <section id="project-documents" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
                 <div>
@@ -1303,9 +1341,9 @@ const ClientPortal: React.FC = () => {
                   )}
                 </>
               )}
-            </section>
+            </section>}
 
-            <section id="project-billing" className="scroll-mt-24 mt-8 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:mt-10 sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
+            {activeSection === 'project-billing' && <section id="project-billing" className="scroll-mt-24 mt-8 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:mt-10 sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileCheck2 size={18} /></span>
                 <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.billingTitle}</h2></div>
@@ -1342,9 +1380,9 @@ const ClientPortal: React.FC = () => {
                   ))}
                 </ul>
               )}
-            </section>
+            </section>}
 
-            <section id="project-changes" className="scroll-mt-24 mt-5 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
+            {activeSection === 'project-changes' && <section id="project-changes" className="scroll-mt-24 mt-5 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><ClipboardList size={18} /></span>
                 <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.changeTitle}</h2></div>
@@ -1390,9 +1428,9 @@ const ClientPortal: React.FC = () => {
                 <label className="block"><span className="mb-2 block text-xs font-medium">{t.changeRequestDetails}</span><textarea name="description" required maxLength={5000} rows={3} className="w-full resize-y rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm leading-6 outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" /></label>
                 <div className="flex justify-end"><button disabled={changeSubmitting} className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 text-xs font-medium text-white transition-colors hover:bg-bronze-600 disabled:cursor-wait disabled:opacity-50 dark:bg-white dark:text-neutral-950"><Send size={14} /> {changeSubmitting ? t.changeSending : t.changeSend}</button></div>
               </form>
-            </section>
+            </section>}
 
-            <div id="project-updates" className="scroll-mt-24 mt-9 sm:mt-12">
+            {activeSection === 'project-updates' && <div id="project-updates" className="scroll-mt-24 mt-9 sm:mt-12">
               <div className="mb-5 flex items-end justify-between gap-3 border-b border-neutral-300 pb-4 dark:border-white/10 sm:mb-6 sm:gap-4 sm:pb-5">
                 <div>
                   <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-500">{t.journal}</p>
@@ -1451,7 +1489,7 @@ const ClientPortal: React.FC = () => {
                   ))}
                 </ol>
               )}
-            </div>
+            </div>}
             {feedbackChatOpen && (
               <div id="client-feedback-chat" role="dialog" aria-modal="true" aria-labelledby="client-feedback-title" className="fixed inset-x-3 bottom-20 z-50 flex h-[min(600px,calc(100dvh-7rem))] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_80px_rgba(27,25,20,0.22)] dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/40 sm:inset-x-auto sm:right-6 sm:bottom-24 sm:h-[min(600px,74vh)] sm:w-[420px]">
                 <header className="flex items-center gap-3 bg-[#272925] px-4 py-4 text-white">
@@ -1513,14 +1551,7 @@ const ClientPortal: React.FC = () => {
               {feedbackChatOpen ? <X size={21} /> : <MessageCircle size={21} />}
               {!feedbackChatOpen && feedbackItems.some((item) => !item.reply) && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-bronze-500 dark:border-neutral-900" />}
             </button>
-            <nav aria-label={t.journal} className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-neutral-200 bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-[0_-8px_24px_rgba(27,25,20,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111210]/95 md:hidden">
-              {mobileNavigation.map((item) => (
-                <button key={item.id} type="button" onClick={item.onClick} aria-label={item.label} className="flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-[8px] font-medium text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/[0.06] dark:hover:text-white">
-                  <span className="text-[#8c795e] dark:text-bronze-400">{item.icon}</span>
-                  <span className="w-full truncate text-center">{item.label}</span>
-                </button>
-              ))}
-            </nav>
+            {mobileNavigation}
             {previewAttachment && (
               <PortalFilePreview
                 attachment={previewAttachment}
@@ -1529,7 +1560,6 @@ const ClientPortal: React.FC = () => {
               />
             )}
           </section>
-          )
         ) : (
           <div className="portal-login mx-auto grid min-w-0 max-w-[1180px] overflow-hidden rounded-[1.5rem] border border-[#deddd6] bg-[#080908] shadow-[0_24px_70px_rgba(27,25,20,0.14)] sm:rounded-[1.75rem] lg:grid-cols-[minmax(0,1.04fr)_minmax(0,0.96fr)]">
             <section className="relative flex min-h-[300px] flex-col justify-between overflow-hidden bg-[#252722] p-5 text-white sm:min-h-[430px] sm:p-9 lg:min-h-[560px] lg:p-12">
