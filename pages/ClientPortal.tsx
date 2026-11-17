@@ -12,8 +12,9 @@ import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKin
 const copy = {
   ID: {
     eyebrow: 'LINIER STUDIO / PORTAL KLIEN',
-    title: 'Perjalanan proyek Anda.',
-    subtitle: 'Masuk untuk melihat perkembangan terbaru langsung dari tim studio.',
+    title: 'Kelola progress proyek.',
+    subtitle: 'Masuk untuk membuat akses klien dan membagikan update harian.',
+    loginWelcome: 'Selamat datang, silakan masuk ke akun Anda.',
     projectId: 'ID Proyek',
     loginIdentifier: 'ID proyek atau email',
     chooseProject: 'Pilih proyek',
@@ -176,8 +177,9 @@ const copy = {
   },
   EN: {
     eyebrow: 'LINIER STUDIO / CLIENT PORTAL',
-    title: 'Your project journey.',
-    subtitle: 'Sign in to see the latest progress directly from the studio team.',
+    title: 'Manage project progress.',
+    subtitle: 'Sign in to create client access and share daily updates.',
+    loginWelcome: 'Welcome, sign in to your account.',
     projectId: 'Project ID',
     loginIdentifier: 'Project ID or email',
     chooseProject: 'Choose a project',
@@ -340,8 +342,9 @@ const copy = {
   },
   CN: {
     eyebrow: 'LINIER STUDIO / 客户门户',
-    title: '您的项目进程。',
-    subtitle: '登录后即可查看工作室团队分享的最新进度。',
+    title: '管理项目进度。',
+    subtitle: '登录以创建客户访问权限并发布每日更新。',
+    loginWelcome: '欢迎，请登录您的账号。',
     projectId: '项目编号',
     loginIdentifier: '项目编号或邮箱',
     chooseProject: '选择项目',
@@ -1748,7 +1751,7 @@ const ClientPortal: React.FC = () => {
                 </span>
                 <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">ACCESS / 01</span>
               </div>
-              <h2 className="mb-8 max-w-[12ch] font-display text-4xl font-bold leading-[0.92] tracking-[-0.06em] sm:text-[3.25rem]">{resetMode ? t.resetTitle : t.signIn}</h2>
+              <h2 className="mb-8 max-w-[13ch] font-display text-4xl font-bold leading-[0.96] tracking-[-0.06em] sm:text-[2.75rem]">{resetMode ? t.resetTitle : t.loginWelcome}</h2>
               <label className="mb-6 block">
                 <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
                 <input
