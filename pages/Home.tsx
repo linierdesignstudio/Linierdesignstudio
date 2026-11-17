@@ -2,7 +2,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import heroImage from '../1.jpeg';
 import textureMaterialBoard from '../Modern Tropical Material Board.png';
-import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, Plus, ArrowRight, Music } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import TextReveal from '../components/TextReveal';
@@ -18,13 +18,6 @@ import { PROJECTS } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CardHoverReveal, CardHoverRevealMain, CardHoverRevealContent } from '../components/ui/reveal-on-hover';
 
-const getResistedFillProgress = (progress: number, start: number, end: number) => {
-  const segmentProgress = Math.max(0, Math.min(1, (progress - start) / (end - start)));
-  return 1 - Math.pow(1 - segmentProgress, 2);
-};
-
-const NEXT_STEP_PAUSE_PROGRESS = 0.1;
-
 const Home: React.FC = () => {
   const containerRef = useRef(null);
   const { t, language } = useLanguage();
@@ -38,33 +31,6 @@ const Home: React.FC = () => {
   const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 1.1]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0.3]);
   const textY = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
-
-  const nextStepsRef = useRef<HTMLElement | null>(null);
-  const { scrollYProgress: nextStepsProgress } = useScroll({
-    target: nextStepsRef,
-    offset: ["start start", "end end"]
-  });
-  const nextStepsDampedProgress = useSpring(nextStepsProgress, {
-    stiffness: 80,
-    damping: 26,
-    mass: 1,
-  });
-  const nextStepFills = [
-    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.25, 0.5 - NEXT_STEP_PAUSE_PROGRESS)),
-    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.5, 0.75 - NEXT_STEP_PAUSE_PROGRESS)),
-    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.75, 1 - NEXT_STEP_PAUSE_PROGRESS)),
-  ];
-  const nextStepsIntroTitleY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-8vh']);
-  const nextStepsIntroDescriptionY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-14vh']);
-  const nextStepsIntroCtaY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-20vh']);
-  const [activeNextStep, setActiveNextStep] = useState(0);
-  useMotionValueEvent(nextStepsDampedProgress, 'change', (progress) => {
-    const nextStep = Math.min(3, Math.max(0, Math.floor(progress * 4)));
-    setActiveNextStep((current) => current === nextStep ? current : nextStep);
-  });
-  const activeNextStepsSlide = activeNextStep > 0
-    ? t.home.next_steps_slides[activeNextStep - 1]
-    : null;
 
   // -- Interactive Project List Logic --
   const [activeProject, setActiveProject] = useState<string | null>(null);
@@ -413,108 +379,32 @@ const Home: React.FC = () => {
 
       {/* Next Steps */}
       <section
-        ref={nextStepsRef}
-        className="relative z-50 h-[500svh] overflow-clip border-y border-neutral-200 bg-neutral-950 text-white dark:border-neutral-800"
+        className="relative z-50 overflow-hidden border-y border-neutral-200 bg-neutral-950 py-24 text-white dark:border-neutral-800 md:py-32"
       >
-        <div className="sticky top-0 h-[100svh] overflow-hidden bg-[#050607]">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0"
-            style={{
-              backgroundImage: 'radial-gradient(ellipse at 75% 72%, rgba(163, 230, 53, 0.16), transparent 38%), radial-gradient(ellipse at 37% 88%, rgba(163, 230, 53, 0.08), transparent 42%), radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.7) 0.7px, transparent 1px), radial-gradient(circle at 78% 30%, rgba(255, 255, 255, 0.55) 0.7px, transparent 1px), radial-gradient(circle at 46% 65%, rgba(255, 255, 255, 0.45) 0.6px, transparent 1px), radial-gradient(circle at 91% 83%, rgba(255, 255, 255, 0.5) 0.7px, transparent 1px)'
-            }}
-          />
-          <div className="container relative z-10 mx-auto flex h-full items-center px-4 md:px-12">
-            <AnimatePresence mode="wait" initial={false}>
-              {activeNextStep === 0 ? (
-                <motion.div
-                  key="next-steps-intro"
-                  initial={{ opacity: 0, y: 48 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -48 }}
-                  transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-                  className="max-w-5xl"
-                >
-                  <motion.h2
-                    style={{ y: nextStepsIntroTitleY }}
-                    className="font-display text-[clamp(2.75rem,8vw,7.5rem)] font-medium leading-[0.98] tracking-tight"
-                  >
-                    <span className="block">{t.home.next_steps_intro_title[0]}</span>
-                    <span className="block">{t.home.next_steps_intro_title[1]}</span>
-                  </motion.h2>
-                  <motion.p
-                    style={{ y: nextStepsIntroDescriptionY }}
-                    className="mt-8 max-w-3xl text-base leading-relaxed text-white/65 sm:text-lg md:text-xl"
-                  >
-                    {t.home.next_steps_intro_desc}
-                  </motion.p>
-                  <motion.div style={{ y: nextStepsIntroCtaY }}>
-                    <Link
-                      to="/about"
-                      className="group mt-10 inline-flex items-center gap-8 border-b border-white/60 pb-3 text-xs font-medium tracking-wide text-white transition-colors hover:border-lime-400 hover:text-lime-300 sm:text-sm"
-                    >
-                      {t.home.next_steps_intro_cta}
-                      <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
-                    </Link>
-                  </motion.div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key={`next-steps-slide-${activeNextStep}`}
-                  initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{
-                    y: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
-                    opacity: { duration: 0.3, ease: 'easeOut' }
-                  }}
-                  className="mx-auto w-full max-w-7xl text-center"
-                >
-                  <div className="mb-8 flex flex-col items-center gap-5 sm:mb-10">
-                    <p className="flex items-center gap-3 text-[10px] font-semibold tracking-wide text-white/90 sm:text-xs">
-                      <span className="h-1.5 w-1.5 bg-lime-400" />
-                      {t.home.next_steps_dna_label}
-                    </p>
-                    <div className="flex items-center gap-4 font-mono text-[10px] tracking-wider text-white/50 sm:text-xs">
-                      <span>{String(activeNextStep).padStart(2, '0')} / 03</span>
-                      <div
-                        role="progressbar"
-                        aria-label={t.home.next_steps_dna_label}
-                        aria-valuemin={1}
-                        aria-valuemax={3}
-                        aria-valuenow={activeNextStep}
-                        className="flex w-28 gap-1 sm:w-40"
-                      >
-                        {[1, 2, 3].map((step) => (
-                          <span
-                            key={step}
-                            className="relative h-0.5 flex-1 overflow-hidden bg-white/20"
-                          >
-                            <motion.span
-                              aria-hidden="true"
-                              style={{ scaleX: nextStepFills[step - 1] }}
-                              className="absolute inset-0 origin-left bg-lime-400"
-                            />
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <h2 className="font-display text-[clamp(3.5rem,5.4vw,7.5rem)] font-bold leading-[0.95] tracking-[-0.055em]">
-                    {activeNextStepsSlide?.title}
-                    <span className="text-lime-400">.</span>
-                  </h2>
-                  <p className="mt-3 text-lg font-medium tracking-tight text-white/90 sm:text-xl md:text-2xl">
-                    {activeNextStepsSlide?.subtitle}
-                  </p>
-                  <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-white/60 sm:text-sm">
-                    {activeNextStepsSlide?.description}
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: 'radial-gradient(ellipse at 75% 72%, rgba(163, 230, 53, 0.16), transparent 38%), radial-gradient(ellipse at 37% 88%, rgba(163, 230, 53, 0.08), transparent 42%), radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.7) 0.7px, transparent 1px), radial-gradient(circle at 78% 30%, rgba(255, 255, 255, 0.55) 0.7px, transparent 1px), radial-gradient(circle at 46% 65%, rgba(255, 255, 255, 0.45) 0.6px, transparent 1px), radial-gradient(circle at 91% 83%, rgba(255, 255, 255, 0.5) 0.7px, transparent 1px)'
+          }}
+        />
+        <div className="container relative z-10 mx-auto px-4 md:px-12">
+          <div className="max-w-5xl">
+            <h2 className="font-display text-[clamp(2.75rem,8vw,7.5rem)] font-medium leading-[0.98] tracking-tight">
+              <span className="block">{t.home.next_steps_intro_title[0]}</span>
+              <span className="block">{t.home.next_steps_intro_title[1]}</span>
+            </h2>
+            <p className="mt-8 max-w-3xl text-base leading-relaxed text-white/65 sm:text-lg md:text-xl">
+              {t.home.next_steps_intro_desc}
+            </p>
+            <Link
+              to="/about"
+              className="group mt-10 inline-flex items-center gap-8 border-b border-white/60 pb-3 text-xs font-medium tracking-wide text-white transition-colors hover:border-lime-400 hover:text-lime-300 sm:text-sm"
+            >
+              {t.home.next_steps_intro_cta}
+              <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+            </Link>
           </div>
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent" />
         </div>
       </section>
 
