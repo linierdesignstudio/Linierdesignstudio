@@ -1728,8 +1728,8 @@ const ClientPortal: React.FC = () => {
                   <span className="h-1.5 w-1.5 rounded-full bg-[#b8c89f]" /> LINIER STUDIO <span className="text-white/35">/</span> CLIENT JOURNAL
                 </p>
                 <div className="mt-12 max-w-xl sm:mt-16">
-                  <h1 className="font-display text-3xl font-medium leading-[1.02] tracking-[-0.04em] sm:text-5xl lg:text-6xl">{t.title}</h1>
-                  <p className="mt-4 max-w-md text-xs leading-6 text-white/75 sm:mt-5 sm:text-sm sm:leading-7">{t.subtitle}</p>
+                  <h1 className="font-display text-3xl font-bold uppercase leading-[0.92] tracking-[-0.065em] sm:text-5xl lg:text-6xl">{t.title}</h1>
+                  <p className="mt-4 max-w-md font-mono text-[10px] uppercase leading-6 tracking-[0.08em] text-white/75 sm:mt-5 sm:text-xs sm:leading-7">{t.subtitle}</p>
                 </div>
               </div>
               <div className="relative mt-8 flex justify-end border-t border-white/20 pt-4 sm:pt-5">
@@ -1744,11 +1744,11 @@ const ClientPortal: React.FC = () => {
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] text-[#c5d2b0]">
                   <LockKeyhole size={16} strokeWidth={1.5} />
                 </span>
-                <span className="text-sm font-semibold tracking-wide">Linier <span className="font-normal text-white/40">/ Studio</span></span>
+                <span className="font-mono text-xs font-semibold uppercase tracking-[0.16em]">Linier <span className="font-normal text-white/40">/ Studio</span></span>
               </div>
-              <h2 className="mb-7 font-display text-3xl font-medium tracking-tight sm:text-4xl">{resetMode ? t.resetTitle : t.signIn}</h2>
+              <h2 className="mb-7 font-display text-3xl font-bold uppercase leading-[0.95] tracking-[-0.06em] sm:text-4xl">{resetMode ? t.resetTitle : t.signIn}</h2>
               <label className="mb-6 block">
-                <span className="mb-2 block text-sm font-medium text-white/80">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
+                <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/80">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
                 <input
                   autoComplete="username"
                   autoCapitalize="none"
@@ -1761,7 +1761,7 @@ const ClientPortal: React.FC = () => {
               </label>
               {resetMode ? (
                 <label className="mb-6 block">
-                  <span className="mb-2 block text-sm font-medium text-white/80">{t.whatsapp}</span>
+                  <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/80">{t.whatsapp}</span>
                   <input
                     type="tel"
                     autoComplete="tel"
@@ -1776,7 +1776,7 @@ const ClientPortal: React.FC = () => {
                 </label>
               ) : (
                 <div className="mb-2">
-                  <label htmlFor="client-portal-password" className="mb-2 block text-sm font-medium text-white/80">{t.password}</label>
+                  <label htmlFor="client-portal-password" className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/80">{t.password}</label>
                   <div className="relative">
                     <input
                       id="client-portal-password"

@@ -1923,8 +1923,8 @@ const PortalAdmin: React.FC = () => {
                   <KeyRound size={12} /> {t.teamLoginBadge}
                 </p>
                 <div className="mt-14 max-w-[390px] sm:mt-20">
-                  <h1 className="font-display text-3xl font-medium leading-[1.04] tracking-[-0.04em] sm:text-5xl">{t.title}</h1>
-                  <p className="mt-4 max-w-sm text-xs leading-6 text-white/75 sm:text-sm sm:leading-7">{t.subtitle}</p>
+                  <h1 className="font-display text-3xl font-bold uppercase leading-[0.92] tracking-[-0.065em] sm:text-5xl">{t.title}</h1>
+                  <p className="mt-4 max-w-sm font-mono text-[10px] uppercase leading-6 tracking-[0.08em] text-white/75 sm:text-xs sm:leading-7">{t.subtitle}</p>
                 </div>
               </div>
               <div className="relative mt-8 flex items-center justify-between gap-4 border-t border-white/20 pt-4">
@@ -1938,19 +1938,19 @@ const PortalAdmin: React.FC = () => {
             <div className="flex flex-col justify-center bg-white px-5 py-8 text-neutral-900 sm:px-9 sm:py-10 lg:px-10 lg:py-12">
               <div className="mb-10 flex items-start justify-between gap-4">
                 <div>
-                  <p className="font-semibold tracking-wide">LINIER STUDIO</p>
+                  <p className="font-display text-lg font-bold uppercase leading-none tracking-[-0.04em]">LINIER STUDIO</p>
                   <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{t.eyebrow}</p>
                 </div>
                 <PortalLanguageSwitcher language={language} onChange={setLanguage} />
               </div>
-              <h2 className="max-w-sm font-display text-3xl font-medium leading-[1.08] tracking-[-0.04em] sm:text-4xl">{t.teamLoginWelcome}</h2>
+              <h2 className="max-w-sm font-display text-3xl font-bold uppercase leading-[0.95] tracking-[-0.06em] sm:text-4xl">{t.teamLoginWelcome}</h2>
               <div className="mt-8">
                 <label className="mb-5 block">
-                  <span className="mb-2 block text-xs font-medium text-neutral-700">{t.email}</span>
+                  <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-700">{t.email}</span>
                   <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 text-sm outline-none transition placeholder:text-neutral-400 focus:ring-2 focus:ring-[#142526]/15" />
                 </label>
                 <div>
-                  <label htmlFor="admin-login-password" className="mb-2 block text-xs font-medium text-neutral-700">{t.password}</label>
+                  <label htmlFor="admin-login-password" className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-700">{t.password}</label>
                   <div className="relative">
                     <input id="admin-login-password" name="password" type={adminPasswordVisible ? 'text' : 'password'} autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 pr-12 text-sm outline-none transition focus:ring-2 focus:ring-[#142526]/15" />
                     <button
