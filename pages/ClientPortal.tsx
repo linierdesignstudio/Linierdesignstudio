@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, LockKeyhole, LogOut, MapPin, MessageCircle, Moon, Phone, Search, Send, ShieldCheck, Sun, Upload, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
@@ -471,8 +471,16 @@ const copy = {
 } as const;
 
 const clientPortalImage = new URL('../1.jpeg', import.meta.url).href;
+const clientPortalSections = ['client-dashboard', 'client-activity', 'project-updates', 'project-documents', 'project-billing', 'project-changes'] as const;
+type ClientPortalSection = typeof clientPortalSections[number];
+const getClientPortalSection = (search: string): ClientPortalSection => {
+  const requestedSection = new URLSearchParams(search).get('section');
+  return clientPortalSections.find((section) => section === requestedSection) ?? 'client-dashboard';
+};
 
 const ClientPortal: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { language, setLanguage } = useLanguage();
   const t = copy[language];
   const [projects, setProjects] = useState<PortalProject[]>([]);
@@ -485,7 +493,7 @@ const ClientPortal: React.FC = () => {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState('');
   const [notificationsRefreshToken, setNotificationsRefreshToken] = useState(0);
-  const [activeSection, setActiveSection] = useState('client-dashboard');
+  const [activeSection, setActiveSection] = useState<string>(() => getClientPortalSection(location.search));
   const [isDark, setIsDark] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -520,6 +528,10 @@ const ClientPortal: React.FC = () => {
   const [changeSubmitting, setChangeSubmitting] = useState(false);
   const [changeNotice, setChangeNotice] = useState('');
   const feedbackMessagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setActiveSection(getClientPortalSection(location.search));
+  }, [location.search]);
 
   useEffect(() => {
     if (!resetNotice) return;
@@ -902,6 +914,14 @@ const ClientPortal: React.FC = () => {
   const openClientPage = (sectionId: string) => {
     setActiveSection(sectionId);
     setFeedbackChatOpen(false);
+    const searchParams = new URLSearchParams(location.search);
+    if (getClientPortalSection(location.search) !== sectionId) {
+      searchParams.set('section', sectionId);
+      navigate(
+        { pathname: location.pathname, search: `?${searchParams.toString()}` },
+        { state: location.state }
+      );
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const openActivityPage = () => {

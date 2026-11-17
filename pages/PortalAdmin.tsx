@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, Download, Eye, EyeOff, FileCheck2, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Search, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
@@ -764,6 +764,8 @@ async function loadAdminUpdates(projectId: string): Promise<PortalUpdate[]> {
 }
 
 const PortalAdmin: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { language, setLanguage } = useLanguage();
   const t = copy[language];
   const [authenticated, setAuthenticated] = useState(false);
@@ -1600,6 +1602,14 @@ const PortalAdmin: React.FC = () => {
   const openAdminPage = (sectionId: string) => {
     if (sectionId === 'admin-feedback') markFeedbackAsSeen(feedbackItems);
     setActiveSection(sectionId);
+    const searchParams = new URLSearchParams(location.search);
+    if ((searchParams.get('section') ?? 'admin-dashboard') !== sectionId) {
+      searchParams.set('section', sectionId);
+      navigate(
+        { pathname: location.pathname, search: `?${searchParams.toString()}` },
+        { state: location.state }
+      );
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const getNotificationLabel = (eventType: PortalNotification['event_type']) => {
@@ -1673,6 +1683,11 @@ const PortalAdmin: React.FC = () => {
     { id: 'admin-access', label: t.clientAccess, icon: <FolderOpen size={17} /> },
     { id: 'admin-resets', label: t.passwordRequestsNav, icon: <KeyRound size={17} /> },
   ].filter((item) => adminRole === 'admin' || !['admin-access', 'admin-billing', 'admin-changes'].includes(item.id));
+  useEffect(() => {
+    const requestedSection = new URLSearchParams(location.search).get('section');
+    const matchingSection = navigation.find((item) => item.id === requestedSection);
+    setActiveSection(matchingSection?.id ?? 'admin-dashboard');
+  }, [location.search, adminRole]);
   const primaryMobileNavIds = ['admin-dashboard', 'admin-progress', 'admin-documents', 'admin-feedback'];
   const primaryMobileNavigation = navigation.filter((item) => primaryMobileNavIds.includes(item.id));
   const moreMobileNavigation = navigation.filter((item) => !primaryMobileNavIds.includes(item.id));
