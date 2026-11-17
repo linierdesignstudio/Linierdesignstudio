@@ -946,7 +946,7 @@ const ClientPortal: React.FC = () => {
   ];
 
   return (
-    <div className={`portal-readable min-h-screen overflow-x-clip bg-[#f5f4f0] ${project ? 'pb-28 sm:pb-20' : 'pb-16 sm:pb-20'} pt-16 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:pt-24 md:pt-32`}>
+    <div className={`portal-readable min-h-screen overflow-x-clip bg-[#f5f4f0] ${project ? 'pb-28 pt-16 sm:pb-20 sm:pt-24 md:pt-32' : 'pb-10 pt-8 sm:pt-10 md:pt-12'} text-neutral-900 dark:bg-[#0b0c0b] dark:text-white`}>
       <div className="mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-8 lg:px-12">
         <Link to="/" className="mb-5 inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-400 hover:text-neutral-950 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:border-white/25 dark:hover:text-white sm:mb-7">
           <ArrowDownLeft size={15} /> {t.back}
@@ -1488,24 +1488,20 @@ const ClientPortal: React.FC = () => {
           </section>
           )
         ) : (
-          <div className="mx-auto grid min-w-0 max-w-[1180px] overflow-hidden rounded-[1.6rem] border-[5px] border-[#11120f] bg-[#080908] shadow-[0_30px_90px_rgba(20,21,17,0.22)] sm:rounded-[2rem] lg:grid-cols-[minmax(0,1.04fr)_minmax(0,0.96fr)]">
+          <div className="portal-login mx-auto grid min-w-0 max-w-[1180px] overflow-hidden rounded-[1.5rem] border border-[#deddd6] bg-[#080908] shadow-[0_24px_70px_rgba(27,25,20,0.14)] sm:rounded-[1.75rem] lg:grid-cols-[minmax(0,1.04fr)_minmax(0,0.96fr)]">
             <section className="relative flex min-h-[300px] flex-col justify-between overflow-hidden bg-[#252722] p-5 text-white sm:min-h-[430px] sm:p-9 lg:min-h-[560px] lg:p-12">
               <img src={clientPortalImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-55" />
               <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/35 via-neutral-950/20 to-neutral-950/85" />
-              <div className="pointer-events-none absolute -right-20 top-1/4 h-72 w-72 rounded-full border border-white/10" />
-              <div className="pointer-events-none absolute -right-10 top-1/3 h-52 w-52 rounded-full border border-white/10" />
               <div className="relative">
-                <p className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/20 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/80 backdrop-blur-sm">
+                <p className="inline-flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/80">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#b8c89f]" /> LINIER STUDIO <span className="text-white/35">/</span> CLIENT JOURNAL
                 </p>
-                <div className="mt-16 max-w-xl sm:mt-24">
-                  <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.2em] text-white/65">{t.eyebrow}</p>
+                <div className="mt-12 max-w-xl sm:mt-16">
                   <h1 className="font-display text-3xl font-medium leading-[1.02] tracking-[-0.04em] sm:text-5xl lg:text-6xl">{t.title}</h1>
                   <p className="mt-4 max-w-md text-xs leading-6 text-white/75 sm:mt-5 sm:text-sm sm:leading-7">{t.subtitle}</p>
                 </div>
               </div>
-              <div className="relative mt-8 flex flex-col items-start gap-3 border-t border-white/25 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pt-5">
-                <span className="text-xs leading-5 text-white/65">{t.strapline}</span>
+              <div className="relative mt-8 flex justify-end border-t border-white/20 pt-4 sm:pt-5">
                 <Link to="/portal/admin" className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/20 px-3 py-2 text-[11px] font-medium text-white/85 transition-colors hover:border-white/50 hover:bg-white/10 hover:text-white">
                   {t.admin} <ArrowUpRight size={14} />
                 </Link>
@@ -1513,14 +1509,13 @@ const ClientPortal: React.FC = () => {
             </section>
 
             <form onSubmit={resetMode ? requestPasswordReset : signIn} className="flex flex-col justify-center bg-[#080908] px-5 py-8 text-white sm:px-10 sm:py-12 lg:px-12 lg:py-14">
-              <div className="mb-7 flex items-center gap-3 sm:mb-10">
+              <div className="mb-7 flex items-center gap-3 sm:mb-9">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] text-[#c5d2b0]">
                   <LockKeyhole size={16} strokeWidth={1.5} />
                 </span>
                 <span className="text-sm font-semibold tracking-wide">Linier <span className="font-normal text-white/40">/ Studio</span></span>
               </div>
-              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">{resetMode ? t.resetTitle : t.eyebrow}</p>
-              <h2 className="mb-8 font-display text-3xl font-medium tracking-tight sm:text-4xl">{resetMode ? t.resetTitle : t.signIn}</h2>
+              <h2 className="mb-7 font-display text-3xl font-medium tracking-tight sm:text-4xl">{resetMode ? t.resetTitle : t.signIn}</h2>
               <label className="mb-6 block">
                 <span className="mb-2 block text-sm font-medium text-white/80">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
                 <input
