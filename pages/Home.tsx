@@ -473,15 +473,6 @@ const Home: React.FC = () => {
                   }}
                   className={`relative mx-auto w-full ${activeNextStep === NEXT_STEP_CLOSING_STEP ? 'max-w-[1368px]' : 'max-w-7xl text-center'}`}
                 >
-                  {activeNextStep === NEXT_STEP_CLOSING_STEP && (
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute -inset-x-4 -inset-y-10 bg-[#444] sm:-inset-x-8 md:-inset-x-12"
-                      style={{
-                        backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.12), transparent 34%, rgba(0,0,0,0.28) 70%), repeating-linear-gradient(0deg, transparent 0 42px, rgba(0,0,0,0.48) 42px 45px, rgba(255,255,255,0.14) 45px 47px, transparent 47px 52px), repeating-linear-gradient(90deg, transparent 0 42px, rgba(0,0,0,0.48) 42px 45px, rgba(255,255,255,0.14) 45px 47px, transparent 47px 52px)'
-                      }}
-                    />
-                  )}
                   {activeNextStep === NEXT_STEP_CLOSING_STEP ? (
                     <div className="relative z-10 grid min-h-[55svh] items-center gap-8 py-8 md:grid-cols-12 md:gap-10">
                       <h2 className="font-display text-[clamp(2.5rem,11vw,10rem)] font-semibold leading-[0.9] tracking-[-0.07em] md:col-span-7">
