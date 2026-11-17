@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowLeft, ArrowUpRight, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, FileCheck2, FileText, LockKeyhole, LogOut, MapPin, MessageCircle, Phone, Search, Send, ShieldCheck, Upload, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowLeft, ArrowUpRight, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LockKeyhole, LogOut, MapPin, MessageCircle, Phone, Search, Send, ShieldCheck, Upload, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -16,6 +16,8 @@ const copy = {
     loginIdentifier: 'ID proyek atau email',
     chooseProject: 'Pilih proyek',
     password: 'Password',
+    showPassword: 'Tampilkan password',
+    hidePassword: 'Sembunyikan password',
     signIn: 'Masuk ke portal',
     signingIn: 'Memeriksa akses...',
     admin: 'Akses tim studio',
@@ -160,6 +162,8 @@ const copy = {
     loginIdentifier: 'Project ID or email',
     chooseProject: 'Choose a project',
     password: 'Password',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
     signIn: 'Sign in to portal',
     signingIn: 'Checking access...',
     admin: 'Studio team access',
@@ -304,6 +308,8 @@ const copy = {
     loginIdentifier: '项目编号或邮箱',
     chooseProject: '选择项目',
     password: '密码',
+    showPassword: '显示密码',
+    hidePassword: '隐藏密码',
     signIn: '登录门户',
     signingIn: '正在验证...',
     admin: '工作室团队入口',
@@ -465,6 +471,7 @@ const ClientPortal: React.FC = () => {
   const [previewAttachment, setPreviewAttachment] = useState<PortalAttachment | null>(null);
   const [projectCode, setProjectCode] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -652,6 +659,7 @@ const ClientPortal: React.FC = () => {
       setProjects(result.projects);
       setProject(result.projects[0] ?? null);
       setPassword('');
+      setPasswordVisible(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Tidak dapat masuk ke portal.');
     } finally {
@@ -1544,18 +1552,31 @@ const ClientPortal: React.FC = () => {
                   <span className="mt-2 block text-xs text-white/45">{t.whatsappHint}</span>
                 </label>
               ) : (
-                <label className="mb-2 block">
-                  <span className="mb-2 block text-sm font-medium text-white/80">{t.password}</span>
-                  <input
-                    type="password"
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    required
-                    maxLength={256}
-                    className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 text-sm text-white outline-none transition focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10"
-                  />
-                </label>
+                <div className="mb-2">
+                  <label htmlFor="client-portal-password" className="mb-2 block text-sm font-medium text-white/80">{t.password}</label>
+                  <div className="relative">
+                    <input
+                      id="client-portal-password"
+                      type={passwordVisible ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      required
+                      maxLength={256}
+                      className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 pr-12 text-sm text-white outline-none transition focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setPasswordVisible((visible) => !visible)}
+                      aria-label={passwordVisible ? t.hidePassword : t.showPassword}
+                      aria-pressed={passwordVisible}
+                      title={passwordVisible ? t.hidePassword : t.showPassword}
+                      className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-lg text-white/45 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#b8c89f]"
+                    >
+                      {passwordVisible ? <EyeOff size={17} /> : <Eye size={17} />}
+                    </button>
+                  </div>
+                </div>
               )}
               {error && <div className="mt-5"><ErrorBanner message={error} /></div>}
               {resetNotice && <p role="status" className="mt-5 border-l-2 border-emerald-700 bg-emerald-50 px-4 py-3 text-xs leading-5 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200">{resetNotice}</p>}
@@ -1567,6 +1588,7 @@ const ClientPortal: React.FC = () => {
                 onClick={() => {
                   setResetMode((current) => !current);
                   setProjectCode('');
+                  setPasswordVisible(false);
                   setError('');
                   setResetNotice('');
                 }}
