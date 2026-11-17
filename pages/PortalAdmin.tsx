@@ -13,6 +13,8 @@ const copy = {
     eyebrow: 'LINIER STUDIO / ADMIN',
     title: 'Kelola progress proyek.',
     subtitle: 'Masuk untuk membuat akses klien dan membagikan update harian.',
+    teamLoginBadge: 'AKSES TIM STUDIO',
+    teamLoginWelcome: 'Selamat datang, silakan masuk ke akun Anda.',
     email: 'Email admin/staf',
     password: 'Password admin/staf',
     forgotPassword: 'Lupa password admin?',
@@ -245,6 +247,8 @@ const copy = {
     eyebrow: 'LINIER STUDIO / ADMIN',
     title: 'Manage project progress.',
     subtitle: 'Sign in to create client access and share daily updates.',
+    teamLoginBadge: 'STUDIO TEAM ACCESS',
+    teamLoginWelcome: 'Welcome, sign in to your account.',
     email: 'Admin/staff email',
     password: 'Admin/staff password',
     forgotPassword: 'Forgot admin password?',
@@ -477,6 +481,8 @@ const copy = {
     eyebrow: 'LINIER STUDIO / 管理',
     title: '管理项目进度。',
     subtitle: '登录以创建客户访问权限并发布每日更新。',
+    teamLoginBadge: '工作室团队登录',
+    teamLoginWelcome: '欢迎，请登录您的账号。',
     email: '管理员/员工邮箱',
     password: '管理员/员工密码',
     forgotPassword: '忘记管理员密码？',
@@ -752,7 +758,7 @@ async function loadAdminUpdates(projectId: string): Promise<PortalUpdate[]> {
 }
 
 const PortalAdmin: React.FC = () => {
-  const { language, setLanguage, t: siteT } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const t = copy[language];
   const [authenticated, setAuthenticated] = useState(false);
   const [adminRole, setAdminRole] = useState<AdminRole | null>(null);
@@ -1692,7 +1698,7 @@ const PortalAdmin: React.FC = () => {
   };
 
   return (
-    <div className={`portal-readable ${authenticated ? 'min-h-screen overflow-x-clip bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'min-h-screen overflow-x-clip bg-[#f4f3ef] px-4 pt-16 pb-20 text-neutral-900 dark:bg-[#0b0c0b] dark:text-white sm:px-5 sm:pt-20 sm:pb-24 md:pt-24'}`}>
+    <div className={`portal-readable ${authenticated ? 'min-h-screen overflow-x-clip bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'grid min-h-[100svh] place-items-center overflow-x-clip bg-[#4b4d48] px-4 py-8 text-neutral-900 sm:px-6'}`}>
       {authenticated && !checking && (
         <aside className="z-40 bg-[#20211d] text-white shadow-xl shadow-black/10 lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-64 lg:flex-col">
           <div className="border-b border-white/[0.08] px-4 py-4 sm:px-7 sm:py-5 lg:px-6 lg:py-7">
@@ -1728,7 +1734,7 @@ const PortalAdmin: React.FC = () => {
           </div>
         </aside>
       )}
-      <div className={authenticated && !checking ? 'min-w-0 lg:pl-64' : ''}>
+      <div className={authenticated && !checking ? 'min-w-0 lg:pl-64' : 'w-full'}>
         {authenticated && !checking && (
           <header className="sticky top-0 z-30 flex min-h-[68px] items-center justify-between gap-2 border-b border-neutral-200/80 bg-white/90 px-3 text-neutral-900 shadow-sm shadow-neutral-900/[0.02] backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#111210]/90 dark:text-white sm:min-h-[76px] sm:gap-4 sm:px-7 lg:px-10">
             <div className="min-w-0">
@@ -1756,7 +1762,7 @@ const PortalAdmin: React.FC = () => {
           </header>
         )}
         <div className={`mx-auto w-full min-w-0 ${authenticated ? 'max-w-[1600px] px-4 pt-6 pb-24 sm:px-7 lg:px-10 lg:py-8' : 'max-w-7xl px-0 sm:px-3 lg:px-0'}`}>
-        {(!authenticated || activeSection === 'admin-dashboard') && <header id="admin-dashboard" className="relative mb-6 min-w-0 scroll-mt-24 overflow-hidden rounded-2xl bg-neutral-900 p-4 text-white shadow-[0_24px_70px_rgba(27,25,20,0.12)] sm:mb-8 sm:rounded-3xl sm:p-10 lg:p-12">
+        {authenticated && activeSection === 'admin-dashboard' && <header id="admin-dashboard" className="relative mb-6 min-w-0 scroll-mt-24 overflow-hidden rounded-2xl bg-neutral-900 p-4 text-white shadow-[0_24px_70px_rgba(27,25,20,0.12)] sm:mb-8 sm:rounded-3xl sm:p-10 lg:p-12">
           <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-40" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-900/80 to-neutral-900/25" />
           <div className="pointer-events-none absolute -right-12 -top-32 h-80 w-80 rounded-full border border-white/10" />
@@ -1788,38 +1794,64 @@ const PortalAdmin: React.FC = () => {
           </div>
         </header>}
 
-        {error && <ErrorBanner message={error} />}
-        {notice && <p role="status" className="mb-6 flex items-start gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-sm leading-6 text-emerald-700 dark:text-emerald-300"><Check size={17} className="mt-0.5 shrink-0" />{notice}</p>}
+        {authenticated && error && <ErrorBanner message={error} />}
+        {authenticated && notice && <p role="status" className="mb-6 flex items-start gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-sm leading-6 text-emerald-700 dark:text-emerald-300"><Check size={17} className="mt-0.5 shrink-0" />{notice}</p>}
 
         {checking ? (
-          <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-neutral-200 bg-white text-neutral-500 shadow-sm dark:border-white/10 dark:bg-neutral-900">
+          <div className="mx-auto flex min-h-64 max-w-xl flex-col items-center justify-center rounded-2xl border border-white/10 bg-[#151613] text-white/60 shadow-sm">
             <span className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-[#8c795e] dark:border-white/10 dark:border-t-bronze-400" />
             <span className="font-mono text-[10px] uppercase tracking-[0.18em]">{language === 'ID' ? 'Memuat ruang kerja...' : language === 'CN' ? '正在加载工作区...' : 'Loading workspace...'}</span>
           </div>
         ) : !authenticated ? (
-          <form onSubmit={signIn} className="mx-auto max-w-xl rounded-3xl border border-neutral-200 bg-white p-4 shadow-[0_20px_60px_rgba(27,25,20,0.08)] sm:p-10 dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/20">
-            <div className="mb-8 flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#e8e4dc] bg-[#f7f5f0] text-[#8c795e] dark:border-white/10 dark:bg-white/[0.04] dark:text-bronze-400"><KeyRound size={18} strokeWidth={1.5} /></span>
-              <span>
-                <span className="block font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500">Linier Studio</span>
-                <span className="mt-1 block font-display text-xl font-medium">{t.signIn}</span>
-              </span>
+          <form onSubmit={signIn} className="portal-login mx-auto grid w-full min-w-0 max-w-[1080px] overflow-hidden rounded-[1.6rem] border-[7px] border-[#11120f] bg-white shadow-[0_35px_90px_rgba(15,17,14,0.28)] lg:min-h-[590px] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+            <section className="relative flex min-h-[300px] flex-col justify-between overflow-hidden bg-[#191a16] p-5 text-white sm:min-h-[380px] sm:p-8 lg:min-h-[590px] lg:p-9">
+              <img src={heroImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-45" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/20" />
+              <div className="relative">
+                <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/25 px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.16em] text-white/80">
+                  <KeyRound size={12} /> {t.teamLoginBadge}
+                </p>
+                <div className="mt-14 max-w-[390px] sm:mt-20">
+                  <h1 className="font-display text-3xl font-medium leading-[1.04] tracking-[-0.04em] sm:text-5xl">{t.title}</h1>
+                  <p className="mt-4 max-w-sm text-xs leading-6 text-white/75 sm:text-sm sm:leading-7">{t.subtitle}</p>
+                </div>
+              </div>
+              <div className="relative mt-8 flex items-center justify-between gap-4 border-t border-white/20 pt-4">
+                <img src={logoImage} alt="Linier Studio" className="h-7 w-auto max-w-[150px] object-contain brightness-0 invert" />
+                <Link to="/portal" className="inline-flex shrink-0 items-center gap-1.5 text-[10px] text-white/65 transition-colors hover:text-white">
+                  <ArrowDownLeft size={13} /> {t.back}
+                </Link>
+              </div>
+            </section>
+
+            <div className="flex flex-col justify-center bg-white px-5 py-8 text-neutral-900 sm:px-9 sm:py-10 lg:px-10 lg:py-12">
+              <div className="mb-10">
+                <p className="font-semibold tracking-wide">LINIER STUDIO</p>
+                <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{t.eyebrow}</p>
+              </div>
+              <h2 className="max-w-sm font-display text-3xl font-medium leading-[1.08] tracking-[-0.04em] sm:text-4xl">{t.teamLoginWelcome}</h2>
+              <div className="mt-8">
+                <label className="mb-5 block">
+                  <span className="mb-2 block text-xs font-medium text-neutral-700">{t.email}</span>
+                  <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 text-sm outline-none transition placeholder:text-neutral-400 focus:ring-2 focus:ring-[#142526]/15" />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-xs font-medium text-neutral-700">{t.password}</span>
+                  <input name="password" type="password" autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 text-sm outline-none transition focus:ring-2 focus:ring-[#142526]/15" />
+                </label>
+              </div>
+              {error && <div className="mt-4"><ErrorBanner message={error} /></div>}
+              <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
+                <button disabled={busy} className="inline-flex items-center gap-3 rounded-full bg-[#142526] px-6 py-3 text-xs font-medium text-white transition-colors hover:bg-[#263b3c] disabled:cursor-wait disabled:opacity-60">
+                  {busy ? '...' : t.signIn} <ArrowUpRight size={14} />
+                </button>
+                <details className="max-w-[190px] pt-2 text-right text-[10px]">
+                  <summary className="cursor-pointer text-neutral-600 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-neutral-950">{t.forgotPassword}</summary>
+                  <p className="mt-3 text-left leading-5 text-neutral-500">{t.forgotPasswordHint}</p>
+                </details>
+              </div>
+              <p className="mt-10 border-t border-neutral-200 pt-4 text-[10px] text-neutral-400">{t.workspace}</p>
             </div>
-            <label className="mb-6 block">
-              <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.email}</span>
-              <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3.5 text-sm outline-none transition focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400 dark:focus:ring-bronze-400/10" />
-            </label>
-            <label className="mb-2 block">
-              <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.password}</span>
-              <input name="password" type="password" autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3.5 text-sm outline-none transition focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400 dark:focus:ring-bronze-400/10" />
-            </label>
-            <button disabled={busy} className="mt-6 flex w-full items-center justify-between rounded-xl bg-[#272925] px-5 py-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#45483e] disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
-              {busy ? '...' : t.signIn} <ArrowUpRight size={17} />
-            </button>
-            <details className="mt-6 border-t border-neutral-100 pt-4 text-xs dark:border-white/10">
-              <summary className="w-fit cursor-pointer rounded-sm text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8c795e] dark:hover:text-white">{t.forgotPassword}</summary>
-              <p className="mt-3 leading-6 text-neutral-500">{t.forgotPasswordHint}</p>
-            </details>
           </form>
         ) : (
           <>
@@ -2677,46 +2709,6 @@ const PortalAdmin: React.FC = () => {
             </section>}
           </div>
           </>
-        )}
-        {!authenticated && !checking && (
-          <section className="mx-auto mt-10 max-w-5xl border-t border-neutral-300 pt-8 dark:border-white/10 sm:mt-14 sm:pt-10">
-            <div className="grid gap-8 md:grid-cols-2 md:gap-12">
-              <div>
-                <h2 className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">{t.contact}</h2>
-                <div className="space-y-5">
-                  <div className="flex items-start gap-3">
-                    <MapPin size={16} className="mt-0.5 shrink-0 text-bronze-600 dark:text-bronze-400" />
-                    <div className="text-sm leading-6 text-neutral-600 dark:text-neutral-300">
-                      <p>{siteT.common.address_line1}</p>
-                      <p>{siteT.common.address_line2}</p>
-                      <p>{siteT.common.address_country}</p>
-                    </div>
-                  </div>
-                  <a href="https://wa.me/6281775030638" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-bronze-600 dark:text-neutral-300 dark:hover:text-bronze-400">
-                    <Phone size={16} className="shrink-0 text-bronze-600 dark:text-bronze-400" />
-                    +62 817 7503 0638
-                  </a>
-                  <a href="mailto:hello@linierstudio.com" className="flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-bronze-600 dark:text-neutral-300 dark:hover:text-bronze-400">
-                    <Mail size={16} className="shrink-0 text-bronze-600 dark:text-bronze-400" />
-                    hello@linierstudio.com
-                  </a>
-                </div>
-              </div>
-              <div>
-                <h2 className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">{t.services}</h2>
-                <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {siteT.services.list.map((service) => (
-                    <li key={service.id} className="rounded-lg border border-neutral-200 bg-white/70 px-3 py-2.5 text-xs leading-5 text-neutral-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300">
-                      {service.title}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <div className="mt-8 border-t border-neutral-300 pt-4 font-mono text-[9px] uppercase tracking-widest text-neutral-500 dark:border-white/10 sm:mt-10">
-              © {new Date().getFullYear()} PT. LINIER NUSAKARYA PERSADA. {siteT.footer.rights}
-            </div>
-          </section>
         )}
       </div>
       {authenticated && !checking && (
