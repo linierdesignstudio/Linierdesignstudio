@@ -6,7 +6,7 @@ import PortalFilePreview from '../components/PortalFilePreview';
 import { useLanguage } from '../contexts/LanguageContext';
 import { portalRequest, type AdminFeedback, type BillingItem, type PasswordResetRequest, type PortalAttachment, type PortalNotification, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
-import { Language } from '../types';
+import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
 
 const copy = {
   ID: {
@@ -1750,11 +1750,7 @@ const PortalAdmin: React.FC = () => {
               <h1 className="mt-1 font-display text-base font-medium leading-tight tracking-tight sm:text-xl">{activePageTitle}</h1>
             </div>
             <div className="flex shrink-0 items-center gap-1 sm:gap-4">
-              <div className="hidden items-center gap-2 border-r border-neutral-200 pr-3 dark:border-white/15 sm:flex">
-                {([Language.ID, Language.EN, Language.CN] as const).map((option) => (
-                  <button key={option} type="button" onClick={() => setLanguage(option)} className={`rounded-md px-1.5 py-1 font-mono text-[9px] uppercase tracking-wider transition-colors ${language === option ? 'bg-neutral-100 text-neutral-900 dark:bg-white/10 dark:text-white' : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'}`}>{option}</button>
-                ))}
-              </div>
+              <PortalLanguageSwitcher language={language} onChange={setLanguage} />
               <button type="button" onClick={toggleTheme} aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'} className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 sm:h-10 sm:w-10">
                 {isDark ? <Sun size={16} /> : <Moon size={16} />}
               </button>
@@ -1831,9 +1827,12 @@ const PortalAdmin: React.FC = () => {
             </section>
 
             <div className="flex flex-col justify-center bg-white px-5 py-8 text-neutral-900 sm:px-9 sm:py-10 lg:px-10 lg:py-12">
-              <div className="mb-10">
-                <p className="font-semibold tracking-wide">LINIER STUDIO</p>
-                <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{t.eyebrow}</p>
+              <div className="mb-10 flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-semibold tracking-wide">LINIER STUDIO</p>
+                  <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{t.eyebrow}</p>
+                </div>
+                <PortalLanguageSwitcher language={language} onChange={setLanguage} />
               </div>
               <h2 className="max-w-sm font-display text-3xl font-medium leading-[1.08] tracking-[-0.04em] sm:text-4xl">{t.teamLoginWelcome}</h2>
               <div className="mt-8">

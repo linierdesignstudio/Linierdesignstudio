@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowLeft, ArrowUpRight, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LockKeyhole, LogOut, MapPin, MessageCircle, Phone, Search, Send, ShieldCheck, Upload, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowLeft, ArrowUpRight, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, LockKeyhole, LogOut, MapPin, MessageCircle, Phone, Search, Send, ShieldCheck, Upload, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
+import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
 import { useLanguage } from '../contexts/LanguageContext';
 import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalNotification, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
@@ -21,6 +22,11 @@ const copy = {
     signIn: 'Masuk ke portal',
     signingIn: 'Memeriksa akses...',
     admin: 'Akses tim studio',
+    dashboard: 'Ringkasan proyek',
+    dashboardHint: 'Lihat progres dan akses cepat ke informasi penting proyek Anda.',
+    dashboardNav: 'Ringkasan',
+    dashboardOpenBills: 'Tagihan belum lunas',
+    dashboardPendingChanges: 'Perubahan menunggu',
     latest: 'Progress proyek',
     updated: 'Pembaruan harian',
     noUpdates: 'Belum ada pembaruan.',
@@ -167,6 +173,11 @@ const copy = {
     signIn: 'Sign in to portal',
     signingIn: 'Checking access...',
     admin: 'Studio team access',
+    dashboard: 'Project dashboard',
+    dashboardHint: 'Check progress and quickly open important project information.',
+    dashboardNav: 'Overview',
+    dashboardOpenBills: 'Unpaid bills',
+    dashboardPendingChanges: 'Pending changes',
     latest: 'Project progress',
     updated: 'Daily updates',
     noUpdates: 'No updates yet.',
@@ -313,6 +324,11 @@ const copy = {
     signIn: '登录门户',
     signingIn: '正在验证...',
     admin: '工作室团队入口',
+    dashboard: '项目概览',
+    dashboardHint: '查看项目进度，并快速访问重要项目信息。',
+    dashboardNav: '概览',
+    dashboardOpenBills: '待付款账单',
+    dashboardPendingChanges: '待处理变更',
     latest: '项目进度',
     updated: '每日更新',
     noUpdates: '暂无更新。',
@@ -451,7 +467,7 @@ const copy = {
 const clientPortalImage = new URL('../1.jpeg', import.meta.url).href;
 
 const ClientPortal: React.FC = () => {
-  const { language } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const t = copy[language];
   const [projects, setProjects] = useState<PortalProject[]>([]);
   const [project, setProject] = useState<PortalProject | null>(null);
@@ -946,19 +962,29 @@ const ClientPortal: React.FC = () => {
     return matchesQuery && matchesType && matchesFrom && matchesTo;
   });
   const mobileNavigation = [
+    { id: 'client-dashboard', label: t.dashboardNav, icon: <LayoutDashboard size={17} />, onClick: () => scrollToSection('client-dashboard') },
     { id: 'project-updates', label: t.updated, icon: <Clock3 size={17} />, onClick: () => scrollToSection('project-updates') },
     { id: 'project-documents', label: t.documents, icon: <FileText size={17} />, onClick: () => scrollToSection('project-documents') },
     { id: 'project-billing', label: t.billingTitle, icon: <FileCheck2 size={17} />, onClick: () => scrollToSection('project-billing') },
     { id: 'project-changes', label: t.changeTitle, icon: <ClipboardList size={17} />, onClick: () => scrollToSection('project-changes') },
     { id: 'feedback', label: t.feedbackNav, icon: <MessageCircle size={17} />, onClick: () => setFeedbackChatOpen(true) },
   ];
+  const dashboardCards = [
+    { id: 'project-updates', label: t.updated, count: updates.length, icon: <Clock3 size={18} /> },
+    { id: 'project-documents', label: t.documents, count: projectDocuments.length, icon: <FileText size={18} /> },
+    { id: 'project-billing', label: t.dashboardOpenBills, count: billingItems.filter((item) => item.status !== 'paid').length, icon: <FileCheck2 size={18} /> },
+    { id: 'project-changes', label: t.dashboardPendingChanges, count: changeOrders.filter((order) => order.status === 'requested' || order.status === 'pending_approval').length, icon: <ClipboardList size={18} /> },
+  ];
 
   return (
     <div className={`portal-readable min-h-screen overflow-x-clip bg-[#f5f4f0] ${project ? 'pb-28 pt-16 sm:pb-20 sm:pt-24 md:pt-32' : 'pb-10 pt-8 sm:pt-10 md:pt-12'} text-neutral-900 dark:bg-[#0b0c0b] dark:text-white`}>
       <div className="mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-8 lg:px-12">
-        <Link to="/" className="mb-5 inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-400 hover:text-neutral-950 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:border-white/25 dark:hover:text-white sm:mb-7">
-          <ArrowDownLeft size={15} /> {t.back}
-        </Link>
+        <div className="mb-5 flex items-center justify-between gap-3 sm:mb-7">
+          <Link to="/" className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-400 hover:text-neutral-950 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:border-white/25 dark:hover:text-white">
+            <ArrowDownLeft size={15} /> {t.back}
+          </Link>
+          <PortalLanguageSwitcher language={language} onChange={setLanguage} />
+        </div>
 
         {loading ? (
           <div className="mx-auto flex min-h-[40vh] max-w-md flex-col items-center justify-center rounded-2xl border border-neutral-200 bg-white p-6 text-center shadow-sm sm:min-h-[50vh] sm:rounded-3xl sm:p-10 dark:border-white/10 dark:bg-neutral-900">
@@ -1089,6 +1115,30 @@ const ClientPortal: React.FC = () => {
               </div>
             </div>
 
+            <section id="client-dashboard" aria-labelledby="client-dashboard-title" className="mb-6 scroll-mt-24">
+              <div className="mb-4">
+                <h2 id="client-dashboard-title" className="font-display text-xl font-medium tracking-tight sm:text-2xl">{t.dashboard}</h2>
+                <p className="mt-1 text-xs leading-5 text-neutral-500 dark:text-neutral-400 sm:text-sm">{t.dashboardHint}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                {dashboardCards.map((card) => (
+                  <button
+                    key={card.id}
+                    type="button"
+                    onClick={() => openProjectSection(card.id)}
+                    className="group flex min-w-0 items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-3 text-left shadow-sm transition hover:border-[#8c795e]/50 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8c795e] sm:gap-4 sm:p-4 dark:border-white/10 dark:bg-neutral-900 dark:hover:border-bronze-400/50"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400">{card.icon}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[10px] font-medium text-neutral-500 dark:text-neutral-400 sm:text-xs">{card.label}</span>
+                      <span className="mt-1 block font-display text-xl font-semibold tabular-nums text-neutral-900 dark:text-white">{card.count.toString().padStart(2, '0')}</span>
+                    </span>
+                    <ArrowUpRight size={14} className="shrink-0 text-neutral-400 transition-colors group-hover:text-[#8c795e] dark:group-hover:text-bronze-400" />
+                  </button>
+                ))}
+              </div>
+            </section>
+
             {error && <ErrorBanner message={error} />}
 
             <PortalActivityPanel
@@ -1177,21 +1227,6 @@ const ClientPortal: React.FC = () => {
                 {project.start_date && <p className="mt-8 border-t border-neutral-400/30 pt-4 text-xs text-neutral-500 dark:border-white/10 dark:text-neutral-400">{formatDate(project.start_date, language)}</p>}
               </div>
             </div>
-
-            <nav aria-label={t.journal} className="my-7 flex flex-wrap gap-2 border-y border-neutral-200 py-4 dark:border-white/10 sm:my-9 sm:gap-3">
-              <a href="#project-updates" onClick={(event) => { event.preventDefault(); scrollToSection('project-updates'); }} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-[#8c795e] hover:text-[#746349] dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-200 dark:hover:border-bronze-400">
-                <FileText size={15} /> {t.updated}
-              </a>
-              <a href="#project-documents" onClick={(event) => { event.preventDefault(); scrollToSection('project-documents'); }} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-[#8c795e] hover:text-[#746349] dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-200 dark:hover:border-bronze-400">
-                <FileText size={15} /> {t.documents}
-              </a>
-              <a href="#project-billing" onClick={(event) => { event.preventDefault(); scrollToSection('project-billing'); }} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-[#8c795e] hover:text-[#746349] dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-200 dark:hover:border-bronze-400">
-                <FileCheck2 size={15} /> {t.billingTitle}
-              </a>
-              <a href="#project-changes" onClick={(event) => { event.preventDefault(); scrollToSection('project-changes'); }} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-[#8c795e] hover:text-[#746349] dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-200 dark:hover:border-bronze-400">
-                <ClipboardList size={15} /> {t.changeTitle}
-              </a>
-            </nav>
 
             <section id="project-documents" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
@@ -1478,9 +1513,9 @@ const ClientPortal: React.FC = () => {
               {feedbackChatOpen ? <X size={21} /> : <MessageCircle size={21} />}
               {!feedbackChatOpen && feedbackItems.some((item) => !item.reply) && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-bronze-500 dark:border-neutral-900" />}
             </button>
-            <nav aria-label={t.journal} className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-neutral-200 bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-[0_-8px_24px_rgba(27,25,20,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111210]/95 md:hidden">
+            <nav aria-label={t.journal} className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-neutral-200 bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-[0_-8px_24px_rgba(27,25,20,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111210]/95 md:hidden">
               {mobileNavigation.map((item) => (
-                <button key={item.id} type="button" onClick={item.onClick} aria-label={item.label} className="flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[9px] font-medium text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/[0.06] dark:hover:text-white">
+                <button key={item.id} type="button" onClick={item.onClick} aria-label={item.label} className="flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-[8px] font-medium text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/[0.06] dark:hover:text-white">
                   <span className="text-[#8c795e] dark:text-bronze-400">{item.icon}</span>
                   <span className="w-full truncate text-center">{item.label}</span>
                 </button>
