@@ -1874,7 +1874,7 @@ const PortalAdmin: React.FC = () => {
             </div>
           </header>
         )}
-        <div className={`mx-auto w-full min-w-0 ${authenticated ? 'max-w-[1600px] px-4 pt-6 pb-24 sm:px-7 lg:px-10 lg:py-8' : 'max-w-7xl px-0 sm:px-3 lg:px-0'}`}>
+        <div className={`mx-auto w-full min-w-0 ${authenticated ? 'max-w-[1600px] px-4 pt-6 pb-32 sm:px-7 sm:pb-24 lg:px-10 lg:py-8' : 'max-w-7xl px-0 sm:px-3 lg:px-0'}`}>
         {authenticated && activeSection === 'admin-dashboard' && <header id="admin-dashboard" className="relative mb-6 min-w-0 scroll-mt-24 overflow-hidden rounded-2xl bg-neutral-900 p-4 text-white shadow-[0_24px_70px_rgba(27,25,20,0.12)] sm:mb-8 sm:rounded-3xl sm:p-10 lg:p-12">
           <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-40" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-900/80 to-neutral-900/25" />
@@ -2901,7 +2901,7 @@ const PortalAdmin: React.FC = () => {
             <button type="button" onClick={() => setMobileNavOpen(false)} aria-label={t.more} className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] lg:hidden" />
           )}
           {mobileNavOpen && (
-            <nav id="admin-mobile-more" aria-label={t.more} className="fixed inset-x-3 z-50 max-h-[min(60dvh,520px)] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-2 shadow-2xl dark:border-white/10 dark:bg-neutral-900 lg:hidden" style={{ bottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}>
+            <nav id="admin-mobile-more" aria-label={t.more} className="fixed inset-x-3 z-50 max-h-[min(60dvh,520px)] overflow-y-auto rounded-2xl border border-white/70 bg-white/75 p-2 shadow-[0_16px_48px_rgba(27,25,20,0.2)] backdrop-blur-2xl backdrop-saturate-150 dark:border-white/15 dark:bg-neutral-900/80 lg:hidden" style={{ bottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}>
               {moreMobileNavigation.map((item) => (
                 <button key={item.id} type="button" onClick={() => navigateFromMobile(item.id)} className={`flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm transition-colors ${activeSection === item.id ? 'bg-[#f5f2ec] text-[#746349] dark:bg-white/[0.07] dark:text-bronze-300' : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-white/[0.05]'}`}>
                   <span className="text-bronze-600 dark:text-bronze-400">{item.icon}</span>
@@ -2912,14 +2912,14 @@ const PortalAdmin: React.FC = () => {
               ))}
             </nav>
           )}
-          <nav aria-label={t.navigation} className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-neutral-200 bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-[0_-8px_24px_rgba(27,25,20,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111210]/95 lg:hidden">
+          <nav aria-label={t.navigation} className="fixed inset-x-3 z-50 grid grid-cols-5 rounded-2xl border border-white/70 bg-white/70 px-1.5 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-[0_12px_36px_rgba(27,25,20,0.18)] backdrop-blur-2xl backdrop-saturate-150 dark:border-white/15 dark:bg-[#181a17]/75 lg:hidden" style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
             {primaryMobileNavigation.map((item) => (
-              <button key={item.id} type="button" onClick={() => navigateFromMobile(item.id)} aria-current={activeSection === item.id ? 'page' : undefined} className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[9px] font-medium transition-colors ${activeSection === item.id ? 'text-bronze-700 dark:text-bronze-300' : 'text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-white/[0.06]'}`}>
+              <button key={item.id} type="button" onClick={() => navigateFromMobile(item.id)} aria-current={activeSection === item.id ? 'page' : undefined} className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[9px] font-medium transition-colors ${activeSection === item.id ? 'bg-white/70 text-bronze-700 shadow-sm dark:bg-white/10 dark:text-bronze-300' : 'text-neutral-500 hover:bg-white/50 dark:text-neutral-400 dark:hover:bg-white/[0.06]'}`}>
                 <span>{item.icon}</span>
                 <span className="w-full truncate text-center">{item.label}</span>
               </button>
             ))}
-            <button type="button" onClick={() => setMobileNavOpen((open) => !open)} aria-expanded={mobileNavOpen} aria-controls="admin-mobile-more" className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[9px] font-medium transition-colors ${mobileNavOpen || moreMobileNavigation.some((item) => item.id === activeSection) ? 'text-bronze-700 dark:text-bronze-300' : 'text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-white/[0.06]'}`}>
+            <button type="button" onClick={() => setMobileNavOpen((open) => !open)} aria-expanded={mobileNavOpen} aria-controls="admin-mobile-more" className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[9px] font-medium transition-colors ${mobileNavOpen || moreMobileNavigation.some((item) => item.id === activeSection) ? 'bg-white/70 text-bronze-700 shadow-sm dark:bg-white/10 dark:text-bronze-300' : 'text-neutral-500 hover:bg-white/50 dark:text-neutral-400 dark:hover:bg-white/[0.06]'}`}>
               <Layers size={17} />
               <span className="w-full truncate text-center">{t.more}</span>
             </button>
