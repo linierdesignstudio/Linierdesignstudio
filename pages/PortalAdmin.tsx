@@ -1924,8 +1924,8 @@ const PortalAdmin: React.FC = () => {
                   <KeyRound size={12} /> {t.teamLoginBadge}
                 </p>
                 <div className="mt-14 max-w-[620px] sm:mt-20 lg:mt-24">
-                  <h1 className="max-w-[10ch] font-display text-5xl font-bold leading-[0.84] tracking-[-0.085em] sm:text-7xl lg:text-[5.8rem]">{t.title}</h1>
-                  <p className="mt-6 max-w-sm font-mono text-[10px] leading-5 tracking-[0.035em] text-white/75 sm:mt-8 sm:text-xs sm:leading-6">{t.subtitle}</p>
+                  <h1 className="max-w-[13ch] font-display text-4xl font-bold leading-[0.9] tracking-[-0.065em] sm:text-6xl lg:text-[4.75rem]">{t.title}</h1>
+                  <p className="mt-5 max-w-sm font-mono text-[11px] leading-6 tracking-[0.02em] text-white/75 sm:mt-7 sm:text-[13px]">{t.subtitle}</p>
                 </div>
               </div>
               <div className="relative mt-10 flex items-end justify-between gap-4 border-t border-white/25 pt-4">
@@ -1944,14 +1944,14 @@ const PortalAdmin: React.FC = () => {
                 </div>
                 <PortalLanguageSwitcher language={language} onChange={setLanguage} />
               </div>
-              <h2 className="max-w-[11ch] font-display text-4xl font-bold leading-[0.9] tracking-[-0.075em] sm:text-5xl">{t.teamLoginWelcome}</h2>
+              <h2 className="max-w-[13ch] font-display text-4xl font-bold leading-[0.96] tracking-[-0.06em] sm:text-[2.75rem]">{t.teamLoginWelcome}</h2>
               <div className="mt-8">
                 <label className="mb-5 block">
-                  <span className="mb-2 block font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-neutral-700">{t.email}</span>
+                  <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-700">{t.email}</span>
                   <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 text-sm outline-none transition placeholder:text-neutral-400 focus:ring-2 focus:ring-[#142526]/15" />
                 </label>
                 <div>
-                  <label htmlFor="admin-login-password" className="mb-2 block font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-neutral-700">{t.password}</label>
+                  <label htmlFor="admin-login-password" className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-700">{t.password}</label>
                   <div className="relative">
                     <input id="admin-login-password" name="password" type={adminPasswordVisible ? 'text' : 'password'} autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 pr-12 text-sm outline-none transition focus:ring-2 focus:ring-[#142526]/15" />
                     <button

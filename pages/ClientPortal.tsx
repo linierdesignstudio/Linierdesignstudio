@@ -1729,8 +1729,8 @@ const ClientPortal: React.FC = () => {
                   <span className="h-1.5 w-1.5 rounded-full bg-[#b8c89f]" /> LINIER STUDIO <span className="text-white/35">/</span> CLIENT JOURNAL
                 </p>
                 <div className="mt-14 max-w-[620px] sm:mt-20 lg:mt-24">
-                  <h1 className="max-w-[10ch] font-display text-5xl font-bold leading-[0.84] tracking-[-0.085em] sm:text-7xl lg:text-[5.8rem]">{t.title}</h1>
-                  <p className="mt-6 max-w-sm font-mono text-[10px] leading-5 tracking-[0.035em] text-white/75 sm:mt-8 sm:text-xs sm:leading-6">{t.subtitle}</p>
+                  <h1 className="max-w-[13ch] font-display text-4xl font-bold leading-[0.9] tracking-[-0.065em] sm:text-6xl lg:text-[4.75rem]">{t.title}</h1>
+                  <p className="mt-5 max-w-sm font-mono text-[11px] leading-6 tracking-[0.02em] text-white/75 sm:mt-7 sm:text-[13px]">{t.subtitle}</p>
                 </div>
               </div>
               <div className="relative mt-10 flex items-end justify-between border-t border-white/25 pt-4 sm:pt-5">
@@ -1748,9 +1748,9 @@ const ClientPortal: React.FC = () => {
                 </span>
                 <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">ACCESS / 01</span>
               </div>
-              <h2 className="mb-8 max-w-[9ch] font-display text-5xl font-bold leading-[0.86] tracking-[-0.075em] sm:text-6xl">{resetMode ? t.resetTitle : t.signIn}</h2>
+              <h2 className="mb-8 max-w-[12ch] font-display text-4xl font-bold leading-[0.92] tracking-[-0.06em] sm:text-[3.25rem]">{resetMode ? t.resetTitle : t.signIn}</h2>
               <label className="mb-6 block">
-                <span className="mb-2 block font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-white/65">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
+                <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
                 <input
                   autoComplete="username"
                   autoCapitalize="none"
@@ -1763,7 +1763,7 @@ const ClientPortal: React.FC = () => {
               </label>
               {resetMode ? (
                 <label className="mb-6 block">
-                  <span className="mb-2 block font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-white/65">{t.whatsapp}</span>
+                  <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{t.whatsapp}</span>
                   <input
                     type="tel"
                     autoComplete="tel"
@@ -1778,7 +1778,7 @@ const ClientPortal: React.FC = () => {
                 </label>
               ) : (
                 <div className="mb-2">
-                  <label htmlFor="client-portal-password" className="mb-2 block font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-white/65">{t.password}</label>
+                  <label htmlFor="client-portal-password" className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{t.password}</label>
                   <div className="relative">
                     <input
                       id="client-portal-password"
