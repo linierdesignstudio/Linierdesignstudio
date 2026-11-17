@@ -1918,7 +1918,6 @@ const PortalAdmin: React.FC = () => {
             <section className="relative flex min-h-[340px] flex-col justify-between overflow-hidden bg-[#191a16] p-6 text-white sm:min-h-[480px] sm:p-10 lg:min-h-[640px] lg:p-14">
               <img src={heroImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-55" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/35" />
-              <span aria-hidden="true" className="pointer-events-none absolute -bottom-10 right-3 font-display text-[12rem] font-bold leading-none tracking-[-0.12em] text-white/[0.08] sm:right-8 sm:text-[17rem]">02</span>
               <div className="relative">
                 <p className="inline-flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/80">
                   <KeyRound size={12} /> {t.teamLoginBadge}

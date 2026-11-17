@@ -12,9 +12,8 @@ import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKin
 const copy = {
   ID: {
     eyebrow: 'LINIER STUDIO / PORTAL KLIEN',
-    title: 'Kelola progress proyek.',
-    subtitle: 'Masuk untuk membuat akses klien dan membagikan update harian.',
-    loginWelcome: 'Selamat datang, silakan masuk ke akun Anda.',
+    title: 'Perjalanan proyek Anda.',
+    subtitle: 'Masuk untuk melihat perkembangan terbaru langsung dari tim studio.',
     projectId: 'ID Proyek',
     loginIdentifier: 'ID proyek atau email',
     chooseProject: 'Pilih proyek',
@@ -177,9 +176,8 @@ const copy = {
   },
   EN: {
     eyebrow: 'LINIER STUDIO / CLIENT PORTAL',
-    title: 'Manage project progress.',
-    subtitle: 'Sign in to create client access and share daily updates.',
-    loginWelcome: 'Welcome, sign in to your account.',
+    title: 'Your project journey.',
+    subtitle: 'Sign in to see the latest progress directly from the studio team.',
     projectId: 'Project ID',
     loginIdentifier: 'Project ID or email',
     chooseProject: 'Choose a project',
@@ -342,9 +340,8 @@ const copy = {
   },
   CN: {
     eyebrow: 'LINIER STUDIO / 客户门户',
-    title: '管理项目进度。',
-    subtitle: '登录以创建客户访问权限并发布每日更新。',
-    loginWelcome: '欢迎，请登录您的账号。',
+    title: '您的项目进程。',
+    subtitle: '登录后即可查看工作室团队分享的最新进度。',
     projectId: '项目编号',
     loginIdentifier: '项目编号或邮箱',
     chooseProject: '选择项目',
@@ -1726,7 +1723,6 @@ const ClientPortal: React.FC = () => {
             <section className="relative flex min-h-[340px] flex-col justify-between overflow-hidden bg-[#252722] p-6 text-white sm:min-h-[480px] sm:p-10 lg:min-h-[640px] lg:p-14">
               <img src={clientPortalImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-60" />
               <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/55 via-neutral-950/15 to-neutral-950/80" />
-              <span aria-hidden="true" className="pointer-events-none absolute -bottom-10 right-3 font-display text-[12rem] font-bold leading-none tracking-[-0.12em] text-white/[0.08] sm:right-8 sm:text-[17rem]">01</span>
               <div className="relative">
                 <p className="inline-flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/80">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#b8c89f]" /> LINIER STUDIO <span className="text-white/35">/</span> CLIENT JOURNAL
@@ -1751,7 +1747,7 @@ const ClientPortal: React.FC = () => {
                 </span>
                 <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">ACCESS / 01</span>
               </div>
-              <h2 className="mb-8 max-w-[13ch] font-display text-4xl font-bold leading-[0.96] tracking-[-0.06em] sm:text-[2.75rem]">{resetMode ? t.resetTitle : t.loginWelcome}</h2>
+              <h2 className="mb-8 max-w-[12ch] font-display text-4xl font-bold leading-[0.92] tracking-[-0.06em] sm:text-[3.25rem]">{resetMode ? t.resetTitle : t.signIn}</h2>
               <label className="mb-6 block">
                 <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
                 <input
