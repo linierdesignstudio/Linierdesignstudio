@@ -966,7 +966,7 @@ const ClientPortal: React.FC = () => {
     { id: 'project-changes', label: t.changeTitle, icon: <ClipboardList size={17} /> },
   ];
   const mobileNavigation = (
-    <nav aria-label={t.journal} className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-neutral-200 bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-[0_-8px_24px_rgba(27,25,20,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111210]/95 md:hidden">
+    <nav aria-label={t.journal} className="fixed inset-x-3 z-40 grid grid-cols-6 rounded-2xl border border-neutral-200 bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-[0_12px_36px_rgba(27,25,20,0.16)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111210]/95 md:hidden" style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
       {portalNavigation.map((item) => (
         <button
           key={item.id}
@@ -1026,7 +1026,7 @@ const ClientPortal: React.FC = () => {
         </div>
 
         {project && !loading && (
-          <nav aria-label={t.journal} className="mb-6 hidden grid-cols-3 gap-2 md:grid lg:grid-cols-6">
+          <nav aria-label={t.journal} className="mb-6 hidden grid-cols-3 gap-2 rounded-2xl border border-neutral-200 bg-white/80 p-2 shadow-lg shadow-neutral-900/5 backdrop-blur-xl dark:border-white/10 dark:bg-neutral-900/80 dark:shadow-black/20 md:grid lg:grid-cols-6">
             {portalNavigation.map((item) => (
               <button
                 key={item.id}
