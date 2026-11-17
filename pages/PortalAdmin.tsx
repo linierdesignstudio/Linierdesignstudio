@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, Download, Eye, FileCheck2, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Search, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, Download, Eye, EyeOff, FileCheck2, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Search, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -17,6 +17,8 @@ const copy = {
     teamLoginWelcome: 'Selamat datang, silakan masuk ke akun Anda.',
     email: 'Email admin/staf',
     password: 'Password admin/staf',
+    showPassword: 'Tampilkan password',
+    hidePassword: 'Sembunyikan password',
     forgotPassword: 'Lupa password admin?',
     forgotPasswordHint: 'Untuk admin, ubah PORTAL_ADMIN_PASSWORD; untuk staf, ubah PORTAL_STAFF_PASSWORD di Environment Variables Vercel, lalu redeploy.',
     contact: 'Kontak',
@@ -251,6 +253,8 @@ const copy = {
     teamLoginWelcome: 'Welcome, sign in to your account.',
     email: 'Admin/staff email',
     password: 'Admin/staff password',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
     forgotPassword: 'Forgot admin password?',
     forgotPasswordHint: 'For admins, update PORTAL_ADMIN_PASSWORD; for staff, update PORTAL_STAFF_PASSWORD in Vercel Environment Variables, then redeploy.',
     contact: 'Contact',
@@ -485,6 +489,8 @@ const copy = {
     teamLoginWelcome: '欢迎，请登录您的账号。',
     email: '管理员/员工邮箱',
     password: '管理员/员工密码',
+    showPassword: '显示密码',
+    hidePassword: '隐藏密码',
     forgotPassword: '忘记管理员密码？',
     forgotPasswordHint: '管理员请更新 PORTAL_ADMIN_PASSWORD；员工请更新 PORTAL_STAFF_PASSWORD，然后重新部署。',
     contact: '联系我们',
@@ -765,6 +771,7 @@ const PortalAdmin: React.FC = () => {
   const [checking, setChecking] = useState(true);
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [adminPasswordVisible, setAdminPasswordVisible] = useState(false);
   const [projects, setProjects] = useState<PortalProject[]>([]);
   const [passwordRequests, setPasswordRequests] = useState<PasswordResetRequest[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<AdminFeedback[]>([]);
@@ -966,6 +973,7 @@ const PortalAdmin: React.FC = () => {
       setAuthenticated(true);
       setAdminEmail('');
       setAdminPassword('');
+      setAdminPasswordVisible(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Tidak dapat masuk ke admin.');
     } finally {
@@ -1835,10 +1843,22 @@ const PortalAdmin: React.FC = () => {
                   <span className="mb-2 block text-xs font-medium text-neutral-700">{t.email}</span>
                   <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 text-sm outline-none transition placeholder:text-neutral-400 focus:ring-2 focus:ring-[#142526]/15" />
                 </label>
-                <label className="block">
-                  <span className="mb-2 block text-xs font-medium text-neutral-700">{t.password}</span>
-                  <input name="password" type="password" autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 text-sm outline-none transition focus:ring-2 focus:ring-[#142526]/15" />
-                </label>
+                <div>
+                  <label htmlFor="admin-login-password" className="mb-2 block text-xs font-medium text-neutral-700">{t.password}</label>
+                  <div className="relative">
+                    <input id="admin-login-password" name="password" type={adminPasswordVisible ? 'text' : 'password'} autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 pr-12 text-sm outline-none transition focus:ring-2 focus:ring-[#142526]/15" />
+                    <button
+                      type="button"
+                      onClick={() => setAdminPasswordVisible((visible) => !visible)}
+                      aria-label={adminPasswordVisible ? t.hidePassword : t.showPassword}
+                      aria-pressed={adminPasswordVisible}
+                      title={adminPasswordVisible ? t.hidePassword : t.showPassword}
+                      className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-full text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#142526]"
+                    >
+                      {adminPasswordVisible ? <EyeOff size={17} /> : <Eye size={17} />}
+                    </button>
+                  </div>
+                </div>
               </div>
               {error && <div className="mt-4"><ErrorBanner message={error} /></div>}
               <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
