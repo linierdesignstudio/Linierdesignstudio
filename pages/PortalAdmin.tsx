@@ -1773,8 +1773,6 @@ const PortalAdmin: React.FC = () => {
         {authenticated && activeSection === 'admin-dashboard' && <header id="admin-dashboard" className="relative mb-6 min-w-0 scroll-mt-24 overflow-hidden rounded-2xl bg-neutral-900 p-4 text-white shadow-[0_24px_70px_rgba(27,25,20,0.12)] sm:mb-8 sm:rounded-3xl sm:p-10 lg:p-12">
           <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-40" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-900/80 to-neutral-900/25" />
-          <div className="pointer-events-none absolute -right-12 -top-32 h-80 w-80 rounded-full border border-white/10" />
-          <div className="pointer-events-none absolute -right-2 -top-20 h-60 w-60 rounded-full border border-bronze-500/30" />
           <div className="relative flex items-center justify-between gap-4">
             {!authenticated && (
               <Link to="/portal" className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2.5 font-mono text-[9px] uppercase tracking-[0.16em] text-white/65 transition-colors hover:border-white/35 hover:bg-white/[0.08] hover:text-white">
