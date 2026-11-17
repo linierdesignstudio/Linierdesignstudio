@@ -92,14 +92,14 @@ const copy = {
     strapline: 'Catatan proyek, disusun dengan perhatian.',
     journal: 'Catatan proyek',
     feedbackTitle: 'Feedback untuk tim studio',
-    feedbackDescription: 'Sampaikan pertanyaan atau masukan terkait proyek. Tim studio dapat membalas melalui portal ini, tetapi balasan tidak wajib.',
+    feedbackDescription: 'Sampaikan pertanyaan atau masukan terkait proyek melalui portal ini.',
     feedbackMessage: 'Pesan',
     feedbackPlaceholder: 'Tulis feedback atau pertanyaan Anda...',
     feedbackSend: 'Kirim feedback',
     feedbackSending: 'Mengirim...',
     feedbackSent: 'Feedback berhasil dikirim.',
     feedbackEmpty: 'Belum ada feedback untuk proyek ini.',
-    feedbackWaiting: 'Belum dibalas (balasan tidak wajib)',
+    feedbackWaiting: 'Terkirim',
     feedbackReply: 'Balasan tim studio',
     feedbackReplyByAdmin: 'Dibalas admin',
     feedbackReplyByStaff: 'Dibalas staf',
@@ -252,14 +252,14 @@ const copy = {
     strapline: 'Project updates, shared with care.',
     journal: 'Project journal',
     feedbackTitle: 'Feedback for the studio team',
-    feedbackDescription: 'Share a question or note about your project. The studio team may reply through this portal, but a reply is not required.',
+    feedbackDescription: 'Send a question or note about your project through this portal.',
     feedbackMessage: 'Message',
     feedbackPlaceholder: 'Write your feedback or question...',
     feedbackSend: 'Send feedback',
     feedbackSending: 'Sending...',
     feedbackSent: 'Feedback sent successfully.',
     feedbackEmpty: 'There is no feedback for this project yet.',
-    feedbackWaiting: 'Not replied (a reply is optional)',
+    feedbackWaiting: 'Sent',
     feedbackReply: 'Studio team reply',
     feedbackReplyByAdmin: 'Replied by admin',
     feedbackReplyByStaff: 'Replied by staff',
@@ -412,14 +412,14 @@ const copy = {
     strapline: '用心记录项目进展。',
     journal: '项目记录',
     feedbackTitle: '向工作室团队反馈',
-    feedbackDescription: '提交与项目相关的问题或建议。工作室团队可以通过此门户回复，但不要求必须回复。',
+    feedbackDescription: '通过此门户提交与项目相关的问题或建议。',
     feedbackMessage: '内容',
     feedbackPlaceholder: '请输入您的反馈或问题...',
     feedbackSend: '发送反馈',
     feedbackSending: '正在发送...',
     feedbackSent: '反馈已成功发送。',
     feedbackEmpty: '此项目暂无反馈。',
-    feedbackWaiting: '尚未回复（回复并非必需）',
+    feedbackWaiting: '已发送',
     feedbackReply: '工作室团队回复',
     feedbackReplyByAdmin: '管理员回复',
     feedbackReplyByStaff: '员工回复',
@@ -511,6 +511,7 @@ const ClientPortal: React.FC = () => {
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
   const [bankSettings, setBankSettings] = useState<PortalPaymentSettings | null>(null);
   const [bankSettingsLoading, setBankSettingsLoading] = useState(false);
+  const [bankSettingsError, setBankSettingsError] = useState('');
   const [changeOrders, setChangeOrders] = useState<ProjectChangeOrder[]>([]);
   const [notifications, setNotifications] = useState<PortalNotification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
@@ -628,17 +629,19 @@ const ClientPortal: React.FC = () => {
     if (!project) {
       setBankSettings(null);
       setBankSettingsLoading(false);
+      setBankSettingsError('');
       return () => { active = false; };
     }
 
     setBankSettings(null);
+    setBankSettingsError('');
     setBankSettingsLoading(true);
     portalRequest<{ settings: PortalPaymentSettings }>(`/api/portal/payment-settings?projectId=${encodeURIComponent(project.id)}`)
       .then(({ settings }) => {
         if (active) setBankSettings(settings);
       })
       .catch((cause: unknown) => {
-        if (active) setError(cause instanceof Error ? cause.message : t.bankAccountLoadFailed);
+        if (active) setBankSettingsError(cause instanceof Error ? cause.message : t.bankAccountLoadFailed);
       })
       .finally(() => {
         if (active) setBankSettingsLoading(false);
@@ -1448,6 +1451,8 @@ const ClientPortal: React.FC = () => {
                 </div>
                 {bankSettingsLoading ? (
                   <p className="mt-4 text-sm text-neutral-500">{t.bankAccountLoading}</p>
+                ) : bankSettingsError ? (
+                  <p role="alert" className="mt-4 text-sm leading-6 text-red-700 dark:text-red-300">{bankSettingsError}</p>
                 ) : bankSettings && (bankSettings.bank_name || bankSettings.account_number || bankSettings.account_holder) ? (
                   <dl className="mt-4 grid gap-3 border-t border-neutral-200 pt-4 sm:grid-cols-2 dark:border-white/10">
                     {bankSettings.account_number && <div><dt className="text-[10px] uppercase tracking-wider text-neutral-500">{t.bankAccountNumber}</dt><dd className="mt-1 break-all font-mono text-lg font-semibold tracking-wide">{bankSettings.account_number}</dd></div>}
@@ -1658,7 +1663,6 @@ const ClientPortal: React.FC = () => {
             )}
             <button type="button" onClick={() => setFeedbackChatOpen((open) => !open)} aria-label={feedbackChatOpen ? t.feedbackClose : t.feedbackOpen} aria-expanded={feedbackChatOpen} aria-controls={feedbackChatOpen ? 'client-feedback-chat' : undefined} title={feedbackChatOpen ? t.feedbackClose : t.feedbackOpen} className="fixed bottom-24 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#272925] text-white shadow-[0_12px_35px_rgba(27,25,20,0.28)] transition hover:-translate-y-0.5 hover:bg-bronze-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-bronze-500 dark:bg-white dark:text-neutral-950 dark:hover:bg-bronze-300 md:bottom-5">
               {feedbackChatOpen ? <X size={21} /> : <MessageCircle size={21} />}
-              {!feedbackChatOpen && feedbackItems.some((item) => !item.reply) && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-bronze-500 dark:border-neutral-900" />}
             </button>
             {mobileNavigation}
             {previewAttachment && (

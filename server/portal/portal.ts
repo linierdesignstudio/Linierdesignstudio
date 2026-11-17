@@ -152,6 +152,9 @@ export async function supabaseRequest<T>(
     if (response.status === 409) {
       throw new HttpError(409, 'ID proyek tersebut sudah digunakan.');
     }
+    if (response.status === 404 && path.split('?')[0] === 'portal_payment_settings') {
+      throw new HttpError(503, 'Pengaturan rekening belum tersedia. Jalankan pembaruan supabase/schema.sql di Supabase.');
+    }
     throw new HttpError(502, 'Data portal tidak dapat dimuat. Silakan coba kembali.');
   }
 

@@ -180,7 +180,7 @@ const copy = {
     feedbackSendReply: 'Kirim balasan',
     feedbackSaveReply: 'Perbarui balasan',
     feedbackReplySaved: 'Balasan feedback berhasil disimpan.',
-    feedbackWaiting: 'Belum dibalas',
+    feedbackWaiting: 'Diterima',
     feedbackReplied: 'Sudah dibalas',
     clientCount: 'Jumlah klien',
     billingNav: 'Tagihan',
@@ -431,7 +431,7 @@ const copy = {
     feedbackSendReply: 'Send reply',
     feedbackSaveReply: 'Update reply',
     feedbackReplySaved: 'Feedback reply saved.',
-    feedbackWaiting: 'Not replied',
+    feedbackWaiting: 'Received',
     feedbackReplied: 'Replied',
     clientCount: 'Total clients',
     billingNav: 'Billing',
@@ -682,7 +682,7 @@ const copy = {
     feedbackSendReply: '发送回复',
     feedbackSaveReply: '更新回复',
     feedbackReplySaved: '反馈回复已保存。',
-    feedbackWaiting: '尚未回复',
+    feedbackWaiting: '已收到',
     feedbackReplied: '已回复',
     clientCount: '客户数量',
     billingNav: '账单',
@@ -2243,7 +2243,7 @@ const PortalAdmin: React.FC = () => {
                   {paymentSettingsLoading ? (
                     <p className="text-sm text-neutral-500">{t.bankSettingsLoading}</p>
                   ) : !paymentSettings ? (
-                    <p className="text-sm text-neutral-500">{paymentSettingsError || t.bankSettingsLoading}</p>
+                    null
                   ) : (
                     <>
                       <div className="grid gap-4 sm:grid-cols-2">
