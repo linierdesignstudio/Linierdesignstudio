@@ -6,6 +6,7 @@ import PortalFilePreview from '../components/PortalFilePreview';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
 import { useLanguage } from '../contexts/LanguageContext';
 import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalNotification, type PortalPaymentSettings, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { findPortalBank } from '../lib/portalBanks';
 import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
 
 const copy = {
@@ -107,7 +108,7 @@ const copy = {
     feedbackOpen: 'Buka chat feedback',
     feedbackClose: 'Tutup chat feedback',
     billingTitle: 'Tagihan & pembayaran',
-    bankTransferTitle: 'Rekening untuk transfer',
+    bankTransferTitle: 'Rekening Linier untuk transfer',
     bankName: 'Bank',
     bankAccountNumber: 'Nomor rekening',
     bankAccountHolder: 'Atas nama',
@@ -267,7 +268,7 @@ const copy = {
     feedbackOpen: 'Open feedback chat',
     feedbackClose: 'Close feedback chat',
     billingTitle: 'Billing & payments',
-    bankTransferTitle: 'Bank transfer details',
+    bankTransferTitle: 'Linier transfer account',
     bankName: 'Bank',
     bankAccountNumber: 'Account number',
     bankAccountHolder: 'Account holder',
@@ -427,7 +428,7 @@ const copy = {
     feedbackOpen: '打开反馈聊天',
     feedbackClose: '关闭反馈聊天',
     billingTitle: '账单与付款',
-    bankTransferTitle: '银行转账信息',
+    bankTransferTitle: 'Linier 转账账户',
     bankName: '银行',
     bankAccountNumber: '账号',
     bankAccountHolder: '账户持有人',
@@ -510,6 +511,7 @@ const ClientPortal: React.FC = () => {
   const [feedbackItems, setFeedbackItems] = useState<ClientFeedback[]>([]);
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
   const [bankSettings, setBankSettings] = useState<PortalPaymentSettings | null>(null);
+  const selectedBank = findPortalBank(bankSettings?.bank_name);
   const [bankSettingsLoading, setBankSettingsLoading] = useState(false);
   const [bankSettingsError, setBankSettingsError] = useState('');
   const [changeOrders, setChangeOrders] = useState<ProjectChangeOrder[]>([]);
@@ -1437,31 +1439,6 @@ const ClientPortal: React.FC = () => {
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileCheck2 size={18} /></span>
                 <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.billingTitle}</h2></div>
               </div>
-              <div className="mb-5 rounded-2xl border border-[#d9d4c9] bg-[#f8f6f1] p-4 sm:p-5 dark:border-white/10 dark:bg-white/[0.03]">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-neutral-950">
-                    {bankSettings?.bank_logo_url
-                      ? <img src={bankSettings.bank_logo_url} alt={bankSettings.bank_name || t.bankName} className="max-h-full max-w-full object-contain" />
-                      : <Landmark size={21} className="text-[#8c795e] dark:text-bronze-400" />}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">{t.bankTransferTitle}</p>
-                    {bankSettings?.bank_name && <h3 className="mt-1 truncate font-display text-base font-semibold">{bankSettings.bank_name}</h3>}
-                  </div>
-                </div>
-                {bankSettingsLoading ? (
-                  <p className="mt-4 text-sm text-neutral-500">{t.bankAccountLoading}</p>
-                ) : bankSettingsError ? (
-                  <p role="alert" className="mt-4 text-sm leading-6 text-red-700 dark:text-red-300">{bankSettingsError}</p>
-                ) : bankSettings && (bankSettings.bank_name || bankSettings.account_number || bankSettings.account_holder) ? (
-                  <dl className="mt-4 grid gap-3 border-t border-neutral-200 pt-4 sm:grid-cols-2 dark:border-white/10">
-                    {bankSettings.account_number && <div><dt className="text-[10px] uppercase tracking-wider text-neutral-500">{t.bankAccountNumber}</dt><dd className="mt-1 break-all font-mono text-lg font-semibold tracking-wide">{bankSettings.account_number}</dd></div>}
-                    {bankSettings.account_holder && <div><dt className="text-[10px] uppercase tracking-wider text-neutral-500">{t.bankAccountHolder}</dt><dd className="mt-1 break-words text-sm font-medium">{bankSettings.account_holder}</dd></div>}
-                  </dl>
-                ) : (
-                  <p className="mt-4 text-sm leading-6 text-neutral-500">{t.bankAccountNotConfigured}</p>
-                )}
-              </div>
               {billingNotice && <p role="status" className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-xs text-emerald-700 dark:text-emerald-300">{billingNotice}</p>}
               {billingItems.length === 0 ? <p className="py-2 text-sm text-neutral-500">{t.billingEmpty}</p> : (
                 <ul className="grid gap-3 lg:grid-cols-2">
@@ -1473,6 +1450,33 @@ const ClientPortal: React.FC = () => {
                           {item.status === 'paid' ? t.billingPaid : item.status === 'pending_review' ? t.billingPending : item.status === 'rejected' ? t.billingRejected : item.status === 'uploading' ? t.billingUploading : item.due_date < currentDate() ? t.billingOverdue : t.billingUnpaid}
                         </span>
                       </div>
+                      {(item.status === 'unpaid' || item.status === 'rejected') && (
+                        <div className="mt-4 rounded-xl border border-[#d9d4c9] bg-[#f8f6f1] p-3.5 dark:border-white/10 dark:bg-white/[0.03]">
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-10 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-white p-1.5 dark:border-white/10 dark:bg-neutral-950">
+                              {selectedBank
+                                ? <img src={selectedBank.logo} alt={selectedBank.label} className="max-h-full max-w-full object-contain" />
+                                : <Landmark size={18} className="text-[#8c795e] dark:text-bronze-400" />}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-neutral-500 dark:text-neutral-400">{t.bankTransferTitle}</p>
+                              {bankSettings?.bank_name && <p className="mt-0.5 truncate text-sm font-semibold">{selectedBank?.label ?? bankSettings.bank_name}</p>}
+                            </div>
+                          </div>
+                          {bankSettingsLoading ? (
+                            <p className="mt-3 text-xs text-neutral-500">{t.bankAccountLoading}</p>
+                          ) : bankSettingsError ? (
+                            <p role="alert" className="mt-3 text-xs leading-5 text-red-700 dark:text-red-300">{bankSettingsError}</p>
+                          ) : bankSettings && (bankSettings.bank_name || bankSettings.account_number || bankSettings.account_holder) ? (
+                            <dl className="mt-3 grid gap-2 border-t border-neutral-200 pt-3 sm:grid-cols-2 dark:border-white/10">
+                              {bankSettings.account_number && <div><dt className="text-[9px] uppercase tracking-wider text-neutral-500">{t.bankAccountNumber}</dt><dd className="mt-0.5 break-all font-mono text-sm font-semibold tracking-wide">{bankSettings.account_number}</dd></div>}
+                              {bankSettings.account_holder && <div><dt className="text-[9px] uppercase tracking-wider text-neutral-500">{t.bankAccountHolder}</dt><dd className="mt-0.5 break-words text-xs font-medium">{bankSettings.account_holder}</dd></div>}
+                            </dl>
+                          ) : (
+                            <p className="mt-3 text-xs leading-5 text-neutral-500">{t.bankAccountNotConfigured}</p>
+                          )}
+                        </div>
+                      )}
                       {item.payment_proof_url && <a href={item.payment_proof_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-bronze-700 underline underline-offset-2 dark:text-bronze-300"><FileText size={14} /> {t.billingProof}: {item.payment_proof_name || t.viewFile}</a>}
                       {item.payment_proof_submitted_at && item.status !== 'uploading' && item.status !== 'unpaid' && (
                         <p className="mt-3 flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300">
