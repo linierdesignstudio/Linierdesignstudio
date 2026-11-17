@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, LockKeyhole, LogOut, MapPin, MessageCircle, Phone, Search, Send, ShieldCheck, Upload, X } from 'lucide-react';
+import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, LockKeyhole, LogOut, MapPin, MessageCircle, Moon, Phone, Search, Send, ShieldCheck, Sun, Upload, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
@@ -32,6 +32,8 @@ const copy = {
     noUpdates: 'Belum ada pembaruan.',
     noUpdatesHint: 'Update terbaru dari tim proyek akan muncul di halaman ini.',
     logout: 'Keluar',
+    switchToLightTheme: 'Ganti ke mode terang',
+    switchToDarkTheme: 'Ganti ke mode gelap',
     status: 'Status',
     location: 'Lokasi',
     projectType: 'Jenis proyek',
@@ -183,6 +185,8 @@ const copy = {
     noUpdates: 'No updates yet.',
     noUpdatesHint: 'The latest notes from your project team will appear here.',
     logout: 'Sign out',
+    switchToLightTheme: 'Switch to light mode',
+    switchToDarkTheme: 'Switch to dark mode',
     status: 'Status',
     location: 'Location',
     projectType: 'Project type',
@@ -334,6 +338,8 @@ const copy = {
     noUpdates: '暂无更新。',
     noUpdatesHint: '项目团队的最新记录将在此显示。',
     logout: '退出',
+    switchToLightTheme: '切换到浅色模式',
+    switchToDarkTheme: '切换到深色模式',
     status: '状态',
     location: '地点',
     projectType: '项目类型',
@@ -480,6 +486,10 @@ const ClientPortal: React.FC = () => {
   const [notificationsError, setNotificationsError] = useState('');
   const [notificationsRefreshToken, setNotificationsRefreshToken] = useState(0);
   const [activeSection, setActiveSection] = useState('client-dashboard');
+  const [isDark, setIsDark] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
   const [documentSearch, setDocumentSearch] = useState('');
   const [documentType, setDocumentType] = useState<PortalDocumentKind | 'all'>('all');
   const [documentDateFrom, setDocumentDateFrom] = useState('');
@@ -882,6 +892,13 @@ const ClientPortal: React.FC = () => {
     }
   };
 
+  const toggleTheme = () => {
+    const nextIsDark = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', nextIsDark);
+    localStorage.setItem('theme', nextIsDark ? 'dark' : 'light');
+    setIsDark(nextIsDark);
+  };
+
   const openClientPage = (sectionId: string) => {
     setActiveSection(sectionId);
     setFeedbackChatOpen(false);
@@ -1021,6 +1038,9 @@ const ClientPortal: React.FC = () => {
                 </button>
               </>
             )}
+            <button type="button" onClick={toggleTheme} aria-label={isDark ? t.switchToLightTheme : t.switchToDarkTheme} title={isDark ? t.switchToLightTheme : t.switchToDarkTheme} className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/15 dark:bg-[#181916] dark:text-neutral-200 dark:hover:border-bronze-400 sm:h-10 sm:w-10">
+              {isDark ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
             <PortalLanguageSwitcher language={language} onChange={setLanguage} />
           </div>
         </div>
