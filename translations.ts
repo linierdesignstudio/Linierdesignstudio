@@ -234,6 +234,12 @@ const enTranslations = {
       next_steps_intro_title: ['Think wider.', 'Design for living.'],
       next_steps_intro_desc: 'We bring architecture, interiors, and construction into one thoughtful process shaped around people, place, and everyday life.',
       next_steps_intro_cta: 'Explore our approach',
+      next_steps_dna_label: 'Design Principles',
+      next_steps_slides: [
+        { title: 'Curious', subtitle: 'Begin with a better question.', description: 'Every project starts by listening to the people who will experience the space.' },
+        { title: 'Connected', subtitle: 'Bring each element together.', description: 'Architecture, interiors, and daily routines should feel like one coherent whole.' },
+        { title: 'Enduring', subtitle: 'Design for the years ahead.', description: 'Comfort, local climate, and thoughtful material choices guide each decision.' }
+      ],
       have_a: 'Have a',
       vision: 'Vision?',
       lets_discuss: "Let's Discuss",
@@ -619,6 +625,12 @@ export const translations: Record<Language, any> = {
         next_steps_intro_title: ['Berpikir lebih luas.', 'Rancang untuk kehidupan.'],
         next_steps_intro_desc: 'Kami menyatukan arsitektur, interior, dan konstruksi dalam satu proses yang berangkat dari manusia, tempat, dan keseharian.',
         next_steps_intro_cta: 'Jelajahi pendekatan kami',
+        next_steps_dna_label: 'Prinsip Desain',
+        next_steps_slides: [
+          { title: 'Peka', subtitle: 'Mulai dari pertanyaan yang tepat.', description: 'Setiap rancangan dimulai dengan mendengar orang-orang yang akan menggunakan ruangnya.' },
+          { title: 'Terpadu', subtitle: 'Satukan setiap elemen.', description: 'Arsitektur, interior, dan rutinitas sehari-hari perlu menyatu secara utuh.' },
+          { title: 'Lestari', subtitle: 'Rancang untuk masa depan.', description: 'Kenyamanan, iklim setempat, dan pilihan material yang cermat membentuk setiap keputusan.' }
+        ],
         have_a: 'Punya', 
         vision: 'Visi Ruang?', 
         lets_discuss: "Mari Berdiskusi",
@@ -1058,6 +1070,12 @@ export const translations: Record<Language, any> = {
         next_steps_intro_title: ['拓展思考。', '为生活而设计。'],
         next_steps_intro_desc: '我们将建筑、室内与施工融为一体，从场地、人和日常生活出发进行设计。',
         next_steps_intro_cta: '了解我们的方式',
+        next_steps_dna_label: '设计原则',
+        next_steps_slides: [
+          { title: '探索', subtitle: '从更好的问题开始。', description: '每个项目都始于倾听空间使用者的真实需求。' },
+          { title: '协同', subtitle: '让每个部分彼此契合。', description: '建筑、室内与日常活动共同构成完整的空间体验。' },
+          { title: '恒久', subtitle: '为未来长久设计。', description: '舒适度、当地气候与审慎的材料选择共同影响每个决定。' }
+        ],
         have_a: '有新项目的', vision: '构想?', lets_discuss: "让我们谈谈",
         journal_title: "解构设计", elements_title: "核心元素", elements_desc: "将我们的设计语言解构为最实用的建筑实体：采光、触感和空间感。", read_article: "探索",
         marquee: "创新 — 精准 — 可持续 — 尊享生活 — 永恒设计 — ",
