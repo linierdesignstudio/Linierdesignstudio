@@ -1488,21 +1488,23 @@ const ClientPortal: React.FC = () => {
           </section>
           )
         ) : (
-          <div className="grid min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_80px_rgba(27,25,20,0.10)] sm:rounded-3xl lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] dark:border-white/10 dark:bg-neutral-900 dark:shadow-black/25">
-            <section className="relative flex min-h-[360px] flex-col justify-between overflow-hidden bg-[#252722] p-5 text-white sm:min-h-[520px] sm:p-10 lg:p-14">
-              <img src={clientPortalImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-40" />
-              <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/90 via-neutral-900/55 to-neutral-950/75" />
+          <div className="mx-auto grid min-w-0 max-w-[1180px] overflow-hidden rounded-[1.6rem] border-[5px] border-[#11120f] bg-[#080908] shadow-[0_30px_90px_rgba(20,21,17,0.22)] sm:rounded-[2rem] lg:grid-cols-[minmax(0,1.04fr)_minmax(0,0.96fr)]">
+            <section className="relative flex min-h-[300px] flex-col justify-between overflow-hidden bg-[#252722] p-5 text-white sm:min-h-[430px] sm:p-9 lg:min-h-[560px] lg:p-12">
+              <img src={clientPortalImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-55" />
+              <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/35 via-neutral-950/20 to-neutral-950/85" />
               <div className="pointer-events-none absolute -right-20 top-1/4 h-72 w-72 rounded-full border border-white/10" />
               <div className="pointer-events-none absolute -right-10 top-1/3 h-52 w-52 rounded-full border border-white/10" />
               <div className="relative">
-                <p className="mb-10 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/15 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/75 sm:mb-16">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#b39b74]" /> LINIER STUDIO <span className="text-white/35">/</span> CLIENT JOURNAL
+                <p className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/20 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/80 backdrop-blur-sm">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#b8c89f]" /> LINIER STUDIO <span className="text-white/35">/</span> CLIENT JOURNAL
                 </p>
-                <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-white/60">{t.eyebrow}</p>
-                <h1 className="max-w-xl font-display text-4xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-6xl">{t.title}</h1>
-                <p className="mt-6 max-w-md text-sm leading-7 text-white/75 sm:text-base">{t.subtitle}</p>
+                <div className="mt-16 max-w-xl sm:mt-24">
+                  <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.2em] text-white/65">{t.eyebrow}</p>
+                  <h1 className="font-display text-3xl font-medium leading-[1.02] tracking-[-0.04em] sm:text-5xl lg:text-6xl">{t.title}</h1>
+                  <p className="mt-4 max-w-md text-xs leading-6 text-white/75 sm:mt-5 sm:text-sm sm:leading-7">{t.subtitle}</p>
+                </div>
               </div>
-              <div className="relative flex flex-col items-start gap-3 border-t border-white/25 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pt-5">
+              <div className="relative mt-8 flex flex-col items-start gap-3 border-t border-white/25 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pt-5">
                 <span className="text-xs leading-5 text-white/65">{t.strapline}</span>
                 <Link to="/portal/admin" className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/20 px-3 py-2 text-[11px] font-medium text-white/85 transition-colors hover:border-white/50 hover:bg-white/10 hover:text-white">
                   {t.admin} <ArrowUpRight size={14} />
@@ -1510,17 +1512,17 @@ const ClientPortal: React.FC = () => {
               </div>
             </section>
 
-            <form onSubmit={resetMode ? requestPasswordReset : signIn} className="flex flex-col justify-center px-5 py-7 sm:px-10 sm:py-12 lg:px-14">
+            <form onSubmit={resetMode ? requestPasswordReset : signIn} className="flex flex-col justify-center bg-[#080908] px-5 py-8 text-white sm:px-10 sm:py-12 lg:px-12 lg:py-14">
               <div className="mb-7 flex items-center gap-3 sm:mb-10">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#d9d4c9] bg-[#f7f5f0] text-neutral-700 dark:border-white/15 dark:bg-white/[0.04] dark:text-white">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] text-[#c5d2b0]">
                   <LockKeyhole size={16} strokeWidth={1.5} />
                 </span>
-                <span className="text-sm font-semibold tracking-wide">Linier <span className="font-normal text-neutral-400">/ Studio</span></span>
+                <span className="text-sm font-semibold tracking-wide">Linier <span className="font-normal text-white/40">/ Studio</span></span>
               </div>
-              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-500">{resetMode ? t.resetTitle : t.eyebrow}</p>
+              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">{resetMode ? t.resetTitle : t.eyebrow}</p>
               <h2 className="mb-8 font-display text-3xl font-medium tracking-tight sm:text-4xl">{resetMode ? t.resetTitle : t.signIn}</h2>
               <label className="mb-6 block">
-                <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
+                <span className="mb-2 block text-sm font-medium text-white/80">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
                 <input
                   autoComplete="username"
                   autoCapitalize="none"
@@ -1528,12 +1530,12 @@ const ClientPortal: React.FC = () => {
                   onChange={(event) => setProjectCode(event.target.value)}
                   required
                   maxLength={254}
-                  className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3.5 text-sm outline-none transition placeholder:text-neutral-400 focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400 dark:focus:ring-bronze-400/10"
+                  className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10"
                 />
               </label>
               {resetMode ? (
                 <label className="mb-6 block">
-                  <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.whatsapp}</span>
+                  <span className="mb-2 block text-sm font-medium text-white/80">{t.whatsapp}</span>
                   <input
                     type="tel"
                     autoComplete="tel"
@@ -1542,13 +1544,13 @@ const ClientPortal: React.FC = () => {
                     onChange={(event) => setWhatsappNumber(event.target.value)}
                     required
                     maxLength={24}
-                    className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3.5 text-sm outline-none transition placeholder:text-neutral-400 focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400 dark:focus:ring-bronze-400/10"
+                    className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10"
                   />
-                  <span className="mt-2 block text-xs text-neutral-500">{t.whatsappHint}</span>
+                  <span className="mt-2 block text-xs text-white/45">{t.whatsappHint}</span>
                 </label>
               ) : (
                 <label className="mb-2 block">
-                  <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.password}</span>
+                  <span className="mb-2 block text-sm font-medium text-white/80">{t.password}</span>
                   <input
                     type="password"
                     autoComplete="current-password"
@@ -1556,13 +1558,13 @@ const ClientPortal: React.FC = () => {
                     onChange={(event) => setPassword(event.target.value)}
                     required
                     maxLength={256}
-                    className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3.5 text-sm outline-none transition focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400 dark:focus:ring-bronze-400/10"
+                    className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 text-sm text-white outline-none transition focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10"
                   />
                 </label>
               )}
               {error && <div className="mt-5"><ErrorBanner message={error} /></div>}
               {resetNotice && <p role="status" className="mt-5 border-l-2 border-emerald-700 bg-emerald-50 px-4 py-3 text-xs leading-5 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200">{resetNotice}</p>}
-              <button disabled={submitting} className="mt-7 flex w-full items-center justify-between rounded-xl bg-[#272925] px-5 py-4 text-left text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#45483e] disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
+              <button disabled={submitting} className="mt-7 flex w-full items-center justify-between rounded-lg bg-[#b8c89f] px-5 py-4 text-left text-sm font-semibold text-[#171914] shadow-sm transition-colors hover:bg-[#c7d4b3] disabled:cursor-wait disabled:opacity-60">
                 {submitting ? t.signingIn : resetMode ? t.sendReset : t.signIn} <ArrowUpRight size={17} />
               </button>
               <button
@@ -1573,11 +1575,11 @@ const ClientPortal: React.FC = () => {
                   setError('');
                   setResetNotice('');
                 }}
-                className="mt-6 w-fit rounded-sm text-sm text-neutral-500 underline decoration-[#c9c4b8] underline-offset-4 transition-colors hover:text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8c795e] dark:hover:text-white"
+                className="mt-6 w-fit rounded-sm text-sm text-white/55 underline decoration-white/25 underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b8c89f]"
               >
                 {resetMode ? t.backToSignIn : t.forgotPassword}
               </button>
-              {!resetMode && <p className="mt-8 border-t border-[#e4e0d7] pt-5 text-xs leading-6 text-neutral-500 dark:border-white/10"><ShieldCheck size={15} className="mr-2 inline text-neutral-400" />{t.secure}</p>}
+              {!resetMode && <p className="mt-8 border-t border-white/10 pt-5 text-xs leading-6 text-white/45"><ShieldCheck size={15} className="mr-2 inline text-white/50" />{t.secure}</p>}
             </form>
           </div>
         )}
