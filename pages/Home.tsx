@@ -9,7 +9,7 @@ import TextReveal from '../components/TextReveal';
 import SplitTextReveal from '../components/SplitTextReveal';
 import CyclingSlideText from '../components/CyclingSlideText';
 import PhilosophySection from '../components/PhilosophySection';
-import ProcessSection from '../components/ProcessSection';
+import HorizontalScroll from '../components/HorizontalScroll';
 import HomeApproachSection from '../components/HomeApproachSection';
 import RevealOnScroll from '../components/RevealOnScroll'; // Imported
 import ScrollHighlightText from '../components/ScrollHighlightText'; // Imported
@@ -409,7 +409,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Process Section */}
-      <ProcessSection />
+      <HorizontalScroll />
 
       {/* SEPARATOR */}
       <div className="w-full h-px bg-neutral-200 dark:bg-neutral-800 relative z-50" />
