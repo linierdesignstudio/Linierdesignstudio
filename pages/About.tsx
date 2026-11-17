@@ -133,7 +133,7 @@ const About: React.FC = () => {
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">{t.about.founder_label}</span>
           </div>
 
-          <div className="grid items-end gap-10 md:grid-cols-12 md:gap-8">
+          <div className="grid items-end gap-14 md:grid-cols-12 md:gap-x-20 lg:gap-x-24">
             <motion.figure
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
