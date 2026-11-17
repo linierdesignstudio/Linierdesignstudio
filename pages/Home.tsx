@@ -23,7 +23,7 @@ const getResistedFillProgress = (progress: number, start: number, end: number) =
   return 1 - Math.pow(1 - segmentProgress, 2);
 };
 
-const NEXT_STEP_PAUSE_PROGRESS = 0.1;
+const NEXT_STEP_PAUSE_PROGRESS = 0.18;
 
 const Home: React.FC = () => {
   const containerRef = useRef(null);
@@ -45,9 +45,9 @@ const Home: React.FC = () => {
     offset: ["start start", "end end"]
   });
   const nextStepsDampedProgress = useSpring(nextStepsProgress, {
-    stiffness: 80,
-    damping: 26,
-    mass: 1,
+    stiffness: 55,
+    damping: 30,
+    mass: 1.6,
   });
   const nextStepFills = [
     useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.25, 0.5 - NEXT_STEP_PAUSE_PROGRESS)),
