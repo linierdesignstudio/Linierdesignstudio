@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, Download, Eye, EyeOff, FileCheck2, FileText, FolderOpen, ImagePlus, KeyRound, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Search, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxesColumn, Check, CheckCircle2, ClipboardList, Copy, Download, Eye, EyeOff, FileCheck2, FileText, FolderOpen, ImagePlus, KeyRound, Landmark, Layers, LayoutDashboard, LogOut, Mail, MapPin, MessageCircle, Moon, Phone, Plus, RefreshCw, Search, Send, Sun, Trash2, Upload, Users, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type AdminFeedback, type BillingItem, type PasswordResetRequest, type PortalAttachment, type PortalNotification, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { portalRequest, type AdminFeedback, type BillingItem, type PasswordResetRequest, type PortalAttachment, type PortalNotification, type PortalPaymentSettings, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
 
@@ -185,6 +185,21 @@ const copy = {
     clientCount: 'Jumlah klien',
     billingNav: 'Tagihan',
     billingTitle: 'Tagihan & pembayaran',
+    bankSettingsTitle: 'Rekening transfer klien',
+    bankName: 'Nama bank',
+    bankAccountNumber: 'Nomor rekening',
+    bankAccountHolder: 'Nama pemilik rekening',
+    bankLogo: 'Logo bank',
+    bankLogoHint: 'JPG, PNG, atau WEBP · Maksimal 2 MB.',
+    chooseBankLogo: 'Pilih logo bank',
+    removeBankLogo: 'Hapus logo',
+    restoreBankLogo: 'Batalkan hapus logo',
+    saveBankSettings: 'Simpan rekening bank',
+    savingBankSettings: 'Menyimpan...',
+    bankSettingsSaved: 'Informasi rekening berhasil disimpan.',
+    bankSettingsLoading: 'Memuat informasi rekening...',
+    bankLogoUploadFailed: 'Logo bank gagal diunggah. Periksa konfigurasi penyimpanan.',
+    bankLogoCleanupWarning: 'Informasi tersimpan, tetapi logo lama gagal dihapus dari penyimpanan.',
     billingAdd: 'Tambah termin',
     billingProject: 'Proyek tagihan',
     billingName: 'Nama termin',
@@ -421,6 +436,21 @@ const copy = {
     clientCount: 'Total clients',
     billingNav: 'Billing',
     billingTitle: 'Billing & payments',
+    bankSettingsTitle: 'Client transfer account',
+    bankName: 'Bank name',
+    bankAccountNumber: 'Account number',
+    bankAccountHolder: 'Account holder',
+    bankLogo: 'Bank logo',
+    bankLogoHint: 'JPG, PNG, or WEBP · Up to 2 MB.',
+    chooseBankLogo: 'Choose bank logo',
+    removeBankLogo: 'Remove logo',
+    restoreBankLogo: 'Restore logo',
+    saveBankSettings: 'Save bank account',
+    savingBankSettings: 'Saving...',
+    bankSettingsSaved: 'Bank account details saved.',
+    bankSettingsLoading: 'Loading bank account details...',
+    bankLogoUploadFailed: 'The bank logo could not be uploaded. Check storage configuration.',
+    bankLogoCleanupWarning: 'Details were saved, but the previous logo could not be removed from storage.',
     billingAdd: 'Add installment',
     billingProject: 'Billing project',
     billingName: 'Installment name',
@@ -657,6 +687,21 @@ const copy = {
     clientCount: '客户数量',
     billingNav: '账单',
     billingTitle: '账单与付款',
+    bankSettingsTitle: '客户转账账户',
+    bankName: '银行名称',
+    bankAccountNumber: '银行账号',
+    bankAccountHolder: '账户持有人',
+    bankLogo: '银行标志',
+    bankLogoHint: 'JPG、PNG 或 WEBP · 最大 2 MB。',
+    chooseBankLogo: '选择银行标志',
+    removeBankLogo: '删除标志',
+    restoreBankLogo: '恢复标志',
+    saveBankSettings: '保存银行账户',
+    savingBankSettings: '正在保存...',
+    bankSettingsSaved: '银行账户信息已保存。',
+    bankSettingsLoading: '正在加载银行账户信息...',
+    bankLogoUploadFailed: '无法上传银行标志，请检查存储配置。',
+    bankLogoCleanupWarning: '信息已保存，但无法从存储中删除旧标志。',
     billingAdd: '添加付款阶段',
     billingProject: '账单项目',
     billingName: '阶段名称',
@@ -778,6 +823,13 @@ const PortalAdmin: React.FC = () => {
   const [passwordRequests, setPasswordRequests] = useState<PasswordResetRequest[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<AdminFeedback[]>([]);
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
+  const [paymentSettings, setPaymentSettings] = useState<PortalPaymentSettings | null>(null);
+  const [paymentSettingsLoading, setPaymentSettingsLoading] = useState(false);
+  const [paymentSettingsSaving, setPaymentSettingsSaving] = useState(false);
+  const [paymentSettingsError, setPaymentSettingsError] = useState('');
+  const [paymentSettingsNotice, setPaymentSettingsNotice] = useState('');
+  const [bankLogoFile, setBankLogoFile] = useState<File | null>(null);
+  const [removeBankLogo, setRemoveBankLogo] = useState(false);
   const [billingAmount, setBillingAmount] = useState('');
   const [changeOrders, setChangeOrders] = useState<ProjectChangeOrder[]>([]);
   const [seenFeedbackIds, setSeenFeedbackIds] = useState<Set<string>>(() => new Set(
@@ -930,6 +982,28 @@ const PortalAdmin: React.FC = () => {
       });
     return () => { active = false; };
   }, [authenticated, adminRole, selectedProjectId]);
+
+  useEffect(() => {
+      let active = true;
+      if (!authenticated || adminRole !== 'admin' || activeSection !== 'admin-billing') {
+        setPaymentSettingsLoading(false);
+        return () => { active = false; };
+      }
+
+      setPaymentSettingsLoading(true);
+      setPaymentSettingsError('');
+      portalRequest<{ settings: PortalPaymentSettings }>('/api/portal/payment-settings')
+        .then(({ settings }) => {
+          if (active) setPaymentSettings(settings);
+        })
+        .catch((cause: unknown) => {
+          if (active) setPaymentSettingsError(cause instanceof Error ? cause.message : 'Informasi rekening bank tidak dapat dimuat.');
+        })
+        .finally(() => {
+          if (active) setPaymentSettingsLoading(false);
+        });
+      return () => { active = false; };
+  }, [authenticated, adminRole, activeSection]);
 
   useEffect(() => {
     if (!authenticated || adminRole !== 'admin' || !selectedProjectId || activeSection !== 'admin-billing') return;
@@ -1227,6 +1301,67 @@ const PortalAdmin: React.FC = () => {
       setError(cause instanceof Error ? cause.message : 'Termin pembayaran tidak dapat disimpan.');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const savePaymentSettings = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!paymentSettings) return;
+
+    setPaymentSettingsSaving(true);
+    setPaymentSettingsError('');
+    setPaymentSettingsNotice('');
+    let uploadedLogoPath: string | null = null;
+    try {
+      if (bankLogoFile) {
+        const upload = await portalRequest<{ path: string; uploadUrl: string }>('/api/portal/payment-settings', {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'start-logo-upload',
+            file: { contentType: bankLogoFile.type, size: bankLogoFile.size },
+          }),
+        });
+        uploadedLogoPath = upload.path;
+        const response = await fetch(upload.uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': bankLogoFile.type, 'x-upsert': 'false' },
+          body: bankLogoFile,
+        });
+        if (!response.ok) throw new Error(t.bankLogoUploadFailed);
+      }
+
+      const { settings, cleanupFailed } = await portalRequest<{
+        settings: PortalPaymentSettings;
+        cleanupFailed: boolean;
+      }>('/api/portal/payment-settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          bankName: paymentSettings.bank_name,
+          accountNumber: paymentSettings.account_number,
+          accountHolder: paymentSettings.account_holder,
+          bankLogoPath: uploadedLogoPath ?? (removeBankLogo ? null : paymentSettings.bank_logo_path),
+        }),
+      });
+      setPaymentSettings(settings);
+      setBankLogoFile(null);
+      setRemoveBankLogo(false);
+      setPaymentSettingsNotice(cleanupFailed ? t.bankLogoCleanupWarning : t.bankSettingsSaved);
+    } catch (cause) {
+      let message = cause instanceof Error ? cause.message : 'Informasi rekening bank tidak dapat disimpan.';
+      if (uploadedLogoPath) {
+        try {
+          await portalRequest('/api/portal/payment-settings', {
+            method: 'DELETE',
+            body: JSON.stringify({ path: uploadedLogoPath }),
+          });
+        } catch (cleanupCause) {
+          console.error('Uploaded bank logo cleanup failed after saving payment settings failed:', cleanupCause);
+          message = `${message} ${t.bankLogoCleanupWarning}`;
+        }
+      }
+      setPaymentSettingsError(message);
+    } finally {
+      setPaymentSettingsSaving(false);
     }
   };
 
@@ -2095,6 +2230,76 @@ const PortalAdmin: React.FC = () => {
             )}
             {activeSection === 'admin-billing' && (
               <section id="admin-billing" className="scroll-mt-24 space-y-5">
+                <form onSubmit={savePaymentSettings} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
+                  <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><Landmark size={18} /></span>
+                    <div className="min-w-0">
+                      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{t.bankSettingsTitle}</p>
+                      <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.bankSettingsTitle}</h2>
+                    </div>
+                  </div>
+                  {paymentSettingsError && <p role="alert" className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs leading-5 text-red-700 dark:text-red-300">{paymentSettingsError}</p>}
+                  {paymentSettingsNotice && <p role="status" className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-xs leading-5 text-emerald-700 dark:text-emerald-300">{paymentSettingsNotice}</p>}
+                  {paymentSettingsLoading ? (
+                    <p className="text-sm text-neutral-500">{t.bankSettingsLoading}</p>
+                  ) : !paymentSettings ? (
+                    <p className="text-sm text-neutral-500">{paymentSettingsError || t.bankSettingsLoading}</p>
+                  ) : (
+                    <>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <label className="block">
+                          <span className="mb-2 block text-xs font-medium">{t.bankName}</span>
+                          <input value={paymentSettings.bank_name} onChange={(event) => setPaymentSettings((current) => current ? { ...current, bank_name: event.target.value } : current)} maxLength={80} autoComplete="organization" className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" />
+                        </label>
+                        <label className="block">
+                          <span className="mb-2 block text-xs font-medium">{t.bankAccountNumber}</span>
+                          <input value={paymentSettings.account_number} onChange={(event) => setPaymentSettings((current) => current ? { ...current, account_number: event.target.value } : current)} type="text" inputMode="numeric" autoComplete="off" maxLength={64} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" />
+                        </label>
+                        <label className="block sm:col-span-2">
+                          <span className="mb-2 block text-xs font-medium">{t.bankAccountHolder}</span>
+                          <input value={paymentSettings.account_holder} onChange={(event) => setPaymentSettings((current) => current ? { ...current, account_holder: event.target.value } : current)} maxLength={120} autoComplete="name" className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" />
+                        </label>
+                      </div>
+                      <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-neutral-100 pt-5 dark:border-white/10">
+                        <span className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 p-2 dark:border-white/10 dark:bg-neutral-950">
+                          {paymentSettings.bank_logo_url && !removeBankLogo
+                            ? <img src={paymentSettings.bank_logo_url} alt={paymentSettings.bank_name || t.bankLogo} className="max-h-full max-w-full object-contain" />
+                            : <Landmark size={23} className="text-neutral-400" />}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-medium">{t.bankLogo}</p>
+                          <p className="mt-1 text-[10px] leading-5 text-neutral-500">{t.bankLogoHint}</p>
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700 transition-colors hover:border-bronze-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-200">
+                              <Upload size={14} />
+                              <span className="max-w-48 truncate">{bankLogoFile?.name || t.chooseBankLogo}</span>
+                              <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => {
+                                const file = event.target.files?.[0] ?? null;
+                                event.target.value = '';
+                                setBankLogoFile(file);
+                                setRemoveBankLogo(false);
+                              }} />
+                            </label>
+                            {(bankLogoFile || paymentSettings.bank_logo_path) && (
+                              <button type="button" onClick={() => {
+                                if (bankLogoFile) {
+                                  setBankLogoFile(null);
+                                  return;
+                                }
+                                setRemoveBankLogo((current) => !current);
+                              }} className="rounded-lg px-3 py-2 text-xs text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-red-600 dark:hover:bg-white/[0.06]">
+                                {removeBankLogo ? t.restoreBankLogo : t.removeBankLogo}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <button disabled={paymentSettingsSaving || paymentSettingsLoading} className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 text-xs font-medium text-white transition-colors hover:bg-bronze-600 disabled:cursor-wait disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
+                          <Check size={14} /> {paymentSettingsSaving ? t.savingBankSettings : t.saveBankSettings}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </form>
                 <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                   <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileCheck2 size={18} /></span>

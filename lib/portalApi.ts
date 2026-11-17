@@ -109,6 +109,16 @@ export interface BillingItem {
   created_at: string;
 }
 
+export interface PortalPaymentSettings {
+  id: string;
+  bank_name: string;
+  account_number: string;
+  account_holder: string;
+  bank_logo_path: string | null;
+  bank_logo_url: string | null;
+  updated_at: string;
+}
+
 export type ChangeOrderStatus = 'requested' | 'pending_approval' | 'approved' | 'rejected';
 
 export interface ProjectChangeOrder {

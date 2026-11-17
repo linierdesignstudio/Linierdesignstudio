@@ -136,6 +136,21 @@ create table if not exists public.project_billing_items (
 create index if not exists project_billing_items_project_due_idx
   on public.project_billing_items (project_id, due_date, created_at);
 
+create table if not exists public.portal_payment_settings (
+  id text primary key default 'global' check (id = 'global'),
+  bank_name text not null default '' check (length(bank_name) <= 80),
+  account_number text not null default '' check (length(account_number) <= 64),
+  account_holder text not null default '' check (length(account_holder) <= 120),
+  bank_logo_path text,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.portal_payment_settings enable row level security;
+
+insert into public.portal_payment_settings (id)
+values ('global')
+on conflict (id) do nothing;
+
 create table if not exists public.project_change_orders (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.client_projects(id) on delete cascade,
@@ -914,13 +929,14 @@ grant execute on function public.portal_delete_project(uuid) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
 grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
 
-revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.project_change_orders, public.portal_notifications from anon, authenticated;
+revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.portal_payment_settings, public.project_change_orders, public.portal_notifications from anon, authenticated;
 grant select, insert on public.client_projects to service_role;
 grant select, insert, update, delete on public.project_updates to service_role;
 grant select, insert, update, delete on public.project_login_attempts to service_role;
 grant select, insert, update on public.project_password_reset_requests to service_role;
 grant select, insert, update on public.client_feedback to service_role;
 grant select, insert, update, delete on public.project_billing_items to service_role;
+grant select, insert, update on public.portal_payment_settings to service_role;
 grant select, insert, update, delete on public.project_change_orders to service_role;
 grant select, insert, update, delete on public.portal_notifications to service_role;
 grant update on public.client_projects to service_role;

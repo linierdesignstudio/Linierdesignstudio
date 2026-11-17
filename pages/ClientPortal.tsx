@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, LockKeyhole, LogOut, MapPin, MessageCircle, Moon, Phone, Search, Send, ShieldCheck, Sun, Upload, X } from 'lucide-react';
+import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, Landmark, LayoutDashboard, LockKeyhole, LogOut, MapPin, MessageCircle, Moon, Phone, Search, Send, ShieldCheck, Sun, Upload, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalNotification, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalNotification, type PortalPaymentSettings, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
 
 const copy = {
@@ -107,6 +107,13 @@ const copy = {
     feedbackOpen: 'Buka chat feedback',
     feedbackClose: 'Tutup chat feedback',
     billingTitle: 'Tagihan & pembayaran',
+    bankTransferTitle: 'Rekening untuk transfer',
+    bankName: 'Bank',
+    bankAccountNumber: 'Nomor rekening',
+    bankAccountHolder: 'Atas nama',
+    bankAccountNotConfigured: 'Informasi rekening belum diatur. Silakan hubungi studio untuk metode pembayaran.',
+    bankAccountLoading: 'Memuat informasi rekening...',
+    bankAccountLoadFailed: 'Informasi rekening bank tidak dapat dimuat.',
     billingEmpty: 'Belum ada tagihan untuk proyek ini.',
     billingDueDate: 'Jatuh tempo',
     billingUnpaid: 'Belum dibayar',
@@ -260,6 +267,13 @@ const copy = {
     feedbackOpen: 'Open feedback chat',
     feedbackClose: 'Close feedback chat',
     billingTitle: 'Billing & payments',
+    bankTransferTitle: 'Bank transfer details',
+    bankName: 'Bank',
+    bankAccountNumber: 'Account number',
+    bankAccountHolder: 'Account holder',
+    bankAccountNotConfigured: 'Bank details have not been set up yet. Please contact the studio for payment instructions.',
+    bankAccountLoading: 'Loading bank details...',
+    bankAccountLoadFailed: 'Bank details could not be loaded.',
     billingEmpty: 'There are no bills for this project yet.',
     billingDueDate: 'Due date',
     billingUnpaid: 'Unpaid',
@@ -413,6 +427,13 @@ const copy = {
     feedbackOpen: '打开反馈聊天',
     feedbackClose: '关闭反馈聊天',
     billingTitle: '账单与付款',
+    bankTransferTitle: '银行转账信息',
+    bankName: '银行',
+    bankAccountNumber: '账号',
+    bankAccountHolder: '账户持有人',
+    bankAccountNotConfigured: '尚未设置银行账户信息。请联系工作室获取付款方式。',
+    bankAccountLoading: '正在加载银行账户信息...',
+    bankAccountLoadFailed: '无法加载银行账户信息。',
     billingEmpty: '此项目暂无账单。',
     billingDueDate: '到期日',
     billingUnpaid: '未付款',
@@ -488,6 +509,8 @@ const ClientPortal: React.FC = () => {
   const [updates, setUpdates] = useState<PortalUpdate[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<ClientFeedback[]>([]);
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
+  const [bankSettings, setBankSettings] = useState<PortalPaymentSettings | null>(null);
+  const [bankSettingsLoading, setBankSettingsLoading] = useState(false);
   const [changeOrders, setChangeOrders] = useState<ProjectChangeOrder[]>([]);
   const [notifications, setNotifications] = useState<PortalNotification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
@@ -599,6 +622,29 @@ const ClientPortal: React.FC = () => {
       });
     return () => { active = false; };
   }, [project?.id]);
+
+  useEffect(() => {
+    let active = true;
+    if (!project) {
+      setBankSettings(null);
+      setBankSettingsLoading(false);
+      return () => { active = false; };
+    }
+
+    setBankSettings(null);
+    setBankSettingsLoading(true);
+    portalRequest<{ settings: PortalPaymentSettings }>(`/api/portal/payment-settings?projectId=${encodeURIComponent(project.id)}`)
+      .then(({ settings }) => {
+        if (active) setBankSettings(settings);
+      })
+      .catch((cause: unknown) => {
+        if (active) setError(cause instanceof Error ? cause.message : t.bankAccountLoadFailed);
+      })
+      .finally(() => {
+        if (active) setBankSettingsLoading(false);
+      });
+    return () => { active = false; };
+  }, [project?.id, t.bankAccountLoadFailed]);
 
   useEffect(() => {
     let active = true;
@@ -1387,6 +1433,29 @@ const ClientPortal: React.FC = () => {
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileCheck2 size={18} /></span>
                 <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.billingTitle}</h2></div>
+              </div>
+              <div className="mb-5 rounded-2xl border border-[#d9d4c9] bg-[#f8f6f1] p-4 sm:p-5 dark:border-white/10 dark:bg-white/[0.03]">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-neutral-950">
+                    {bankSettings?.bank_logo_url
+                      ? <img src={bankSettings.bank_logo_url} alt={bankSettings.bank_name || t.bankName} className="max-h-full max-w-full object-contain" />
+                      : <Landmark size={21} className="text-[#8c795e] dark:text-bronze-400" />}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">{t.bankTransferTitle}</p>
+                    {bankSettings?.bank_name && <h3 className="mt-1 truncate font-display text-base font-semibold">{bankSettings.bank_name}</h3>}
+                  </div>
+                </div>
+                {bankSettingsLoading ? (
+                  <p className="mt-4 text-sm text-neutral-500">{t.bankAccountLoading}</p>
+                ) : bankSettings && (bankSettings.bank_name || bankSettings.account_number || bankSettings.account_holder) ? (
+                  <dl className="mt-4 grid gap-3 border-t border-neutral-200 pt-4 sm:grid-cols-2 dark:border-white/10">
+                    {bankSettings.account_number && <div><dt className="text-[10px] uppercase tracking-wider text-neutral-500">{t.bankAccountNumber}</dt><dd className="mt-1 break-all font-mono text-lg font-semibold tracking-wide">{bankSettings.account_number}</dd></div>}
+                    {bankSettings.account_holder && <div><dt className="text-[10px] uppercase tracking-wider text-neutral-500">{t.bankAccountHolder}</dt><dd className="mt-1 break-words text-sm font-medium">{bankSettings.account_holder}</dd></div>}
+                  </dl>
+                ) : (
+                  <p className="mt-4 text-sm leading-6 text-neutral-500">{t.bankAccountNotConfigured}</p>
+                )}
               </div>
               {billingNotice && <p role="status" className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-xs text-emerald-700 dark:text-emerald-300">{billingNotice}</p>}
               {billingItems.length === 0 ? <p className="py-2 text-sm text-neutral-500">{t.billingEmpty}</p> : (
