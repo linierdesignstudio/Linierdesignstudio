@@ -1815,7 +1815,7 @@ const PortalAdmin: React.FC = () => {
   };
 
   return (
-    <div className={`portal-readable ${authenticated ? 'min-h-screen overflow-x-clip bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'grid min-h-[100svh] place-items-center overflow-x-clip bg-[#dedbd2] px-4 py-8 text-neutral-900 sm:px-6'}`}>
+    <div className={`portal-readable ${authenticated ? 'min-h-screen overflow-x-clip bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'portal-login-backdrop grid min-h-[100svh] place-items-center overflow-x-clip px-4 py-8 text-neutral-900 sm:px-6'}`}>
       {authenticated && !checking && (
         <aside className="z-40 bg-[#20211d] text-white shadow-xl shadow-black/10 lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-64 lg:flex-col">
           <div className="border-b border-white/[0.08] px-4 py-4 sm:px-7 sm:py-5 lg:px-6 lg:py-7">
