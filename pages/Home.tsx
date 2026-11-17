@@ -23,7 +23,9 @@ const getResistedFillProgress = (progress: number, start: number, end: number) =
   return 1 - Math.pow(1 - segmentProgress, 2);
 };
 
-const NEXT_STEP_PAUSE_PROGRESS = 0.18;
+const NEXT_STEP_SLIDE_COUNT = 4;
+const NEXT_STEP_SECTION_STEP_COUNT = NEXT_STEP_SLIDE_COUNT + 1;
+const NEXT_STEP_PAUSE_PROGRESS = 0.14;
 
 const Home: React.FC = () => {
   const containerRef = useRef(null);
@@ -50,16 +52,17 @@ const Home: React.FC = () => {
     mass: 1.6,
   });
   const nextStepFills = [
-    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.25, 0.5 - NEXT_STEP_PAUSE_PROGRESS)),
-    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.5, 0.75 - NEXT_STEP_PAUSE_PROGRESS)),
-    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.75, 1 - NEXT_STEP_PAUSE_PROGRESS)),
+    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.2, 0.4 - NEXT_STEP_PAUSE_PROGRESS)),
+    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.4, 0.6 - NEXT_STEP_PAUSE_PROGRESS)),
+    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.6, 0.8 - NEXT_STEP_PAUSE_PROGRESS)),
+    useTransform(nextStepsDampedProgress, (progress) => getResistedFillProgress(progress, 0.8, 1 - NEXT_STEP_PAUSE_PROGRESS)),
   ];
-  const nextStepsIntroTitleY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-8vh']);
-  const nextStepsIntroDescriptionY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-14vh']);
-  const nextStepsIntroCtaY = useTransform(nextStepsProgress, [0, 0.25], ['0vh', '-20vh']);
+  const nextStepsIntroTitleY = useTransform(nextStepsProgress, [0, 1 / NEXT_STEP_SECTION_STEP_COUNT], ['0vh', '-8vh']);
+  const nextStepsIntroDescriptionY = useTransform(nextStepsProgress, [0, 1 / NEXT_STEP_SECTION_STEP_COUNT], ['0vh', '-14vh']);
+  const nextStepsIntroCtaY = useTransform(nextStepsProgress, [0, 1 / NEXT_STEP_SECTION_STEP_COUNT], ['0vh', '-20vh']);
   const [activeNextStep, setActiveNextStep] = useState(0);
   useMotionValueEvent(nextStepsDampedProgress, 'change', (progress) => {
-    const nextStep = Math.min(3, Math.max(0, Math.floor(progress * 4)));
+    const nextStep = Math.min(NEXT_STEP_SLIDE_COUNT, Math.max(0, Math.floor(progress * NEXT_STEP_SECTION_STEP_COUNT)));
     setActiveNextStep((current) => current === nextStep ? current : nextStep);
   });
   const activeNextStepsSlide = activeNextStep > 0
@@ -414,7 +417,7 @@ const Home: React.FC = () => {
       {/* Next Steps */}
       <section
         ref={nextStepsRef}
-        className="relative z-50 h-[500svh] overflow-clip border-y border-neutral-200 bg-neutral-950 text-white dark:border-neutral-800"
+        className="relative z-50 h-[625svh] overflow-clip border-y border-neutral-200 bg-neutral-950 text-white dark:border-neutral-800"
       >
         <div className="sticky top-0 h-[100svh] overflow-hidden bg-[#050607]">
           <div
@@ -468,48 +471,73 @@ const Home: React.FC = () => {
                     y: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
                     opacity: { duration: 0.3, ease: 'easeOut' }
                   }}
-                  className="mx-auto w-full max-w-7xl text-center"
+                  className={`relative mx-auto w-full text-center ${activeNextStep === NEXT_STEP_SLIDE_COUNT ? 'max-w-[1368px]' : 'max-w-7xl'}`}
                 >
-                  <div className="mb-8 flex flex-col items-center gap-5 sm:mb-10">
-                    <p className="flex items-center gap-3 text-[10px] font-semibold tracking-wide text-white/90 sm:text-xs">
-                      <span className="h-1.5 w-1.5 bg-lime-400" />
-                      {t.home.next_steps_dna_label}
-                    </p>
-                    <div className="flex items-center gap-4 font-mono text-[10px] tracking-wider text-white/50 sm:text-xs">
-                      <span>{String(activeNextStep).padStart(2, '0')} / 03</span>
-                      <div
-                        role="progressbar"
-                        aria-label={t.home.next_steps_dna_label}
-                        aria-valuemin={1}
-                        aria-valuemax={3}
-                        aria-valuenow={activeNextStep}
-                        className="flex w-28 gap-1 sm:w-40"
-                      >
-                        {[1, 2, 3].map((step) => (
-                          <span
-                            key={step}
-                            className="relative h-0.5 flex-1 overflow-hidden bg-white/20"
-                          >
-                            <motion.span
-                              aria-hidden="true"
-                              style={{ scaleX: nextStepFills[step - 1] }}
-                              className="absolute inset-0 origin-left bg-lime-400"
-                            />
-                          </span>
-                        ))}
+                  {activeNextStep === NEXT_STEP_SLIDE_COUNT && (
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -inset-x-4 -inset-y-10 bg-[#444] sm:-inset-x-8 md:-inset-x-12"
+                      style={{
+                        backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.12), transparent 34%, rgba(0,0,0,0.28) 70%), repeating-linear-gradient(0deg, transparent 0 42px, rgba(0,0,0,0.48) 42px 45px, rgba(255,255,255,0.14) 45px 47px, transparent 47px 52px), repeating-linear-gradient(90deg, transparent 0 42px, rgba(0,0,0,0.48) 42px 45px, rgba(255,255,255,0.14) 45px 47px, transparent 47px 52px)'
+                      }}
+                    />
+                  )}
+                  <div className="relative z-10">
+                    <div className="mb-8 flex flex-col items-center gap-5 sm:mb-10">
+                      <p className="flex items-center gap-3 text-[10px] font-semibold tracking-wide text-white/90 sm:text-xs">
+                        <span className="h-1.5 w-1.5 bg-lime-400" />
+                        {t.home.next_steps_dna_label}
+                      </p>
+                      <div className="flex items-center gap-4 font-mono text-[10px] tracking-wider text-white/50 sm:text-xs">
+                        <span>{String(activeNextStep).padStart(2, '0')} / {String(NEXT_STEP_SLIDE_COUNT).padStart(2, '0')}</span>
+                        <div
+                          role="progressbar"
+                          aria-label={t.home.next_steps_dna_label}
+                          aria-valuemin={1}
+                          aria-valuemax={NEXT_STEP_SLIDE_COUNT}
+                          aria-valuenow={activeNextStep}
+                          className="flex w-28 gap-1 sm:w-40"
+                        >
+                          {t.home.next_steps_slides.map((step, index) => (
+                            <span
+                              key={step.title}
+                              className="relative h-0.5 flex-1 overflow-hidden bg-white/20"
+                            >
+                              <motion.span
+                                aria-hidden="true"
+                                style={{ scaleX: nextStepFills[index] }}
+                                className="absolute inset-0 origin-left bg-lime-400"
+                              />
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
+                    {activeNextStep === NEXT_STEP_SLIDE_COUNT ? (
+                      <div className="grid items-center gap-8 text-left md:grid-cols-12 md:gap-10">
+                        <h2 className="font-display text-[clamp(2.5rem,11vw,10rem)] font-semibold leading-[0.9] tracking-[-0.07em] md:col-span-7">
+                          {activeNextStepsSlide?.title}
+                          <span className="text-lime-400">.</span>
+                        </h2>
+                        <p className="max-w-xl text-sm leading-relaxed text-white/80 sm:text-base md:col-span-5 md:text-lg">
+                          {activeNextStepsSlide?.description}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <h2 className="font-display text-[clamp(3.5rem,5.4vw,7.5rem)] font-bold leading-[0.95] tracking-[-0.055em]">
+                          {activeNextStepsSlide?.title}
+                          <span className="text-lime-400">.</span>
+                        </h2>
+                        <p className="mt-3 text-lg font-medium tracking-tight text-white/90 sm:text-xl md:text-2xl">
+                          {activeNextStepsSlide?.subtitle}
+                        </p>
+                        <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-white/60 sm:text-sm">
+                          {activeNextStepsSlide?.description}
+                        </p>
+                      </>
+                    )}
                   </div>
-                  <h2 className="font-display text-[clamp(3.5rem,5.4vw,7.5rem)] font-bold leading-[0.95] tracking-[-0.055em]">
-                    {activeNextStepsSlide?.title}
-                    <span className="text-lime-400">.</span>
-                  </h2>
-                  <p className="mt-3 text-lg font-medium tracking-tight text-white/90 sm:text-xl md:text-2xl">
-                    {activeNextStepsSlide?.subtitle}
-                  </p>
-                  <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-white/60 sm:text-sm">
-                    {activeNextStepsSlide?.description}
-                  </p>
                 </motion.div>
               )}
             </AnimatePresence>

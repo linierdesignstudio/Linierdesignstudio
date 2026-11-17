@@ -238,7 +238,8 @@ const enTranslations = {
       next_steps_slides: [
         { title: 'Curious', subtitle: 'Begin with a better question.', description: 'Every project starts by listening to the people who will experience the space.' },
         { title: 'Connected', subtitle: 'Bring each element together.', description: 'Architecture, interiors, and daily routines should feel like one coherent whole.' },
-        { title: 'Enduring', subtitle: 'Design for the years ahead.', description: 'Comfort, local climate, and thoughtful material choices guide each decision.' }
+        { title: 'Enduring', subtitle: 'Design for the years ahead.', description: 'Comfort, local climate, and thoughtful material choices guide each decision.' },
+        { title: 'Confident', subtitle: '', description: 'A precise system of decisions, where every detail is resolved to create reliability, clarity, and lasting performance.' }
       ],
       have_a: 'Have a',
       vision: 'Vision?',
@@ -629,7 +630,8 @@ export const translations: Record<Language, any> = {
         next_steps_slides: [
           { title: 'Peka', subtitle: 'Mulai dari pertanyaan yang tepat.', description: 'Setiap rancangan dimulai dengan mendengar orang-orang yang akan menggunakan ruangnya.' },
           { title: 'Terpadu', subtitle: 'Satukan setiap elemen.', description: 'Arsitektur, interior, dan rutinitas sehari-hari perlu menyatu secara utuh.' },
-          { title: 'Lestari', subtitle: 'Rancang untuk masa depan.', description: 'Kenyamanan, iklim setempat, dan pilihan material yang cermat membentuk setiap keputusan.' }
+          { title: 'Lestari', subtitle: 'Rancang untuk masa depan.', description: 'Kenyamanan, iklim setempat, dan pilihan material yang cermat membentuk setiap keputusan.' },
+          { title: 'Mantap', subtitle: '', description: 'Sistem keputusan yang presisi, dengan setiap detail diselesaikan untuk menghadirkan keandalan, kejelasan, dan kinerja yang bertahan lama.' }
         ],
         have_a: 'Punya', 
         vision: 'Visi Ruang?', 
@@ -1074,7 +1076,8 @@ export const translations: Record<Language, any> = {
         next_steps_slides: [
           { title: '探索', subtitle: '从更好的问题开始。', description: '每个项目都始于倾听空间使用者的真实需求。' },
           { title: '协同', subtitle: '让每个部分彼此契合。', description: '建筑、室内与日常活动共同构成完整的空间体验。' },
-          { title: '恒久', subtitle: '为未来长久设计。', description: '舒适度、当地气候与审慎的材料选择共同影响每个决定。' }
+          { title: '恒久', subtitle: '为未来长久设计。', description: '舒适度、当地气候与审慎的材料选择共同影响每个决定。' },
+          { title: '笃定', subtitle: '', description: '以精准的决策体系厘清每个细节，打造可靠、清晰且经久耐用的表现。' }
         ],
         have_a: '有新项目的', vision: '构想?', lets_discuss: "让我们谈谈",
         journal_title: "解构设计", elements_title: "核心元素", elements_desc: "将我们的设计语言解构为最实用的建筑实体：采光、触感和空间感。", read_article: "探索",
