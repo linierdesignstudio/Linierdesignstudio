@@ -1571,9 +1571,9 @@ const ClientPortal: React.FC = () => {
                       aria-label={passwordVisible ? t.hidePassword : t.showPassword}
                       aria-pressed={passwordVisible}
                       title={passwordVisible ? t.hidePassword : t.showPassword}
-                      className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-lg text-white/45 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#b8c89f]"
+                      className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-lg text-white/80 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#b8c89f]"
                     >
-                      {passwordVisible ? <EyeOff size={17} /> : <Eye size={17} />}
+                      {passwordVisible ? <EyeOff size={19} strokeWidth={2.2} /> : <Eye size={19} strokeWidth={2.2} />}
                     </button>
                   </div>
                 </div>
