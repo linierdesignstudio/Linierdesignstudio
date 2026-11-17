@@ -3,6 +3,8 @@ export interface PortalProject {
   project_code: string;
   project_name: string;
   client_name: string;
+  project_type: string | null;
+  client_phone: string;
   client_email?: string | null;
   location: string;
   status: string;

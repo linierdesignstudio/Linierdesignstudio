@@ -3,6 +3,8 @@ create table if not exists public.client_projects (
   project_code text not null unique check (project_code ~ '^[A-Z0-9_-]{3,32}$'),
   project_name text not null,
   client_name text not null,
+  project_type text,
+  client_phone text not null default '',
   location text not null default '',
   start_date date,
   status text not null default 'Berjalan',
@@ -18,6 +20,12 @@ create table if not exists public.client_projects (
 
 alter table public.client_projects
   add column if not exists start_date date;
+
+alter table public.client_projects
+  add column if not exists project_type text;
+
+alter table public.client_projects
+  add column if not exists client_phone text not null default '';
 
 alter table public.client_projects
   add column if not exists client_email text;

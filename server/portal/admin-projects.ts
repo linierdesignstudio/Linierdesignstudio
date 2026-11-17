@@ -7,6 +7,8 @@ interface AdminProject {
   project_code: string;
   project_name: string;
   client_name: string;
+  project_type: string | null;
+  client_phone: string;
   client_email: string | null;
   location: string;
   start_date: string | null;
@@ -22,7 +24,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     if (request.method === 'GET') {
       requireAdminPermission(session, 'project_read');
       const projects = await supabaseRequest<AdminProject[]>(
-        'client_projects?select=id,project_code,project_name,client_name,client_email,location,start_date,status,progress_percent,created_at&order=created_at.desc'
+        'client_projects?select=id,project_code,project_name,client_name,project_type,client_phone,client_email,location,start_date,status,progress_percent,created_at&order=created_at.desc'
       );
       sendJson(response, 200, { projects });
       return;
@@ -89,7 +91,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
         }
 
         const updated = await supabaseRequest<AdminProject[]>(
-          `client_projects?id=eq.${encodeURIComponent(projectId)}&select=id,project_code,project_name,client_name,client_email,location,start_date,status,progress_percent,created_at`,
+          `client_projects?id=eq.${encodeURIComponent(projectId)}&select=id,project_code,project_name,client_name,project_type,client_phone,client_email,location,start_date,status,progress_percent,created_at`,
           {
             method: 'PATCH',
             headers: { Prefer: 'return=representation' },
@@ -105,11 +107,34 @@ export default async function handler(request: ApiRequest, response: ApiResponse
         return;
       }
 
+      if (typeof body.projectType === 'string' || typeof body.clientPhone === 'string') {
+        const projectType = text(body.projectType);
+        const clientPhone = text(body.clientPhone);
+        if (!isProjectType(projectType)) {
+          throw new HttpError(400, 'Pilih jenis proyek yang valid.');
+        }
+        if (clientPhone.length > 32 || (clientPhone && !isValidPhone(clientPhone))) {
+          throw new HttpError(400, 'Nomor telepon harus berisi 7–20 digit dan hanya menggunakan angka atau + ( ) . -.');
+        }
+        if (!isUuid(projectId)) throw new HttpError(400, 'Pilih proyek yang valid.');
+        const updated = await supabaseRequest<AdminProject[]>(
+          `client_projects?id=eq.${encodeURIComponent(projectId)}&select=id,project_code,project_name,client_name,project_type,client_phone,client_email,location,start_date,status,progress_percent,created_at`,
+          {
+            method: 'PATCH',
+            headers: { Prefer: 'return=representation' },
+            body: JSON.stringify({ project_type: projectType, client_phone: clientPhone }),
+          }
+        );
+        if (!updated[0]) throw new HttpError(404, 'Proyek tidak ditemukan.');
+        sendJson(response, 200, { project: updated[0] });
+        return;
+      }
+
       const startDate = typeof body.startDate === 'string' ? body.startDate : '';
       if (!isUuid(projectId)) throw new HttpError(400, 'Pilih proyek yang valid.');
       if (!isValidDate(startDate)) throw new HttpError(400, 'Tanggal mulai tidak valid.');
       const updated = await supabaseRequest<AdminProject[]>(
-        `client_projects?id=eq.${encodeURIComponent(projectId)}&select=id,project_code,project_name,client_name,client_email,location,start_date,status,progress_percent,created_at`,
+        `client_projects?id=eq.${encodeURIComponent(projectId)}&select=id,project_code,project_name,client_name,project_type,client_phone,client_email,location,start_date,status,progress_percent,created_at`,
         {
           method: 'PATCH',
           headers: { Prefer: 'return=representation' },
@@ -170,6 +195,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const projectCode = text(body.projectCode).toUpperCase();
     const projectName = text(body.projectName);
     const clientName = text(body.clientName);
+    const projectType = text(body.projectType);
+    const clientPhone = text(body.clientPhone);
     const clientEmail = text(body.clientEmail).toLowerCase();
     const location = text(body.location);
     const startDate = typeof body.startDate === 'string' ? body.startDate : '';
@@ -183,6 +210,12 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
     if (clientName.length < 2 || clientName.length > 120) {
       throw new HttpError(400, 'Nama klien harus terdiri dari 2–120 karakter.');
+    }
+    if (!isProjectType(projectType)) {
+      throw new HttpError(400, 'Pilih jenis proyek yang valid.');
+    }
+    if (clientPhone.length > 32 || (clientPhone && !isValidPhone(clientPhone))) {
+      throw new HttpError(400, 'Nomor telepon harus berisi 7–20 digit dan hanya menggunakan angka atau + ( ) . -.');
     }
     if (clientEmail && !isValidEmail(clientEmail)) {
       throw new HttpError(400, 'Masukkan email klien yang valid.');
@@ -225,7 +258,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       : createPasswordHash(clientLoginPassword);
 
     const created = await supabaseRequest<AdminProject[]>(
-      'client_projects?select=id,project_code,project_name,client_name,client_email,location,start_date,status,progress_percent,created_at',
+      'client_projects?select=id,project_code,project_name,client_name,project_type,client_phone,client_email,location,start_date,status,progress_percent,created_at',
       {
         method: 'POST',
         headers: { Prefer: 'return=representation' },
@@ -233,6 +266,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
           project_code: projectCode,
           project_name: projectName,
           client_name: clientName,
+          project_type: projectType,
+          client_phone: clientPhone,
           client_email: clientEmail || null,
           client_login_salt: accountCredentials?.client_login_salt ?? null,
           client_login_hash: accountCredentials?.client_login_hash ?? null,
@@ -261,6 +296,15 @@ function isUuid(value: string): boolean {
 
 function isValidEmail(value: string): boolean {
   return value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isProjectType(value: string): boolean {
+  return value === 'Architecture' || value === 'Interior' || value === 'Construction';
+}
+
+function isValidPhone(value: string): boolean {
+  const digits = value.replace(/\D/g, '');
+  return /^[+()\d. -]+$/.test(value) && digits.length >= 7 && digits.length <= 20;
 }
 
 function isValidDate(value: string): boolean {

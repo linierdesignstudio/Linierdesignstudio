@@ -28,6 +28,14 @@ const copy = {
     clientName: 'Nama klien',
     clientEmail: 'Email klien (opsional)',
     noClientEmail: 'Email login belum diatur',
+    projectType: 'Jenis proyek',
+    architecture: 'Arsitektur',
+    interior: 'Interior',
+    construction: 'Konstruksi',
+    projectTypeNotSet: 'Belum diatur',
+    clientPhone: 'No. telepon klien',
+    saveProjectDetails: 'Simpan detail proyek',
+    savedProjectDetails: 'Detail proyek berhasil disimpan.',
     location: 'Lokasi',
     clientLoginPassword: 'Password akun',
     accountPasswordHint: 'Email klien opsional. Jika diisi, semua proyek dengan email yang sama memakai password ini untuk login lewat email atau ID proyek; jika kosong, password hanya untuk login dengan ID proyek. Password baru minimal 12 karakter.',
@@ -252,6 +260,14 @@ const copy = {
     clientName: 'Client name',
     clientEmail: 'Client email (optional)',
     noClientEmail: 'Email login not set',
+    projectType: 'Project type',
+    architecture: 'Architecture',
+    interior: 'Interior',
+    construction: 'Construction',
+    projectTypeNotSet: 'Not set',
+    clientPhone: 'Client phone number',
+    saveProjectDetails: 'Save project details',
+    savedProjectDetails: 'Project details saved.',
     location: 'Location',
     clientLoginPassword: 'Account password',
     accountPasswordHint: 'Client email is optional. If provided, projects with the same email use this password to sign in with either email or Project ID; without an email, it works only with the Project ID. New passwords must be at least 12 characters.',
@@ -476,6 +492,14 @@ const copy = {
     clientName: '客户名称',
     clientEmail: '客户邮箱（可选）',
     noClientEmail: '尚未设置登录邮箱',
+    projectType: '项目类型',
+    architecture: '建筑设计',
+    interior: '室内设计',
+    construction: '施工',
+    projectTypeNotSet: '未设置',
+    clientPhone: '客户电话号码',
+    saveProjectDetails: '保存项目详情',
+    savedProjectDetails: '项目详情已保存。',
     location: '地点',
     clientLoginPassword: '账号密码',
     accountPasswordHint: '客户邮箱为可选项。填写邮箱时，同一邮箱的项目可使用此密码通过邮箱或项目编号登录；不填写邮箱时，只能通过项目编号登录。新密码至少 12 个字符。',
@@ -976,6 +1000,8 @@ const PortalAdmin: React.FC = () => {
           projectCode: form.get('projectCode'),
           projectName: form.get('projectName'),
           clientName: form.get('clientName'),
+          projectType: form.get('projectType'),
+          clientPhone: form.get('clientPhone'),
           clientEmail: form.get('clientEmail'),
           location: form.get('location'),
           startDate: form.get('startDate'),
@@ -1014,6 +1040,30 @@ const PortalAdmin: React.FC = () => {
       setNotice(t.savedDate);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Tanggal mulai proyek tidak dapat disimpan.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveProjectDetails = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const result = await portalRequest<{ project: PortalProject }>('/api/portal/admin/projects', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          projectId: form.get('projectId'),
+          projectType: form.get('projectType'),
+          clientPhone: form.get('clientPhone'),
+        }),
+      });
+      setProjects((current) => current.map((project) => project.id === result.project.id ? result.project : project));
+      setNotice(t.savedProjectDetails);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Detail proyek tidak dapat disimpan.');
     } finally {
       setBusy(false);
     }
@@ -1723,7 +1773,12 @@ const PortalAdmin: React.FC = () => {
             <h1 className="break-words font-display text-3xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-6xl">{authenticated && selectedProject ? selectedProject.project_name : t.title}</h1>
             <p className="mt-5 max-w-xl text-sm leading-7 text-white/70 sm:text-base">
               {authenticated && selectedProject
-                ? [selectedProject.client_name, selectedProject.location].filter(Boolean).join(' / ')
+                ? [
+                    selectedProject.client_name,
+                    selectedProject.project_type === 'Architecture' ? t.architecture : selectedProject.project_type === 'Interior' ? t.interior : selectedProject.project_type === 'Construction' ? t.construction : t.projectTypeNotSet,
+                    selectedProject.client_phone,
+                    selectedProject.location,
+                  ].filter(Boolean).join(' / ')
                 : t.subtitle}
             </p>
           </div>
@@ -2316,6 +2371,16 @@ const PortalAdmin: React.FC = () => {
                 <Field name="projectCode" label={t.projectCode} required maxLength={32} placeholder="LIN-2026-001" autoCapitalize="characters" />
                 <Field name="projectName" label={t.projectName} required maxLength={120} />
                 <Field name="clientName" label={t.clientName} required maxLength={120} />
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.projectType}</span>
+                  <select name="projectType" required defaultValue="" className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400 dark:focus:ring-bronze-400/10">
+                    <option value="" disabled>{t.projectTypeNotSet}</option>
+                    <option value="Architecture">{t.architecture}</option>
+                    <option value="Interior">{t.interior}</option>
+                    <option value="Construction">{t.construction}</option>
+                  </select>
+                </label>
+                <Field name="clientPhone" label={t.clientPhone} type="tel" maxLength={32} placeholder="+62 812 3456 7890" />
                 <Field name="clientEmail" label={t.clientEmail} type="email" maxLength={254} autoCapitalize="none" />
                 <Field name="location" label={t.location} maxLength={120} />
                 <Field name="startDate" label={t.startDate} type="date" defaultValue={today()} required />
@@ -2552,7 +2617,7 @@ const PortalAdmin: React.FC = () => {
                     {projects.map((project) => (
                       <li key={`${project.id}-${project.start_date ?? ''}`} className="rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 text-sm dark:border-white/[0.06] dark:bg-white/[0.02]">
                         <div className="flex min-w-0 items-center justify-between gap-4">
-                          <span className="min-w-0 flex-1 break-words"><strong className="break-all font-mono text-[10px] text-bronze-600 dark:text-bronze-400">{project.project_code}</strong><span className="mx-2 text-neutral-300">/</span><span className="font-medium">{project.project_name}</span><span className="mt-1 block break-words text-xs text-neutral-500">{project.client_name}</span><span className="mt-1 block break-all text-[10px] text-neutral-400">{project.client_email ?? t.noClientEmail}</span></span>
+                          <span className="min-w-0 flex-1 break-words"><strong className="break-all font-mono text-[10px] text-bronze-600 dark:text-bronze-400">{project.project_code}</strong><span className="mx-2 text-neutral-300">/</span><span className="font-medium">{project.project_name}</span><span className="mt-1 block break-words text-xs text-neutral-500">{project.client_name} · {project.project_type === 'Architecture' ? t.architecture : project.project_type === 'Interior' ? t.interior : project.project_type === 'Construction' ? t.construction : t.projectTypeNotSet}</span>{project.client_phone && <span className="mt-1 block break-all text-xs text-neutral-500">{project.client_phone}</span>}<span className="mt-1 block break-all text-[10px] text-neutral-400">{project.client_email ?? t.noClientEmail}</span></span>
                           <span className="w-24 shrink-0">
                             <span className="mb-1 block text-right font-mono text-[10px] text-neutral-500">{project.progress_percent}%</span>
                             <span className="block h-1 overflow-hidden rounded-full bg-neutral-100 dark:bg-white/10"><span className="block h-full rounded-full bg-bronze-500" style={{ width: `${project.progress_percent}%` }} /></span>
@@ -2560,6 +2625,23 @@ const PortalAdmin: React.FC = () => {
                         </div>
                         {adminRole === 'admin' && (
                           <>
+                        <form onSubmit={saveProjectDetails} className="mt-4 grid gap-3 border-t border-neutral-100 pt-4 dark:border-white/10 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                          <input type="hidden" name="projectId" value={project.id} />
+                          <label className="block">
+                            <span className="mb-2 block font-mono text-[9px] uppercase tracking-widest text-neutral-500">{t.projectType}</span>
+                            <select name="projectType" required defaultValue={project.project_type ?? ''} className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-xs outline-none transition focus:border-bronze-500 dark:border-white/10 dark:bg-neutral-950 dark:[color-scheme:dark]">
+                              <option value="" disabled>{t.projectTypeNotSet}</option>
+                              <option value="Architecture">{t.architecture}</option>
+                              <option value="Interior">{t.interior}</option>
+                              <option value="Construction">{t.construction}</option>
+                            </select>
+                          </label>
+                          <label className="block">
+                            <span className="mb-2 block font-mono text-[9px] uppercase tracking-widest text-neutral-500">{t.clientPhone}</span>
+                            <input name="clientPhone" type="tel" maxLength={32} defaultValue={project.client_phone} placeholder="+62 812 3456 7890" className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-xs outline-none transition focus:border-bronze-500 dark:border-white/10 dark:bg-neutral-950" />
+                          </label>
+                          <button disabled={busy} className="rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15 dark:bg-white/[0.03]">{t.saveProjectDetails}</button>
+                        </form>
                         <form onSubmit={saveProjectStartDate} className="mt-4 flex flex-wrap items-end gap-3 border-t border-neutral-100 pt-4 dark:border-white/10">
                           <input type="hidden" name="projectId" value={project.id} />
                           <label className="min-w-0 flex-1 sm:min-w-[180px]">

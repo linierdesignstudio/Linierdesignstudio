@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownLeft, ArrowLeft, ArrowUpRight, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, FileCheck2, FileText, LockKeyhole, LogOut, MapPin, MessageCircle, Search, Send, ShieldCheck, Upload, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowLeft, ArrowUpRight, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, FileCheck2, FileText, LockKeyhole, LogOut, MapPin, MessageCircle, Phone, Search, Send, ShieldCheck, Upload, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -26,6 +26,12 @@ const copy = {
     logout: 'Keluar',
     status: 'Status',
     location: 'Lokasi',
+    projectType: 'Jenis proyek',
+    architecture: 'Arsitektur',
+    interior: 'Interior',
+    construction: 'Konstruksi',
+    projectTypeNotSet: 'Belum diatur',
+    clientPhone: 'No. telepon',
     back: 'Kembali ke Linier Studio',
     secure: 'Informasi proyek hanya dapat dilihat dengan akses yang diberikan studio.',
     loading: 'Memuat portal...',
@@ -164,6 +170,12 @@ const copy = {
     logout: 'Sign out',
     status: 'Status',
     location: 'Location',
+    projectType: 'Project type',
+    architecture: 'Architecture',
+    interior: 'Interior',
+    construction: 'Construction',
+    projectTypeNotSet: 'Not set',
+    clientPhone: 'Phone number',
     back: 'Back to Linier Studio',
     secure: 'Project information is only available with access provided by the studio.',
     loading: 'Loading portal...',
@@ -302,6 +314,12 @@ const copy = {
     logout: '退出',
     status: '状态',
     location: '地点',
+    projectType: '项目类型',
+    architecture: '建筑设计',
+    interior: '室内设计',
+    construction: '施工',
+    projectTypeNotSet: '未设置',
+    clientPhone: '电话号码',
     back: '返回 Linier Studio',
     secure: '项目信息仅对工作室授权用户开放。',
     loading: '正在加载门户...',
@@ -991,6 +1009,16 @@ const ClientPortal: React.FC = () => {
                     <span className="font-medium text-white">{project.client_name}</span>
                     <span className="hidden text-white/35 sm:inline">·</span>
                     <span className="inline-flex items-center gap-2"><MapPin size={16} />{project.location || t.location}</span>
+                    <span className="hidden text-white/35 sm:inline">·</span>
+                    <span>{t.projectType}: {project.project_type === 'Architecture' ? t.architecture : project.project_type === 'Interior' ? t.interior : project.project_type === 'Construction' ? t.construction : t.projectTypeNotSet}</span>
+                    {project.client_phone && (
+                      <>
+                        <span className="hidden text-white/35 sm:inline">·</span>
+                        <a href={`tel:${project.client_phone.replace(/[^\d+]/g, '')}`} className="inline-flex items-center gap-2 hover:text-white">
+                          <Phone size={15} />{t.clientPhone}: {project.client_phone}
+                        </a>
+                      </>
+                    )}
                   </div>
                   {projects.length > 1 && (
                     <label className="mt-7 block max-w-md">
