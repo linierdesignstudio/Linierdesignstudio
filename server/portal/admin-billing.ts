@@ -1,6 +1,7 @@
 import type { ApiRequest, ApiResponse } from './http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from './http.js';
 import { createStorageDownloadUrl, deleteStorageObjects, getSession, requireAdminPermission, supabaseRequest } from './portal.js';
+import type { PortalBankCode } from '../../lib/portalBanks.js';
 
 interface BillingRecord {
   id: string;
@@ -9,6 +10,7 @@ interface BillingRecord {
   amount: string;
   due_date: string;
   status: 'unpaid' | 'uploading' | 'pending_review' | 'rejected' | 'paid';
+  selected_bank_code: PortalBankCode | null;
   payment_proof_path: string | null;
   payment_proof_name: string | null;
   payment_proof_content_type: string | null;
@@ -19,7 +21,7 @@ interface BillingRecord {
   created_at: string;
 }
 
-const BILLING_FIELDS = 'id,project_id,title,amount,due_date,status,payment_proof_path,payment_proof_name,payment_proof_content_type,proof_upload_expires_at,payment_proof_submitted_at,payment_review_note,paid_at,created_at';
+const BILLING_FIELDS = 'id,project_id,title,amount,due_date,status,selected_bank_code,payment_proof_path,payment_proof_name,payment_proof_content_type,proof_upload_expires_at,payment_proof_submitted_at,payment_review_note,paid_at,created_at';
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {

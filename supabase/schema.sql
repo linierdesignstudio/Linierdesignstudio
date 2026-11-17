@@ -123,6 +123,7 @@ create table if not exists public.project_billing_items (
   due_date date not null,
   status text not null default 'unpaid'
     check (status in ('unpaid', 'uploading', 'pending_review', 'rejected', 'paid')),
+  selected_bank_code text,
   payment_proof_path text,
   payment_proof_name text,
   payment_proof_content_type text,
@@ -132,6 +133,9 @@ create table if not exists public.project_billing_items (
   paid_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+alter table public.project_billing_items
+  add column if not exists selected_bank_code text;
 
 create index if not exists project_billing_items_project_due_idx
   on public.project_billing_items (project_id, due_date, created_at);
@@ -150,6 +154,41 @@ alter table public.portal_payment_settings enable row level security;
 insert into public.portal_payment_settings (id)
 values ('global')
 on conflict (id) do nothing;
+
+create table if not exists public.portal_payment_accounts (
+  bank_code text primary key check (bank_code in ('BCA', 'Mandiri', 'BNI', 'BRI')),
+  account_number text not null default '' check (length(account_number) <= 64),
+  account_holder text not null default '' check (length(account_holder) <= 120),
+  updated_at timestamptz not null default now()
+);
+
+insert into public.portal_payment_accounts (bank_code, account_number, account_holder, updated_at)
+select
+  case
+    when lower(btrim(bank_name)) in ('bca', 'bank bca', 'bank central asia') then 'BCA'
+    when lower(btrim(bank_name)) in ('mandiri', 'bank mandiri') then 'Mandiri'
+    when lower(btrim(bank_name)) in ('bni', 'bank bni', 'bank negara indonesia') then 'BNI'
+    when lower(btrim(bank_name)) in ('bri', 'bank bri', 'bank rakyat indonesia') then 'BRI'
+  end,
+  account_number,
+  account_holder,
+  updated_at
+from public.portal_payment_settings
+where id = 'global'
+  and (account_number <> '' or account_holder <> '')
+  and lower(btrim(bank_name)) in (
+    'bca', 'bank bca', 'bank central asia',
+    'mandiri', 'bank mandiri',
+    'bni', 'bank bni', 'bank negara indonesia',
+    'bri', 'bank bri', 'bank rakyat indonesia'
+  )
+on conflict (bank_code) do nothing;
+
+insert into public.portal_payment_accounts (bank_code)
+values ('BCA'), ('Mandiri'), ('BNI'), ('BRI')
+on conflict (bank_code) do nothing;
+
+alter table public.portal_payment_accounts enable row level security;
 
 create table if not exists public.project_change_orders (
   id uuid primary key default gen_random_uuid(),
@@ -562,6 +601,7 @@ alter table public.project_login_attempts enable row level security;
 alter table public.project_password_reset_requests enable row level security;
 alter table public.client_feedback enable row level security;
 alter table public.project_billing_items enable row level security;
+alter table public.portal_payment_accounts enable row level security;
 alter table public.project_change_orders enable row level security;
 alter table public.portal_notifications enable row level security;
 
@@ -929,7 +969,7 @@ grant execute on function public.portal_delete_project(uuid) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
 grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
 
-revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.portal_payment_settings, public.project_change_orders, public.portal_notifications from anon, authenticated;
+revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.portal_payment_settings, public.portal_payment_accounts, public.project_change_orders, public.portal_notifications from anon, authenticated;
 grant select, insert on public.client_projects to service_role;
 grant select, insert, update, delete on public.project_updates to service_role;
 grant select, insert, update, delete on public.project_login_attempts to service_role;
@@ -937,6 +977,7 @@ grant select, insert, update on public.project_password_reset_requests to servic
 grant select, insert, update on public.client_feedback to service_role;
 grant select, insert, update, delete on public.project_billing_items to service_role;
 grant select, insert, update on public.portal_payment_settings to service_role;
+grant select, insert, update on public.portal_payment_accounts to service_role;
 grant select, insert, update, delete on public.project_change_orders to service_role;
 grant select, insert, update, delete on public.portal_notifications to service_role;
 grant update on public.client_projects to service_role;

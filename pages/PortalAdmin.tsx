@@ -4,7 +4,7 @@ import { ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxes
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type AdminFeedback, type BillingItem, type PasswordResetRequest, type PortalAttachment, type PortalNotification, type PortalPaymentSettings, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { portalRequest, type AdminFeedback, type BillingItem, type PasswordResetRequest, type PortalAttachment, type PortalNotification, type PortalPaymentAccount, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 import { findPortalBank, PORTAL_BANKS } from '../lib/portalBanks';
 import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
@@ -187,16 +187,15 @@ const copy = {
     billingNav: 'Tagihan',
     billingTitle: 'Tagihan & pembayaran',
     bankSettingsTitle: 'Rekening transfer klien',
-    bankSettingsHint: 'Rekening Linier ini ditampilkan pada setiap termin klien yang belum lunas atau perlu perbaikan.',
-    bankName: 'Nama bank',
-    bankSelectPlaceholder: 'Pilih bank',
+    bankSettingsHint: 'Atur keempat rekening Linier di sini. Klien memilih salah satunya pada setiap termin.',
+    bankName: 'Bank',
     bankAccountNumber: 'Nomor rekening',
     bankAccountHolder: 'Nama pemilik rekening',
-    saveBankSettings: 'Simpan rekening bank',
+    saveBankSettings: 'Simpan semua rekening',
     savingBankSettings: 'Menyimpan...',
     bankSettingsSaved: 'Informasi rekening berhasil disimpan.',
-    bankSettingsLoading: 'Memuat informasi rekening...',
-    bankLogoCleanupWarning: 'Informasi tersimpan, tetapi logo lama gagal dihapus dari penyimpanan.',
+    bankSettingsLoading: 'Memuat rekening bank...',
+    billingSelectedBank: 'Rekening yang dipilih klien',
     billingAdd: 'Tambah termin',
     billingProject: 'Proyek tagihan',
     billingName: 'Nama termin',
@@ -434,16 +433,15 @@ const copy = {
     billingNav: 'Billing',
     billingTitle: 'Billing & payments',
     bankSettingsTitle: 'Client transfer account',
-    bankSettingsHint: 'This Linier account is shown with each client installment that is unpaid or needs correction.',
-    bankName: 'Bank name',
-    bankSelectPlaceholder: 'Select a bank',
+    bankSettingsHint: 'Manage all four Linier accounts here. Clients choose one for each installment.',
+    bankName: 'Bank',
     bankAccountNumber: 'Account number',
     bankAccountHolder: 'Account holder',
-    saveBankSettings: 'Save bank account',
+    saveBankSettings: 'Save all bank accounts',
     savingBankSettings: 'Saving...',
     bankSettingsSaved: 'Bank account details saved.',
-    bankSettingsLoading: 'Loading bank account details...',
-    bankLogoCleanupWarning: 'Details were saved, but the previous logo could not be removed from storage.',
+    bankSettingsLoading: 'Loading bank accounts...',
+    billingSelectedBank: 'Client selected account',
     billingAdd: 'Add installment',
     billingProject: 'Billing project',
     billingName: 'Installment name',
@@ -681,16 +679,15 @@ const copy = {
     billingNav: '账单',
     billingTitle: '账单与付款',
     bankSettingsTitle: '客户转账账户',
-    bankSettingsHint: '此 Linier 账户会显示在客户尚未付款或需要修改的付款阶段中。',
-    bankName: '银行名称',
-    bankSelectPlaceholder: '请选择银行',
+    bankSettingsHint: '在此管理 Linier 的四个银行账户。客户可为每个付款阶段选择其中一个。',
+    bankName: '银行',
     bankAccountNumber: '银行账号',
     bankAccountHolder: '账户持有人',
-    saveBankSettings: '保存银行账户',
+    saveBankSettings: '保存所有银行账户',
     savingBankSettings: '正在保存...',
     bankSettingsSaved: '银行账户信息已保存。',
-    bankSettingsLoading: '正在加载银行账户信息...',
-    bankLogoCleanupWarning: '信息已保存，但无法从存储中删除旧标志。',
+    bankSettingsLoading: '正在加载银行账户...',
+    billingSelectedBank: '客户选择的账户',
     billingAdd: '添加付款阶段',
     billingProject: '账单项目',
     billingName: '阶段名称',
@@ -790,6 +787,16 @@ async function loadAdminData(): Promise<{ projects: PortalProject[]; requests: P
   return { projects: projectResult.projects, requests: requestResult.requests, feedback: feedbackResult.feedback };
 }
 
+function normalizePaymentAccounts(accounts: PortalPaymentAccount[]): PortalPaymentAccount[] {
+  const accountsByBank = new Map(accounts.map((account) => [account.bank_code, account]));
+  return PORTAL_BANKS.map((bank) => accountsByBank.get(bank.value) ?? {
+    bank_code: bank.value,
+    account_number: '',
+    account_holder: '',
+    updated_at: '',
+  });
+}
+
 async function loadAdminUpdates(projectId: string): Promise<PortalUpdate[]> {
   const result = await portalRequest<{ updates: PortalUpdate[] }>(
     `/api/portal/admin/updates?projectId=${encodeURIComponent(projectId)}`
@@ -812,7 +819,7 @@ const PortalAdmin: React.FC = () => {
   const [passwordRequests, setPasswordRequests] = useState<PasswordResetRequest[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<AdminFeedback[]>([]);
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
-  const [paymentSettings, setPaymentSettings] = useState<PortalPaymentSettings | null>(null);
+  const [paymentAccounts, setPaymentAccounts] = useState<PortalPaymentAccount[]>(() => normalizePaymentAccounts([]));
   const [paymentSettingsLoading, setPaymentSettingsLoading] = useState(false);
   const [paymentSettingsSaving, setPaymentSettingsSaving] = useState(false);
   const [paymentSettingsError, setPaymentSettingsError] = useState('');
@@ -979,9 +986,9 @@ const PortalAdmin: React.FC = () => {
 
       setPaymentSettingsLoading(true);
       setPaymentSettingsError('');
-      portalRequest<{ settings: PortalPaymentSettings }>('/api/portal/payment-settings')
-        .then(({ settings }) => {
-          if (active) setPaymentSettings(settings);
+      portalRequest<{ accounts: PortalPaymentAccount[] }>('/api/portal/payment-settings')
+        .then(({ accounts }) => {
+          if (active) setPaymentAccounts(normalizePaymentAccounts(accounts));
         })
         .catch((cause: unknown) => {
           if (active) setPaymentSettingsError(cause instanceof Error ? cause.message : 'Informasi rekening bank tidak dapat dimuat.');
@@ -1293,26 +1300,23 @@ const PortalAdmin: React.FC = () => {
 
   const savePaymentSettings = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!paymentSettings) return;
 
     setPaymentSettingsSaving(true);
     setPaymentSettingsError('');
     setPaymentSettingsNotice('');
     try {
-      const { settings, cleanupFailed } = await portalRequest<{
-        settings: PortalPaymentSettings;
-        cleanupFailed: boolean;
-      }>('/api/portal/payment-settings', {
+      const { accounts } = await portalRequest<{ accounts: PortalPaymentAccount[] }>('/api/portal/payment-settings', {
         method: 'PUT',
         body: JSON.stringify({
-          bankName: findPortalBank(paymentSettings.bank_name)?.value ?? paymentSettings.bank_name,
-          accountNumber: paymentSettings.account_number,
-          accountHolder: paymentSettings.account_holder,
-          bankLogoPath: null,
+          accounts: paymentAccounts.map((account) => ({
+            bankCode: account.bank_code,
+            accountNumber: account.account_number,
+            accountHolder: account.account_holder,
+          })),
         }),
       });
-      setPaymentSettings(settings);
-      setPaymentSettingsNotice(cleanupFailed ? t.bankLogoCleanupWarning : t.bankSettingsSaved);
+      setPaymentAccounts(normalizePaymentAccounts(accounts));
+      setPaymentSettingsNotice(t.bankSettingsSaved);
     } catch (cause) {
       setPaymentSettingsError(cause instanceof Error ? cause.message : 'Informasi rekening bank tidak dapat disimpan.');
     } finally {
@@ -2198,41 +2202,32 @@ const PortalAdmin: React.FC = () => {
                   {paymentSettingsNotice && <p role="status" className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-xs leading-5 text-emerald-700 dark:text-emerald-300">{paymentSettingsNotice}</p>}
                   {paymentSettingsLoading ? (
                     <p className="text-sm text-neutral-500">{t.bankSettingsLoading}</p>
-                  ) : !paymentSettings ? (
-                    null
                   ) : (
                     <>
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <fieldset className="min-w-0 sm:col-span-2">
-                          <legend className="mb-2 text-xs font-medium">{t.bankName}</legend>
-                          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                            {PORTAL_BANKS.map((bank) => (
-                              <label key={bank.value} className={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border p-3 text-center transition-colors focus-within:ring-2 focus-within:ring-bronze-500 ${findPortalBank(paymentSettings.bank_name)?.value === bank.value ? 'border-bronze-500 bg-[#f8f6f1] dark:bg-white/[0.06]' : 'border-neutral-200 bg-white hover:border-bronze-400 dark:border-white/10 dark:bg-neutral-950'}`}>
-                                <input
-                                  type="radio"
-                                  name="bankName"
-                                  value={bank.value}
-                                  checked={findPortalBank(paymentSettings.bank_name)?.value === bank.value}
-                                  onChange={() => setPaymentSettings((current) => current ? { ...current, bank_name: bank.value } : current)}
-                                  required
-                                  className="sr-only"
-                                />
-                                <span className="flex h-9 w-full items-center justify-center">
-                                  <img src={bank.logo} alt="" className="max-h-full max-w-[88px] object-contain" />
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {paymentAccounts.map((account) => {
+                          const bank = findPortalBank(account.bank_code);
+                          if (!bank) return null;
+                          return (
+                            <fieldset key={account.bank_code} className="min-w-0 rounded-xl border border-neutral-200 p-4 dark:border-white/10">
+                              <legend className="sr-only">{bank.label}</legend>
+                              <div className="mb-4 flex items-center gap-3">
+                                <span className="flex h-9 w-14 items-center justify-center">
+                                  <img src={bank.logo} alt="" className="max-h-full max-w-full object-contain" />
                                 </span>
-                                <span className="text-xs font-medium">{bank.label}</span>
+                                <span className="text-sm font-medium">{bank.label}</span>
+                              </div>
+                              <label className="mb-4 block">
+                                <span className="mb-2 block text-xs font-medium">{t.bankAccountNumber}</span>
+                                <input value={account.account_number} onChange={(event) => setPaymentAccounts((current) => current.map((entry) => entry.bank_code === account.bank_code ? { ...entry, account_number: event.target.value } : entry))} type="text" inputMode="numeric" autoComplete="off" maxLength={64} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" />
                               </label>
-                            ))}
-                          </div>
-                        </fieldset>
-                        <label className="block">
-                          <span className="mb-2 block text-xs font-medium">{t.bankAccountNumber}</span>
-                          <input value={paymentSettings.account_number} onChange={(event) => setPaymentSettings((current) => current ? { ...current, account_number: event.target.value } : current)} type="text" inputMode="numeric" autoComplete="off" maxLength={64} className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" />
-                        </label>
-                        <label className="block sm:col-span-2">
-                          <span className="mb-2 block text-xs font-medium">{t.bankAccountHolder}</span>
-                          <input value={paymentSettings.account_holder} onChange={(event) => setPaymentSettings((current) => current ? { ...current, account_holder: event.target.value } : current)} maxLength={120} autoComplete="name" className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" />
-                        </label>
+                              <label className="block">
+                                <span className="mb-2 block text-xs font-medium">{t.bankAccountHolder}</span>
+                                <input value={account.account_holder} onChange={(event) => setPaymentAccounts((current) => current.map((entry) => entry.bank_code === account.bank_code ? { ...entry, account_holder: event.target.value } : entry))} maxLength={120} autoComplete="name" className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950" />
+                              </label>
+                            </fieldset>
+                          );
+                        })}
                       </div>
                       <div className="mt-5 flex justify-end border-t border-neutral-100 pt-5 dark:border-white/10">
                         <button disabled={paymentSettingsSaving || paymentSettingsLoading} className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 text-xs font-medium text-white transition-colors hover:bg-bronze-600 disabled:cursor-wait disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
@@ -2280,6 +2275,16 @@ const PortalAdmin: React.FC = () => {
                               <FileText size={14} /> {t.billingProof}: {item.payment_proof_name || t.billingProof}
                             </a>
                           )}
+                          {item.selected_bank_code && (() => {
+                            const bank = findPortalBank(item.selected_bank_code);
+                            const account = paymentAccounts.find((entry) => entry.bank_code === item.selected_bank_code);
+                            return bank ? (
+                              <p className="mt-3 flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-300">
+                                <img src={bank.logo} alt="" className="h-5 w-8 object-contain" />
+                                <span>{t.billingSelectedBank}: {bank.label}{account?.account_number ? ` · ${account.account_number}` : ''}</span>
+                              </p>
+                            ) : null;
+                          })()}
                           {item.payment_proof_submitted_at && (
                             <p className="mt-3 flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300">
                               <CheckCircle2 size={14} className="shrink-0" />

@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, Landmark, LayoutDashboard, LockKeyhole, LogOut, MapPin, MessageCircle, Moon, Phone, Search, Send, ShieldCheck, Sun, Upload, X } from 'lucide-react';
+import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, LockKeyhole, LogOut, MapPin, MessageCircle, Moon, Phone, Search, Send, ShieldCheck, Sun, Upload, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalNotification, type PortalPaymentSettings, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalNotification, type PortalPaymentAccount, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 import { findPortalBank } from '../lib/portalBanks';
 import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
 
@@ -115,6 +115,10 @@ const copy = {
     bankAccountNotConfigured: 'Informasi rekening belum diatur. Silakan hubungi studio untuk metode pembayaran.',
     bankAccountLoading: 'Memuat informasi rekening...',
     bankAccountLoadFailed: 'Informasi rekening bank tidak dapat dimuat.',
+    bankChoiceTitle: 'Pilih rekening untuk termin ini',
+    bankChoiceHint: 'Pilih rekening sebelum mengunggah bukti pembayaran.',
+    bankChoiceRequired: 'Pilih rekening bank sebelum mengunggah bukti pembayaran.',
+    bankChoiceSaved: 'Rekening yang dipilih',
     billingEmpty: 'Belum ada tagihan untuk proyek ini.',
     billingDueDate: 'Jatuh tempo',
     billingUnpaid: 'Belum dibayar',
@@ -275,6 +279,10 @@ const copy = {
     bankAccountNotConfigured: 'Bank details have not been set up yet. Please contact the studio for payment instructions.',
     bankAccountLoading: 'Loading bank details...',
     bankAccountLoadFailed: 'Bank details could not be loaded.',
+    bankChoiceTitle: 'Choose an account for this installment',
+    bankChoiceHint: 'Choose an account before uploading payment proof.',
+    bankChoiceRequired: 'Choose a bank account before uploading payment proof.',
+    bankChoiceSaved: 'Selected account',
     billingEmpty: 'There are no bills for this project yet.',
     billingDueDate: 'Due date',
     billingUnpaid: 'Unpaid',
@@ -435,6 +443,10 @@ const copy = {
     bankAccountNotConfigured: '尚未设置银行账户信息。请联系工作室获取付款方式。',
     bankAccountLoading: '正在加载银行账户信息...',
     bankAccountLoadFailed: '无法加载银行账户信息。',
+    bankChoiceTitle: '为此付款阶段选择账户',
+    bankChoiceHint: '上传付款凭证前，请先选择银行账户。',
+    bankChoiceRequired: '上传付款凭证前，请先选择银行账户。',
+    bankChoiceSaved: '已选择账户',
     billingEmpty: '此项目暂无账单。',
     billingDueDate: '到期日',
     billingUnpaid: '未付款',
@@ -510,10 +522,10 @@ const ClientPortal: React.FC = () => {
   const [updates, setUpdates] = useState<PortalUpdate[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<ClientFeedback[]>([]);
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
-  const [bankSettings, setBankSettings] = useState<PortalPaymentSettings | null>(null);
-  const selectedBank = findPortalBank(bankSettings?.bank_name);
-  const [bankSettingsLoading, setBankSettingsLoading] = useState(false);
-  const [bankSettingsError, setBankSettingsError] = useState('');
+  const [paymentAccounts, setPaymentAccounts] = useState<PortalPaymentAccount[]>([]);
+  const availablePaymentAccounts = paymentAccounts.filter((account) => account.account_number.trim());
+  const [paymentAccountsLoading, setPaymentAccountsLoading] = useState(false);
+  const [paymentAccountsError, setPaymentAccountsError] = useState('');
   const [changeOrders, setChangeOrders] = useState<ProjectChangeOrder[]>([]);
   const [notifications, setNotifications] = useState<PortalNotification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
@@ -629,24 +641,24 @@ const ClientPortal: React.FC = () => {
   useEffect(() => {
     let active = true;
     if (!project) {
-      setBankSettings(null);
-      setBankSettingsLoading(false);
-      setBankSettingsError('');
+      setPaymentAccounts([]);
+      setPaymentAccountsLoading(false);
+      setPaymentAccountsError('');
       return () => { active = false; };
     }
 
-    setBankSettings(null);
-    setBankSettingsError('');
-    setBankSettingsLoading(true);
-    portalRequest<{ settings: PortalPaymentSettings }>(`/api/portal/payment-settings?projectId=${encodeURIComponent(project.id)}`)
-      .then(({ settings }) => {
-        if (active) setBankSettings(settings);
+    setPaymentAccounts([]);
+    setPaymentAccountsError('');
+    setPaymentAccountsLoading(true);
+    portalRequest<{ accounts: PortalPaymentAccount[] }>(`/api/portal/payment-settings?projectId=${encodeURIComponent(project.id)}`)
+      .then(({ accounts }) => {
+        if (active) setPaymentAccounts(accounts);
       })
       .catch((cause: unknown) => {
-        if (active) setBankSettingsError(cause instanceof Error ? cause.message : t.bankAccountLoadFailed);
+        if (active) setPaymentAccountsError(cause instanceof Error ? cause.message : t.bankAccountLoadFailed);
       })
       .finally(() => {
-        if (active) setBankSettingsLoading(false);
+        if (active) setPaymentAccountsLoading(false);
       });
     return () => { active = false; };
   }, [project?.id, t.bankAccountLoadFailed]);
@@ -803,6 +815,10 @@ const ClientPortal: React.FC = () => {
   const uploadPaymentProof = async (event: React.ChangeEvent<HTMLInputElement>, item: BillingItem) => {
     const file = event.currentTarget.files?.[0];
     if (!file || !project) return;
+    if (!item.selected_bank_code) {
+      setError(t.bankChoiceRequired);
+      return;
+    }
     const input = event.currentTarget;
     setBillingBusyId(item.id);
     setError('');
@@ -814,11 +830,12 @@ const ClientPortal: React.FC = () => {
         body: JSON.stringify({
           action: 'start-upload',
           itemId: item.id,
+          bankCode: item.selected_bank_code,
           file: { name: file.name, contentType: file.type, size: file.size },
         }),
       });
       uploadStarted = true;
-      setBillingItems((current) => current.map((entry) => entry.id === item.id ? uploadingItem : entry));
+      setBillingItems((current) => current.map((entry) => entry.id === item.id ? { ...uploadingItem, selected_bank_code: item.selected_bank_code } : entry));
       if (cleanupFailed) setError(t.billingCleanupWarning);
       const response = await fetch(uploadUrl, {
         method: 'PUT',
@@ -828,7 +845,7 @@ const ClientPortal: React.FC = () => {
       if (!response.ok) throw new Error('Bukti pembayaran gagal diunggah ke penyimpanan.');
       const { item: submittedItem } = await portalRequest<{ item: BillingItem }>(billingEndpoint, {
         method: 'POST',
-        body: JSON.stringify({ action: 'complete-upload', itemId: item.id }),
+        body: JSON.stringify({ action: 'complete-upload', itemId: item.id, bankCode: item.selected_bank_code }),
       });
       setBillingItems((current) => current.map((entry) => entry.id === item.id ? submittedItem : entry));
       setBillingNotice(t.billingSubmitted);
@@ -841,7 +858,7 @@ const ClientPortal: React.FC = () => {
             method: 'POST',
             body: JSON.stringify({ action: 'cancel-upload', itemId: item.id }),
           });
-          setBillingItems((current) => current.map((entry) => entry.id === item.id ? canceledItem : entry));
+          setBillingItems((current) => current.map((entry) => entry.id === item.id ? { ...canceledItem, selected_bank_code: item.selected_bank_code } : entry));
         } catch (cancelCause) {
           const cancelMessage = cancelCause instanceof Error ? cancelCause.message : 'Unggahan tidak dapat dibatalkan.';
           setError(`${message} ${cancelMessage}`);
@@ -1452,31 +1469,55 @@ const ClientPortal: React.FC = () => {
                       </div>
                       {(item.status === 'unpaid' || item.status === 'rejected') && (
                         <div className="mt-4 rounded-xl border border-[#d9d4c9] bg-[#f8f6f1] p-3.5 dark:border-white/10 dark:bg-white/[0.03]">
-                          <div className="flex items-center gap-3">
-                            <span className="flex h-10 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-white p-1.5 dark:border-white/10 dark:bg-neutral-950">
-                              {selectedBank
-                                ? <img src={selectedBank.logo} alt={selectedBank.label} className="max-h-full max-w-full object-contain" />
-                                : <Landmark size={18} className="text-[#8c795e] dark:text-bronze-400" />}
-                            </span>
-                            <div className="min-w-0">
-                              <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-neutral-500 dark:text-neutral-400">{t.bankTransferTitle}</p>
-                              {bankSettings?.bank_name && <p className="mt-0.5 truncate text-sm font-semibold">{selectedBank?.label ?? bankSettings.bank_name}</p>}
-                            </div>
-                          </div>
-                          {bankSettingsLoading ? (
+                          <p className="text-xs font-medium">{t.bankChoiceTitle}</p>
+                          {paymentAccountsLoading ? (
                             <p className="mt-3 text-xs text-neutral-500">{t.bankAccountLoading}</p>
-                          ) : bankSettingsError ? (
-                            <p role="alert" className="mt-3 text-xs leading-5 text-red-700 dark:text-red-300">{bankSettingsError}</p>
-                          ) : bankSettings && (bankSettings.bank_name || bankSettings.account_number || bankSettings.account_holder) ? (
-                            <dl className="mt-3 grid gap-2 border-t border-neutral-200 pt-3 sm:grid-cols-2 dark:border-white/10">
-                              {bankSettings.account_number && <div><dt className="text-[9px] uppercase tracking-wider text-neutral-500">{t.bankAccountNumber}</dt><dd className="mt-0.5 break-all font-mono text-sm font-semibold tracking-wide">{bankSettings.account_number}</dd></div>}
-                              {bankSettings.account_holder && <div><dt className="text-[9px] uppercase tracking-wider text-neutral-500">{t.bankAccountHolder}</dt><dd className="mt-0.5 break-words text-xs font-medium">{bankSettings.account_holder}</dd></div>}
-                            </dl>
+                          ) : paymentAccountsError ? (
+                            <p role="alert" className="mt-3 text-xs leading-5 text-red-700 dark:text-red-300">{paymentAccountsError}</p>
+                          ) : availablePaymentAccounts.length > 0 ? (
+                            <div role="radiogroup" aria-label={t.bankChoiceTitle} className="mt-3 grid gap-2 sm:grid-cols-2">
+                              {availablePaymentAccounts.map((account) => {
+                                const bank = findPortalBank(account.bank_code);
+                                if (!bank) return null;
+                                return (
+                                  <label key={account.bank_code} className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors focus-within:ring-2 focus-within:ring-bronze-500 ${item.selected_bank_code === account.bank_code ? 'border-bronze-500 bg-white dark:bg-neutral-900' : 'border-neutral-200 bg-white/70 hover:border-bronze-400 dark:border-white/10 dark:bg-neutral-950'}`}>
+                                    <input
+                                      type="radio"
+                                      name={`bank-${item.id}`}
+                                      value={account.bank_code}
+                                      checked={item.selected_bank_code === account.bank_code}
+                                      onChange={() => setBillingItems((current) => current.map((entry) => entry.id === item.id ? { ...entry, selected_bank_code: account.bank_code } : entry))}
+                                      disabled={Boolean(billingBusyId)}
+                                      className="sr-only"
+                                    />
+                                    <span className="flex h-8 w-11 shrink-0 items-center justify-center">
+                                      <img src={bank.logo} alt="" className="max-h-full max-w-full object-contain" />
+                                    </span>
+                                    <span className="min-w-0">
+                                      <span className="block text-xs font-semibold">{bank.label}</span>
+                                      <span className="mt-1 block break-all font-mono text-xs">{account.account_number}</span>
+                                      {account.account_holder && <span className="mt-1 block break-words text-[10px] text-neutral-500">{t.bankAccountHolder}: {account.account_holder}</span>}
+                                    </span>
+                                  </label>
+                                );
+                              })}
+                            </div>
                           ) : (
                             <p className="mt-3 text-xs leading-5 text-neutral-500">{t.bankAccountNotConfigured}</p>
                           )}
+                          <p className="mt-3 text-[10px] leading-5 text-neutral-500">{t.bankChoiceHint}</p>
                         </div>
                       )}
+                      {item.selected_bank_code && item.status !== 'unpaid' && item.status !== 'rejected' && (() => {
+                        const bank = findPortalBank(item.selected_bank_code);
+                        const account = paymentAccounts.find((entry) => entry.bank_code === item.selected_bank_code);
+                        return bank && account ? (
+                          <p className="mt-3 flex items-center gap-2 text-xs text-neutral-500">
+                            <img src={bank.logo} alt="" className="h-5 w-8 object-contain" />
+                            {t.bankChoiceSaved}: {bank.label} · {account.account_number}
+                          </p>
+                        ) : null;
+                      })()}
                       {item.payment_proof_url && <a href={item.payment_proof_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-bronze-700 underline underline-offset-2 dark:text-bronze-300"><FileText size={14} /> {t.billingProof}: {item.payment_proof_name || t.viewFile}</a>}
                       {item.payment_proof_submitted_at && item.status !== 'uploading' && item.status !== 'unpaid' && (
                         <p className="mt-3 flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300">
@@ -1491,7 +1532,7 @@ const ClientPortal: React.FC = () => {
                           <span className="inline-flex items-center gap-2 text-xs font-medium"><Upload size={15} className="text-bronze-500" />{billingBusyId === item.id ? t.billingUploadingAction : t.billingUpload}</span>
                           {item.due_date < currentDate() && <span className="text-[10px] leading-5 text-amber-700 dark:text-amber-300">{t.billingOverdueUploadHint}</span>}
                           <span className="text-[10px] leading-5 text-neutral-500">{t.billingProofHint}</span>
-                          <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled={Boolean(billingBusyId)} className="sr-only" onChange={(event) => void uploadPaymentProof(event, item)} />
+                          <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled={Boolean(billingBusyId) || !item.selected_bank_code || paymentAccountsLoading || availablePaymentAccounts.length === 0 || Boolean(paymentAccountsError)} className="sr-only" onChange={(event) => void uploadPaymentProof(event, item)} />
                         </label>
                       )}
                     </li>

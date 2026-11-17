@@ -10,6 +10,7 @@ import {
   requireRole,
   supabaseRequest,
 } from './portal.js';
+import { PORTAL_BANKS, type PortalBankCode } from '../../lib/portalBanks.js';
 
 interface BillingRecord {
   id: string;
@@ -18,6 +19,7 @@ interface BillingRecord {
   amount: string;
   due_date: string;
   status: 'unpaid' | 'uploading' | 'pending_review' | 'rejected' | 'paid';
+  selected_bank_code: PortalBankCode | null;
   payment_proof_path: string | null;
   payment_proof_name: string | null;
   payment_proof_content_type: string | null;
@@ -34,13 +36,14 @@ interface ProofFile {
   size: number;
 }
 
-const BILLING_FIELDS = 'id,project_id,title,amount,due_date,status,payment_proof_path,payment_proof_name,payment_proof_content_type,proof_upload_expires_at,payment_proof_submitted_at,payment_review_note,paid_at,created_at';
+const BILLING_FIELDS = 'id,project_id,title,amount,due_date,status,selected_bank_code,payment_proof_path,payment_proof_name,payment_proof_content_type,proof_upload_expires_at,payment_proof_submitted_at,payment_review_note,paid_at,created_at';
 const PROOF_TYPES: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
   'image/webp': 'webp',
   'application/pdf': 'pdf',
 };
+const ACCOUNT_FIELDS = 'bank_code,account_number';
 const MAX_PROOF_SIZE = 5 * 1024 * 1024;
 const UPLOAD_WINDOW_MS = 10 * 60 * 1000;
 
@@ -68,6 +71,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     if (!isUuid(itemId)) throw new HttpError(400, 'Termin pembayaran yang dipilih tidak valid.');
 
     if (action === 'start-upload') {
+      await requireConfiguredBank(body.bankCode);
       const file = parseProofFile(body.file);
       const current = await getBillingItem(itemId, projectId);
       let latest = current;
@@ -96,6 +100,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
             payment_proof_name: file.name,
             payment_proof_content_type: file.contentType,
             proof_upload_expires_at: expiresAt,
+            selected_bank_code: null,
             payment_review_note: null,
           }),
         }
@@ -125,6 +130,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       ) {
         throw new HttpError(409, 'Sesi unggah sudah berakhir. Silakan unggah bukti kembali.');
       }
+      const bankCode = await requireConfiguredBank(body.bankCode);
       const updated = await supabaseRequest<BillingRecord[]>(
         `project_billing_items?id=eq.${encodeURIComponent(itemId)}&project_id=eq.${encodeURIComponent(projectId)}&status=eq.uploading&payment_proof_path=eq.${encodeURIComponent(current.payment_proof_path)}&proof_upload_expires_at=eq.${encodeURIComponent(current.proof_upload_expires_at)}&select=${BILLING_FIELDS}`,
         {
@@ -132,6 +138,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
           headers: { Prefer: 'return=representation' },
           body: JSON.stringify({
             status: 'pending_review',
+            selected_bank_code: bankCode,
             proof_upload_expires_at: null,
             payment_proof_submitted_at: new Date().toISOString(),
           }),
@@ -158,6 +165,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
             payment_proof_name: null,
             payment_proof_content_type: null,
             proof_upload_expires_at: null,
+            selected_bank_code: null,
           }),
         }
       );
@@ -181,6 +189,23 @@ async function getBillingItem(itemId: string, projectId: string): Promise<Billin
   );
   if (!items[0]) throw new HttpError(404, 'Termin pembayaran tidak ditemukan.');
   return items[0];
+}
+
+async function requireConfiguredBank(value: unknown): Promise<PortalBankCode> {
+  if (typeof value !== 'string' || !isPortalBankCode(value)) {
+    throw new HttpError(400, 'Pilih salah satu rekening bank sebelum mengunggah bukti.');
+  }
+  const accounts = await supabaseRequest<Array<{ bank_code: PortalBankCode; account_number: string }>>(
+    `portal_payment_accounts?select=${ACCOUNT_FIELDS}&bank_code=eq.${encodeURIComponent(value)}&limit=1`
+  );
+  if (!accounts[0] || !accounts[0].account_number.trim()) {
+    throw new HttpError(409, 'Rekening bank yang dipilih belum tersedia. Pilih rekening lain atau hubungi studio.');
+  }
+  return value;
+}
+
+function isPortalBankCode(value: string): value is PortalBankCode {
+  return PORTAL_BANKS.some((bank) => bank.value === value);
 }
 
 async function expireAbandonedUploads(items: BillingRecord[]): Promise<BillingRecord[]> {
@@ -207,6 +232,7 @@ async function resetExpiredUpload(item: BillingRecord): Promise<BillingRecord> {
         payment_proof_name: null,
         payment_proof_content_type: null,
         proof_upload_expires_at: null,
+        selected_bank_code: null,
       }),
     }
   );

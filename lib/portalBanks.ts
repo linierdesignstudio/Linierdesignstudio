@@ -25,6 +25,8 @@ export const PORTAL_BANKS = [
   },
 ] as const;
 
+export type PortalBankCode = typeof PORTAL_BANKS[number]['value'];
+
 export function findPortalBank(bankName: string | null | undefined) {
   const normalizedName = bankName?.trim().toLowerCase();
   return PORTAL_BANKS.find((bank) => bank.aliases.some((alias) => alias === normalizedName)) ?? null;

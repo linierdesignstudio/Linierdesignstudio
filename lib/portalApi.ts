@@ -98,6 +98,7 @@ export interface BillingItem {
   amount: string;
   due_date: string;
   status: BillingStatus;
+  selected_bank_code: string | null;
   payment_proof_path: string | null;
   payment_proof_name: string | null;
   payment_proof_content_type: string | null;
@@ -109,13 +110,10 @@ export interface BillingItem {
   created_at: string;
 }
 
-export interface PortalPaymentSettings {
-  id: string;
-  bank_name: string;
+export interface PortalPaymentAccount {
+  bank_code: string;
   account_number: string;
   account_holder: string;
-  bank_logo_path: string | null;
-  bank_logo_url: string | null;
   updated_at: string;
 }
 
