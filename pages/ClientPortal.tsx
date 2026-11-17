@@ -1098,7 +1098,7 @@ const ClientPortal: React.FC = () => {
     <div className={`portal-readable min-h-screen overflow-x-clip bg-[#f5f4f0] ${project ? 'pb-28 pt-16 sm:pb-20 sm:pt-24 md:pt-32' : 'pb-10 pt-8 sm:pt-10 md:pt-12'} text-neutral-900 dark:bg-[#0b0c0b] dark:text-white`}>
       <div className="mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-8 lg:px-12">
         <div className="mb-5 flex items-center justify-between gap-3 sm:mb-7">
-          <Link to="/" className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-400 hover:text-neutral-950 dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:border-white/25 dark:hover:text-white">
+          <Link to="/" className={`inline-flex items-center gap-2 transition-colors hover:text-neutral-950 dark:hover:text-white ${project ? 'rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300' : 'font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-500 dark:text-neutral-400'}`}>
             <ArrowDownLeft size={15} /> {t.back}
           </Link>
           <div className="flex items-center gap-2">
@@ -1719,36 +1719,38 @@ const ClientPortal: React.FC = () => {
             )}
           </section>
         ) : (
-          <div className="portal-login mx-auto grid min-w-0 max-w-[1180px] overflow-hidden rounded-[1.5rem] border border-[#deddd6] bg-[#080908] shadow-[0_24px_70px_rgba(27,25,20,0.14)] sm:rounded-[1.75rem] lg:grid-cols-[minmax(0,1.04fr)_minmax(0,0.96fr)]">
-            <section className="relative flex min-h-[300px] flex-col justify-between overflow-hidden bg-[#252722] p-5 text-white sm:min-h-[430px] sm:p-9 lg:min-h-[560px] lg:p-12">
-              <img src={clientPortalImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-55" />
-              <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/35 via-neutral-950/20 to-neutral-950/85" />
+          <div className="portal-login mx-auto grid min-w-0 max-w-[1240px] overflow-hidden border border-neutral-300 bg-[#090a08] shadow-[0_28px_80px_rgba(27,25,20,0.12)] dark:border-white/15 lg:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
+            <section className="relative flex min-h-[340px] flex-col justify-between overflow-hidden bg-[#252722] p-6 text-white sm:min-h-[480px] sm:p-10 lg:min-h-[640px] lg:p-14">
+              <img src={clientPortalImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-60" />
+              <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/55 via-neutral-950/15 to-neutral-950/80" />
+              <span aria-hidden="true" className="pointer-events-none absolute -bottom-10 right-3 font-display text-[12rem] font-bold leading-none tracking-[-0.12em] text-white/[0.08] sm:right-8 sm:text-[17rem]">01</span>
               <div className="relative">
                 <p className="inline-flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/80">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#b8c89f]" /> LINIER STUDIO <span className="text-white/35">/</span> CLIENT JOURNAL
                 </p>
-                <div className="mt-12 max-w-xl sm:mt-16">
-                  <h1 className="font-display text-3xl font-bold uppercase leading-[0.92] tracking-[-0.065em] sm:text-5xl lg:text-6xl">{t.title}</h1>
-                  <p className="mt-4 max-w-md font-mono text-[10px] uppercase leading-6 tracking-[0.08em] text-white/75 sm:mt-5 sm:text-xs sm:leading-7">{t.subtitle}</p>
+                <div className="mt-14 max-w-[620px] sm:mt-20 lg:mt-24">
+                  <h1 className="max-w-[10ch] font-display text-5xl font-bold leading-[0.84] tracking-[-0.085em] sm:text-7xl lg:text-[5.8rem]">{t.title}</h1>
+                  <p className="mt-6 max-w-sm font-mono text-[10px] leading-5 tracking-[0.035em] text-white/75 sm:mt-8 sm:text-xs sm:leading-6">{t.subtitle}</p>
                 </div>
               </div>
-              <div className="relative mt-8 flex justify-end border-t border-white/20 pt-4 sm:pt-5">
-                <Link to="/portal/admin" className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/20 px-3 py-2 text-[11px] font-medium text-white/85 transition-colors hover:border-white/50 hover:bg-white/10 hover:text-white">
+              <div className="relative mt-10 flex items-end justify-between border-t border-white/25 pt-4 sm:pt-5">
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/55">LINIER / JOURNAL — 01</span>
+                <Link to="/portal/admin" className="inline-flex shrink-0 items-center gap-2 border-b border-white/35 pb-1 font-mono text-[9px] uppercase tracking-[0.12em] text-white/85 transition-colors hover:border-white hover:text-white">
                   {t.admin} <ArrowUpRight size={14} />
                 </Link>
               </div>
             </section>
 
-            <form onSubmit={resetMode ? requestPasswordReset : signIn} className="flex flex-col justify-center bg-[#080908] px-5 py-8 text-white sm:px-10 sm:py-12 lg:px-12 lg:py-14">
-              <div className="mb-7 flex items-center gap-3 sm:mb-9">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] text-[#c5d2b0]">
+            <form onSubmit={resetMode ? requestPasswordReset : signIn} className="relative flex flex-col justify-center bg-[#090a08] px-6 py-9 text-white sm:px-10 sm:py-12 lg:px-12 lg:py-14">
+              <div className="mb-9 flex items-center justify-between gap-3 sm:mb-14">
+                <span className="flex h-10 w-10 items-center justify-center border border-white/15 text-[#c5d2b0]">
                   <LockKeyhole size={16} strokeWidth={1.5} />
                 </span>
-                <span className="font-mono text-xs font-semibold uppercase tracking-[0.16em]">Linier <span className="font-normal text-white/40">/ Studio</span></span>
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">ACCESS / 01</span>
               </div>
-              <h2 className="mb-7 font-display text-3xl font-bold uppercase leading-[0.95] tracking-[-0.06em] sm:text-4xl">{resetMode ? t.resetTitle : t.signIn}</h2>
+              <h2 className="mb-8 max-w-[9ch] font-display text-5xl font-bold leading-[0.86] tracking-[-0.075em] sm:text-6xl">{resetMode ? t.resetTitle : t.signIn}</h2>
               <label className="mb-6 block">
-                <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/80">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
+                <span className="mb-2 block font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-white/65">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
                 <input
                   autoComplete="username"
                   autoCapitalize="none"
@@ -1761,7 +1763,7 @@ const ClientPortal: React.FC = () => {
               </label>
               {resetMode ? (
                 <label className="mb-6 block">
-                  <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/80">{t.whatsapp}</span>
+                  <span className="mb-2 block font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-white/65">{t.whatsapp}</span>
                   <input
                     type="tel"
                     autoComplete="tel"
@@ -1776,7 +1778,7 @@ const ClientPortal: React.FC = () => {
                 </label>
               ) : (
                 <div className="mb-2">
-                  <label htmlFor="client-portal-password" className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/80">{t.password}</label>
+                  <label htmlFor="client-portal-password" className="mb-2 block font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-white/65">{t.password}</label>
                   <div className="relative">
                     <input
                       id="client-portal-password"

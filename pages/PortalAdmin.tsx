@@ -1815,7 +1815,7 @@ const PortalAdmin: React.FC = () => {
   };
 
   return (
-    <div className={`portal-readable ${authenticated ? 'min-h-screen overflow-x-clip bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'grid min-h-[100svh] place-items-center overflow-x-clip bg-[#4b4d48] px-4 py-8 text-neutral-900 sm:px-6'}`}>
+    <div className={`portal-readable ${authenticated ? 'min-h-screen overflow-x-clip bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'grid min-h-[100svh] place-items-center overflow-x-clip bg-[#dedbd2] px-4 py-8 text-neutral-900 sm:px-6'}`}>
       {authenticated && !checking && (
         <aside className="z-40 bg-[#20211d] text-white shadow-xl shadow-black/10 lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-64 lg:flex-col">
           <div className="border-b border-white/[0.08] px-4 py-4 sm:px-7 sm:py-5 lg:px-6 lg:py-7">
@@ -1914,43 +1914,44 @@ const PortalAdmin: React.FC = () => {
             <span className="font-mono text-[10px] uppercase tracking-[0.18em]">{language === 'ID' ? 'Memuat ruang kerja...' : language === 'CN' ? '正在加载工作区...' : 'Loading workspace...'}</span>
           </div>
         ) : !authenticated ? (
-          <form onSubmit={signIn} className="portal-login mx-auto grid w-full min-w-0 max-w-[1080px] overflow-hidden rounded-[1.6rem] border-[7px] border-[#11120f] bg-white shadow-[0_35px_90px_rgba(15,17,14,0.28)] lg:min-h-[590px] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-            <section className="relative flex min-h-[300px] flex-col justify-between overflow-hidden bg-[#191a16] p-5 text-white sm:min-h-[380px] sm:p-8 lg:min-h-[590px] lg:p-9">
-              <img src={heroImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-45" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/20" />
+          <form onSubmit={signIn} className="portal-login mx-auto grid w-full min-w-0 max-w-[1180px] overflow-hidden border border-neutral-300 bg-white shadow-[0_28px_80px_rgba(15,17,14,0.18)] lg:min-h-[640px] lg:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
+            <section className="relative flex min-h-[340px] flex-col justify-between overflow-hidden bg-[#191a16] p-6 text-white sm:min-h-[480px] sm:p-10 lg:min-h-[640px] lg:p-14">
+              <img src={heroImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-55" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/35" />
+              <span aria-hidden="true" className="pointer-events-none absolute -bottom-10 right-3 font-display text-[12rem] font-bold leading-none tracking-[-0.12em] text-white/[0.08] sm:right-8 sm:text-[17rem]">02</span>
               <div className="relative">
-                <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/25 px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.16em] text-white/80">
+                <p className="inline-flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/80">
                   <KeyRound size={12} /> {t.teamLoginBadge}
                 </p>
-                <div className="mt-14 max-w-[390px] sm:mt-20">
-                  <h1 className="font-display text-3xl font-bold uppercase leading-[0.92] tracking-[-0.065em] sm:text-5xl">{t.title}</h1>
-                  <p className="mt-4 max-w-sm font-mono text-[10px] uppercase leading-6 tracking-[0.08em] text-white/75 sm:text-xs sm:leading-7">{t.subtitle}</p>
+                <div className="mt-14 max-w-[620px] sm:mt-20 lg:mt-24">
+                  <h1 className="max-w-[10ch] font-display text-5xl font-bold leading-[0.84] tracking-[-0.085em] sm:text-7xl lg:text-[5.8rem]">{t.title}</h1>
+                  <p className="mt-6 max-w-sm font-mono text-[10px] leading-5 tracking-[0.035em] text-white/75 sm:mt-8 sm:text-xs sm:leading-6">{t.subtitle}</p>
                 </div>
               </div>
-              <div className="relative mt-8 flex items-center justify-between gap-4 border-t border-white/20 pt-4">
-                <img src={logoImage} alt="Linier Studio" className="h-7 w-auto max-w-[150px] object-contain brightness-0 invert" />
-                <Link to="/portal" className="inline-flex shrink-0 items-center gap-1.5 text-[10px] text-white/65 transition-colors hover:text-white">
+              <div className="relative mt-10 flex items-end justify-between gap-4 border-t border-white/25 pt-4">
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/55">LINIER / STUDIO — 02</span>
+                <Link to="/portal" className="inline-flex shrink-0 items-center gap-1.5 border-b border-white/35 pb-1 font-mono text-[9px] uppercase tracking-[0.12em] text-white/65 transition-colors hover:border-white hover:text-white">
                   <ArrowDownLeft size={13} /> {t.back}
                 </Link>
               </div>
             </section>
 
-            <div className="flex flex-col justify-center bg-white px-5 py-8 text-neutral-900 sm:px-9 sm:py-10 lg:px-10 lg:py-12">
-              <div className="mb-10 flex items-start justify-between gap-4">
+            <div className="flex flex-col justify-center bg-[#f7f6f2] px-6 py-9 text-neutral-900 sm:px-10 sm:py-12 lg:px-12 lg:py-14">
+              <div className="mb-9 flex items-start justify-between gap-4 sm:mb-14">
                 <div>
-                  <p className="font-display text-lg font-bold uppercase leading-none tracking-[-0.04em]">LINIER STUDIO</p>
-                  <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{t.eyebrow}</p>
+                  <p className="font-display text-2xl font-bold uppercase leading-none tracking-[-0.075em]">LINIER</p>
+                  <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{t.eyebrow}</p>
                 </div>
                 <PortalLanguageSwitcher language={language} onChange={setLanguage} />
               </div>
-              <h2 className="max-w-sm font-display text-3xl font-bold uppercase leading-[0.95] tracking-[-0.06em] sm:text-4xl">{t.teamLoginWelcome}</h2>
+              <h2 className="max-w-[11ch] font-display text-4xl font-bold leading-[0.9] tracking-[-0.075em] sm:text-5xl">{t.teamLoginWelcome}</h2>
               <div className="mt-8">
                 <label className="mb-5 block">
-                  <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-700">{t.email}</span>
+                  <span className="mb-2 block font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-neutral-700">{t.email}</span>
                   <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 text-sm outline-none transition placeholder:text-neutral-400 focus:ring-2 focus:ring-[#142526]/15" />
                 </label>
                 <div>
-                  <label htmlFor="admin-login-password" className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-700">{t.password}</label>
+                  <label htmlFor="admin-login-password" className="mb-2 block font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-neutral-700">{t.password}</label>
                   <div className="relative">
                     <input id="admin-login-password" name="password" type={adminPasswordVisible ? 'text' : 'password'} autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 pr-12 text-sm outline-none transition focus:ring-2 focus:ring-[#142526]/15" />
                     <button
@@ -1976,7 +1977,7 @@ const PortalAdmin: React.FC = () => {
                   <p className="mt-3 text-left leading-5 text-neutral-500">{t.forgotPasswordHint}</p>
                 </details>
               </div>
-              <p className="mt-10 border-t border-neutral-200 pt-4 text-[10px] text-neutral-400">{t.workspace}</p>
+              <p className="mt-10 border-t border-neutral-200 pt-4 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-400">{t.workspace}</p>
             </div>
           </form>
         ) : (
