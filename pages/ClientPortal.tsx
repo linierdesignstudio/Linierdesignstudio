@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, LockKeyhole, LogOut, MapPin, MessageCircle, Moon, Phone, Search, Send, ShieldCheck, Sun, Upload, X } from 'lucide-react';
+import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, Link2, LockKeyhole, LogOut, MapPin, MessageCircle, Monitor, Moon, Phone, Search, Send, ShieldCheck, Sun, Upload, UserRound, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
@@ -78,13 +78,39 @@ const copy = {
     resetSent: 'Jika ID proyek atau email terdaftar, tim studio akan memverifikasi permintaan dan menghubungi Anda lewat WhatsApp.',
     changePassword: 'Ganti password',
     clientProfile: 'Profil klien',
-    accountDetails: 'Detail akun',
     accountEmail: 'Email akun',
     accountEmailMissing: 'Email akun belum diatur',
-    clientMenu: 'Menu klien',
-    profileAndPreferences: 'Profil & preferensi',
-    darkMode: 'Mode gelap',
-    studioHelp: 'Bantuan studio',
+    accountSettingsTitle: 'Pengaturan akun',
+    accountProfileTab: 'Profil saya',
+    accountBillingTab: 'Data akun & penagihan',
+    accountSecurityTab: 'Keamanan',
+    accountSessionsTab: 'Sesi & perangkat',
+    accountAppsTab: 'Aplikasi terhubung',
+    accountProfileDescription: 'Nama Anda sebagai pengguna. Ini terpisah dari nama kontak di data akun, yang dipakai di invoice.',
+    profileName: 'Nama',
+    profileNameRequired: 'Nama harus diisi.',
+    profileLoginEmail: 'Email masuk',
+    profileLastLogin: 'Terakhir masuk',
+    profileLastLoginNone: 'Belum ada riwayat masuk',
+    profileNoChanges: 'Tidak ada perubahan',
+    profileUnsaved: 'Perubahan belum disimpan',
+    profileSaved: 'Perubahan profil berhasil disimpan.',
+    saveChanges: 'Simpan perubahan',
+    profileSaving: 'Menyimpan...',
+    accountBillingDescription: 'Informasi akun dan kontak penagihan untuk proyek Anda.',
+    invoiceContact: 'Nama kontak invoice',
+    accountProject: 'Proyek',
+    accountLocation: 'Lokasi proyek',
+    accountOpenBills: 'Tagihan terbuka',
+    accountOpenBilling: 'Lihat tagihan',
+    accountSecurityDescription: 'Kelola password yang digunakan untuk masuk ke portal klien.',
+    accountSessionsDescription: 'Sesi portal yang sedang digunakan pada perangkat ini.',
+    currentSession: 'Sesi perangkat ini',
+    currentSessionActive: 'Aktif',
+    sessionDuration: 'Sesi berakhir otomatis setelah 12 jam.',
+    accountAppsDescription: 'Aplikasi yang diberi akses ke akun portal klien.',
+    accountAppsEmpty: 'Belum ada aplikasi yang terhubung ke akun ini.',
+    backToPortal: 'Kembali ke portal',
     currentPassword: 'Password saat ini',
     newPassword: 'Password baru',
     confirmPassword: 'Konfirmasi password baru',
@@ -250,13 +276,39 @@ const copy = {
     resetSent: 'If the project ID or email is registered, the studio will verify the request and contact you via WhatsApp.',
     changePassword: 'Change password',
     clientProfile: 'Client profile',
-    accountDetails: 'Account details',
     accountEmail: 'Account email',
     accountEmailMissing: 'Account email is not set',
-    clientMenu: 'Client menu',
-    profileAndPreferences: 'Profile & preferences',
-    darkMode: 'Dark mode',
-    studioHelp: 'Studio help',
+    accountSettingsTitle: 'Account settings',
+    accountProfileTab: 'My profile',
+    accountBillingTab: 'Account & billing data',
+    accountSecurityTab: 'Security',
+    accountSessionsTab: 'Sessions & devices',
+    accountAppsTab: 'Connected apps',
+    accountProfileDescription: 'Your name as a user. This is separate from the account contact name used on invoices.',
+    profileName: 'Name',
+    profileNameRequired: 'Name is required.',
+    profileLoginEmail: 'Sign-in email',
+    profileLastLogin: 'Last sign-in',
+    profileLastLoginNone: 'No sign-in history',
+    profileNoChanges: 'No changes',
+    profileUnsaved: 'Unsaved changes',
+    profileSaved: 'Profile changes saved.',
+    saveChanges: 'Save changes',
+    profileSaving: 'Saving...',
+    accountBillingDescription: 'Account and billing contact information for your project.',
+    invoiceContact: 'Invoice contact name',
+    accountProject: 'Project',
+    accountLocation: 'Project location',
+    accountOpenBills: 'Open bills',
+    accountOpenBilling: 'View billing',
+    accountSecurityDescription: 'Manage the password used to sign in to the client portal.',
+    accountSessionsDescription: 'Portal session currently being used on this device.',
+    currentSession: 'This device session',
+    currentSessionActive: 'Active',
+    sessionDuration: 'Sessions expire automatically after 12 hours.',
+    accountAppsDescription: 'Apps with access to your client portal account.',
+    accountAppsEmpty: 'No apps are connected to this account.',
+    backToPortal: 'Back to portal',
     currentPassword: 'Current password',
     newPassword: 'New password',
     confirmPassword: 'Confirm new password',
@@ -422,13 +474,39 @@ const copy = {
     resetSent: '如果项目编号或邮箱已注册，工作室将核实请求并通过 WhatsApp 联系您。',
     changePassword: '更改密码',
     clientProfile: '客户资料',
-    accountDetails: '账号信息',
     accountEmail: '账号邮箱',
     accountEmailMissing: '尚未设置账号邮箱',
-    clientMenu: '客户菜单',
-    profileAndPreferences: '资料与偏好设置',
-    darkMode: '深色模式',
-    studioHelp: '工作室帮助',
+    accountSettingsTitle: '账号设置',
+    accountProfileTab: '我的资料',
+    accountBillingTab: '账号与账单信息',
+    accountSecurityTab: '安全',
+    accountSessionsTab: '会话与设备',
+    accountAppsTab: '已连接的应用',
+    accountProfileDescription: '您作为用户的姓名。此姓名与账单中使用的账号联系人姓名分开。',
+    profileName: '姓名',
+    profileNameRequired: '请填写姓名。',
+    profileLoginEmail: '登录邮箱',
+    profileLastLogin: '上次登录',
+    profileLastLoginNone: '暂无登录记录',
+    profileNoChanges: '没有更改',
+    profileUnsaved: '更改尚未保存',
+    profileSaved: '资料已保存。',
+    saveChanges: '保存更改',
+    profileSaving: '正在保存...',
+    accountBillingDescription: '项目的账号与账单联系人信息。',
+    invoiceContact: '账单联系人姓名',
+    accountProject: '项目',
+    accountLocation: '项目地点',
+    accountOpenBills: '未结账单',
+    accountOpenBilling: '查看账单',
+    accountSecurityDescription: '管理用于登录客户门户的密码。',
+    accountSessionsDescription: '此设备上正在使用的门户会话。',
+    currentSession: '此设备会话',
+    currentSessionActive: '使用中',
+    sessionDuration: '会话将在 12 小时后自动过期。',
+    accountAppsDescription: '已获准访问客户门户账号的应用。',
+    accountAppsEmpty: '此账号尚未连接任何应用。',
+    backToPortal: '返回门户',
     currentPassword: '当前密码',
     newPassword: '新密码',
     confirmPassword: '确认新密码',
@@ -529,8 +607,10 @@ const copy = {
 } as const;
 
 const clientPortalImage = new URL('../1.jpeg', import.meta.url).href;
-const clientPortalSections = ['client-dashboard', 'client-activity', 'project-updates', 'project-documents', 'project-billing', 'project-changes'] as const;
+const clientPortalSections = ['client-dashboard', 'client-activity', 'project-updates', 'project-documents', 'project-billing', 'project-changes', 'client-account'] as const;
 type ClientPortalSection = typeof clientPortalSections[number];
+const accountSettingsSections = ['profile', 'billing', 'security', 'sessions', 'apps'] as const;
+type AccountSettingsSection = typeof accountSettingsSections[number];
 const getClientPortalSection = (search: string): ClientPortalSection => {
   const requestedSection = new URLSearchParams(search).get('section');
   return clientPortalSections.find((section) => section === requestedSection) ?? 'client-dashboard';
@@ -578,15 +658,17 @@ const ClientPortal: React.FC = () => {
   const [resetMode, setResetMode] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [resetNotice, setResetNotice] = useState('');
-  const [passwordChangeOpen, setPasswordChangeOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [passwordChanging, setPasswordChanging] = useState(false);
   const [passwordChangeError, setPasswordChangeError] = useState('');
   const [passwordChangeNotice, setPasswordChangeNotice] = useState('');
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [profileDetailsOpen, setProfileDetailsOpen] = useState(false);
+  const [accountSettingsSection, setAccountSettingsSection] = useState<AccountSettingsSection>('profile');
+  const [profileName, setProfileName] = useState('');
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [profileNotice, setProfileNotice] = useState('');
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackNotice, setFeedbackNotice] = useState('');
   const [feedbackError, setFeedbackError] = useState('');
@@ -595,7 +677,6 @@ const ClientPortal: React.FC = () => {
   const [billingNotice, setBillingNotice] = useState('');
   const [changeSubmitting, setChangeSubmitting] = useState(false);
   const [changeNotice, setChangeNotice] = useState('');
-  const accountMenuRef = useRef<HTMLDivElement>(null);
   const feedbackMessagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -603,26 +684,12 @@ const ClientPortal: React.FC = () => {
   }, [location.search]);
 
   useEffect(() => {
-    if (!profileOpen) return;
-    const closeOnPointerDown = (event: PointerEvent) => {
-      if (event.target instanceof Node && !accountMenuRef.current?.contains(event.target)) {
-        setProfileOpen(false);
-        setProfileDetailsOpen(false);
-      }
-    };
-    const closeOnKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setProfileOpen(false);
-        setProfileDetailsOpen(false);
-      }
-    };
-    document.addEventListener('pointerdown', closeOnPointerDown);
-    document.addEventListener('keydown', closeOnKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', closeOnPointerDown);
-      document.removeEventListener('keydown', closeOnKeyDown);
-    };
-  }, [profileOpen]);
+    if (!project) {
+      setProfileName('');
+      return;
+    }
+    setProfileName(project.client_profile_name?.trim() || project.client_name);
+  }, [project?.id, project?.client_profile_name, project?.client_name]);
 
   useEffect(() => {
     if (!resetNotice) return;
@@ -991,10 +1058,9 @@ const ClientPortal: React.FC = () => {
       setUpdates([]);
       setActiveSection('client-dashboard');
       setFeedbackChatOpen(false);
-      setProfileOpen(false);
       setError('');
       setResetMode(false);
-      closePasswordChange();
+      clearPasswordChange();
       setResetNotice(t.passwordChanged);
     } catch (cause) {
       setPasswordChangeError(cause instanceof Error ? cause.message : 'Password tidak dapat diubah.');
@@ -1003,8 +1069,7 @@ const ClientPortal: React.FC = () => {
     }
   };
 
-  const closePasswordChange = () => {
-    setPasswordChangeOpen(false);
+  const clearPasswordChange = () => {
     setCurrentPassword('');
     setNewPassword('');
     setConfirmNewPassword('');
@@ -1020,7 +1085,7 @@ const ClientPortal: React.FC = () => {
       setUpdates([]);
       setFeedbackChatOpen(false);
       setError('');
-      closePasswordChange();
+      clearPasswordChange();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Tidak dapat keluar dari portal.');
     }
@@ -1035,7 +1100,6 @@ const ClientPortal: React.FC = () => {
 
   const openClientPage = (sectionId: string) => {
     setActiveSection(sectionId);
-    setProfileOpen(false);
     setFeedbackChatOpen(false);
     const searchParams = new URLSearchParams(location.search);
     if (getClientPortalSection(location.search) !== sectionId) {
@@ -1052,6 +1116,33 @@ const ClientPortal: React.FC = () => {
   };
   const openProjectSection = (sectionId: string) => {
     openClientPage(sectionId);
+  };
+  const saveAccountProfile = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!project) return;
+    const nextProfileName = profileName.trim();
+    if (!nextProfileName || nextProfileName.length > 120) {
+      setProfileError(t.profileNameRequired);
+      return;
+    }
+
+    setProfileSaving(true);
+    setProfileError('');
+    setProfileNotice('');
+    try {
+      const { profileName: savedProfileName } = await portalRequest<{ profileName: string }>('/api/portal/client/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({ profileName: nextProfileName }),
+      });
+      setProfileName(savedProfileName);
+      setProjects((current) => current.map((item) => ({ ...item, client_profile_name: savedProfileName })));
+      setProject((current) => current ? { ...current, client_profile_name: savedProfileName } : current);
+      setProfileNotice(t.profileSaved);
+    } catch (cause) {
+      setProfileError(cause instanceof Error ? cause.message : 'Profil tidak dapat disimpan.');
+    } finally {
+      setProfileSaving(false);
+    }
   };
   const getNotificationLabel = (eventType: PortalNotification['event_type']) => {
     switch (eventType) {
@@ -1148,6 +1239,21 @@ const ClientPortal: React.FC = () => {
     { id: 'project-billing', label: t.dashboardOpenBills, count: billingItems.filter((item) => item.status !== 'paid').length, icon: <FileCheck2 size={18} /> },
     { id: 'project-changes', label: t.dashboardPendingChanges, count: changeOrders.filter((order) => order.status === 'requested' || order.status === 'pending_approval').length, icon: <ClipboardList size={18} /> },
   ];
+  const accountSettingsNavigation: Array<{ id: AccountSettingsSection; label: string; icon: React.ReactNode }> = [
+    { id: 'profile', label: t.accountProfileTab, icon: <UserRound size={16} /> },
+    { id: 'billing', label: t.accountBillingTab, icon: <FileText size={16} /> },
+    { id: 'security', label: t.accountSecurityTab, icon: <ShieldCheck size={16} /> },
+    { id: 'sessions', label: t.accountSessionsTab, icon: <Monitor size={16} /> },
+    { id: 'apps', label: t.accountAppsTab, icon: <Link2 size={16} /> },
+  ];
+  const profileHasChanges = Boolean(project) && profileName.trim() !== (project?.client_profile_name?.trim() || project?.client_name);
+  const openBillingCount = billingItems.filter((item) => item.status !== 'paid').length;
+  const lastLoginText = project?.client_last_login_at
+    ? new Intl.DateTimeFormat(language === 'EN' ? 'en-US' : language === 'CN' ? 'zh-CN' : 'id-ID', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(project.client_last_login_at))
+    : t.profileLastLoginNone;
 
   return (
     <div className={`portal-readable min-h-screen overflow-x-clip ${project ? 'bg-[#f5f4f0] dark:bg-[#0b0c0b]' : 'portal-login-backdrop'} ${project ? 'pb-28 pt-16 sm:pb-20 sm:pt-24 md:pt-32' : 'pb-10 pt-8 sm:pt-10 md:pt-12'} text-neutral-900 dark:text-white`}>
@@ -1159,150 +1265,40 @@ const ClientPortal: React.FC = () => {
           <div className="flex items-center gap-2">
             {project && !loading && (
               <>
-                <div ref={accountMenuRef} className="relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProfileOpen((open) => !open);
-                      setProfileDetailsOpen(false);
-                    }}
-                    aria-label={t.clientProfile}
-                    aria-expanded={profileOpen}
-                    aria-controls="client-account-profile"
-                    className="flex max-w-[190px] items-center gap-2 rounded-full border border-neutral-200 bg-white px-2 py-1.5 text-left text-neutral-700 shadow-sm transition-colors hover:border-neutral-400 dark:border-white/15 dark:bg-[#181916] dark:text-neutral-200 dark:hover:border-white/30 sm:max-w-[240px] sm:gap-2.5 sm:px-2.5"
-                  >
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#262722] font-mono text-[10px] font-medium uppercase text-white dark:bg-white dark:text-neutral-900">
-                      {getClientInitials(project.client_name)}
-                    </span>
-                    <span className="hidden min-w-0 sm:block">
-                      <span className="block truncate text-xs font-medium">{project.client_name}</span>
-                      <span className="block font-mono text-[8px] uppercase tracking-wider text-neutral-400">{t.clientProfile}</span>
-                    </span>
-                  </button>
-                  {profileOpen && (
-                    <div id="client-account-profile" className="absolute right-0 top-full z-50 mt-2 max-h-[min(80vh,36rem)] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-3 text-neutral-900 shadow-[0_20px_60px_rgba(27,25,20,0.2)] dark:border-white/10 dark:bg-[#181916] dark:text-white sm:p-4">
-                      <div className="flex items-center gap-3 border-b border-neutral-100 px-1 pb-4 dark:border-white/10">
-                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#262722] font-mono text-xs font-medium uppercase text-white dark:bg-white dark:text-neutral-900">
-                          {getClientInitials(project.client_name)}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">{project.client_name}</p>
-                          <p className="mt-1 break-all text-[10px] text-neutral-500 dark:text-neutral-400">{project.client_email || t.accountEmailMissing}</p>
-                        </div>
-                      </div>
-                      <nav aria-label={t.clientMenu} className="space-y-1 py-2">
-                        {portalNavigation.map((item) => (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => openProjectSection(item.id)}
-                            aria-current={activeSection === item.id ? 'page' : undefined}
-                            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs transition-colors ${activeSection === item.id ? 'bg-[#f4f1eb] font-medium text-[#746349] dark:bg-white/[0.08] dark:text-bronze-300' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]'}`}
-                          >
-                            <span className="text-[#8c795e] dark:text-bronze-400">{item.icon}</span>
-                            <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                          </button>
-                        ))}
-                      </nav>
-                      <div className="space-y-1 border-t border-neutral-100 py-2 dark:border-white/10">
-                        <button
-                          type="button"
-                          onClick={() => setProfileDetailsOpen((open) => !open)}
-                          aria-expanded={profileDetailsOpen}
-                          className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
-                        >
-                          <span className="flex items-center gap-3">
-                            <ShieldCheck size={16} className="text-[#8c795e] dark:text-bronze-400" />
-                            {t.profileAndPreferences}
-                          </span>
-                          <span className="text-neutral-400">{profileDetailsOpen ? '−' : '+'}</span>
-                        </button>
-                        {profileDetailsOpen && (
-                          <div className="mx-3 space-y-2 rounded-xl bg-neutral-50 px-3 py-3 text-[10px] dark:bg-white/[0.04]">
-                            <div>
-                              <p className="text-neutral-500 dark:text-neutral-400">{t.accountDetails}</p>
-                              <p className="mt-1 text-xs font-medium">{project.client_name}</p>
-                            </div>
-                            <div>
-                              <p className="text-neutral-500 dark:text-neutral-400">{t.accountEmail}</p>
-                              <p className="mt-1 break-all text-xs">{project.client_email || t.accountEmailMissing}</p>
-                            </div>
-                            {project.client_phone && (
-                              <div>
-                                <p className="text-neutral-500 dark:text-neutral-400">{t.clientPhone}</p>
-                                <p className="mt-1 text-xs">{project.client_phone}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        <button
-                          type="button"
-                          onClick={toggleTheme}
-                          aria-pressed={isDark}
-                          className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
-                        >
-                          <span className="flex items-center gap-3">
-                            {isDark ? <Sun size={16} className="text-[#8c795e] dark:text-bronze-400" /> : <Moon size={16} className="text-[#8c795e] dark:text-bronze-400" />}
-                            {t.darkMode}
-                          </span>
-                          <span className={`relative h-5 w-9 rounded-full transition-colors ${isDark ? 'bg-[#8c795e]' : 'bg-neutral-300 dark:bg-white/20'}`}>
-                            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${isDark ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setProfileOpen(false);
-                            setPasswordChangeOpen(true);
-                            setPasswordChangeError('');
-                            setPasswordChangeNotice('');
-                          }}
-                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
-                        >
-                          <LockKeyhole size={16} className="text-[#8c795e] dark:text-bronze-400" />
-                          {t.changePassword}
-                        </button>
-                        <Link
-                          to="/contact"
-                          onClick={() => setProfileOpen(false)}
-                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
-                        >
-                          <MessageCircle size={16} className="text-[#8c795e] dark:text-bronze-400" />
-                          {t.studioHelp}
-                        </Link>
-                      </div>
-                      <div className="flex items-center justify-between gap-2 border-t border-neutral-100 pt-3 dark:border-white/10">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setProfileOpen(false);
-                            setFeedbackChatOpen(true);
-                          }}
-                          className="rounded-lg px-3 py-2 text-[10px] text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
-                        >
-                          {t.feedbackTitle}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setProfileOpen(false);
-                            void signOut();
-                          }}
-                          className="flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-[10px] font-medium text-neutral-600 transition-colors hover:border-red-300 hover:text-red-600 dark:border-white/10 dark:text-neutral-300 dark:hover:border-red-400/40 dark:hover:text-red-300"
-                        >
-                          {t.logout} <LogOut size={13} />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAccountSettingsSection('profile');
+                    openProjectSection('client-account');
+                  }}
+                  aria-label={t.accountSettingsTitle}
+                  aria-current={activeSection === 'client-account' ? 'page' : undefined}
+                  className="flex max-w-[190px] items-center gap-2 rounded-full border border-neutral-200 bg-white px-2 py-1.5 text-left text-neutral-700 shadow-sm transition-colors hover:border-neutral-400 dark:border-white/15 dark:bg-[#181916] dark:text-neutral-200 dark:hover:border-white/30 sm:max-w-[240px] sm:gap-2.5 sm:px-2.5"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#262722] font-mono text-[10px] font-medium uppercase text-white dark:bg-white dark:text-neutral-900">
+                    {getClientInitials(profileName || project.client_name)}
+                  </span>
+                  <span className="hidden min-w-0 sm:block">
+                    <span className="block truncate text-xs font-medium">{profileName || project.client_name}</span>
+                    <span className="block font-mono text-[8px] uppercase tracking-wider text-neutral-400">{t.clientProfile}</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  aria-label={isDark ? t.switchToLightTheme : t.switchToDarkTheme}
+                  aria-pressed={isDark}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/15 dark:bg-[#181916] dark:text-neutral-200 dark:hover:border-bronze-400"
+                >
+                  {isDark ? <Sun size={15} /> : <Moon size={15} />}
+                </button>
               </>
             )}
             <PortalLanguageSwitcher language={language} onChange={setLanguage} />
           </div>
         </div>
 
-        {project && !loading && (
+        {project && !loading && activeSection !== 'client-account' && (
           <nav aria-label={t.journal} className="mb-6 hidden grid-cols-3 gap-2 rounded-2xl border border-neutral-200 bg-white/80 p-2 shadow-lg shadow-neutral-900/5 backdrop-blur-xl dark:border-white/10 dark:bg-neutral-900/80 dark:shadow-black/20 md:grid lg:grid-cols-6">
             {portalNavigation.map((item) => (
               <button
@@ -1327,28 +1323,164 @@ const ClientPortal: React.FC = () => {
         ) : project ? (
           <section className="space-y-5">
             {error && <ErrorBanner message={error} />}
-            {passwordChangeOpen && (
-              <form onSubmit={changePassword} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8 dark:border-white/10 dark:bg-neutral-900">
-                <div className="mb-6">
-                  <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-bronze-600 dark:text-bronze-400">{t.changePassword}</p>
-                  <p className="text-sm text-neutral-500">{t.passwordMinLength}</p>
-                </div>
-                <div className="grid gap-5 md:grid-cols-3">
-                  <PasswordField label={t.currentPassword} value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" />
-                  <PasswordField label={t.newPassword} value={newPassword} onChange={setNewPassword} autoComplete="new-password" minLength={8} />
-                  <PasswordField label={t.confirmPassword} value={confirmNewPassword} onChange={setConfirmNewPassword} autoComplete="new-password" minLength={8} />
-                </div>
-                {passwordChangeError && <div className="mt-5"><ErrorBanner message={passwordChangeError} /></div>}
-                {passwordChangeNotice && <p role="status" className="mt-5 border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-xs leading-5 text-emerald-700 dark:text-emerald-300">{passwordChangeNotice}</p>}
-                <div className="mt-6 flex flex-wrap justify-end gap-3">
-                  <button type="button" onClick={closePasswordChange} className="rounded-full border border-neutral-300 px-5 py-3 font-mono text-[10px] uppercase tracking-widest text-neutral-600 transition-colors hover:border-neutral-500 dark:border-white/20 dark:text-neutral-300">
-                    {t.cancel}
+            {activeSection === 'client-account' && (
+              <section className="space-y-6">
+                <header className="flex flex-wrap items-end justify-between gap-4">
+                  <div>
+                    <h1 className="font-display text-2xl font-medium tracking-tight sm:text-3xl">{t.accountSettingsTitle}</h1>
+                    <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{project.project_name} <span className="mx-1.5">·</span> {project.project_code}</p>
+                  </div>
+                  <button type="button" onClick={() => openProjectSection('client-dashboard')} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-xs font-medium text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-700 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:text-bronze-300">
+                    <ArrowLeft size={14} /> {t.backToPortal}
                   </button>
-                  <button disabled={passwordChanging} className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-5 py-3 font-mono text-[10px] uppercase tracking-widest text-white transition-colors hover:bg-bronze-600 disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
-                    {passwordChanging ? t.savingPassword : t.savePassword} <ArrowUpRight size={15} />
-                  </button>
+                </header>
+
+                <div className="grid gap-5 md:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
+                  <nav aria-label={t.accountSettingsTitle} className="grid grid-cols-2 gap-1 self-start rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm md:flex md:flex-col dark:border-white/10 dark:bg-neutral-900">
+                    {accountSettingsNavigation.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          setAccountSettingsSection(item.id);
+                          if (item.id === 'security') {
+                            setPasswordChangeError('');
+                            setPasswordChangeNotice('');
+                          }
+                        }}
+                        aria-current={accountSettingsSection === item.id ? 'page' : undefined}
+                        className={`flex min-w-0 items-center gap-2 rounded-xl px-3 py-3 text-left text-[11px] transition-colors sm:text-xs ${accountSettingsSection === item.id ? 'bg-[#f4f1eb] font-medium text-[#746349] dark:bg-white/[0.08] dark:text-bronze-300' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]'}`}
+                      >
+                        {item.icon}
+                        <span className="min-w-0 truncate">{item.label}</span>
+                      </button>
+                    ))}
+                  </nav>
+
+                  <div className="min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm sm:rounded-3xl dark:border-white/10 dark:bg-neutral-900">
+                    {accountSettingsSection === 'profile' && (
+                      <form onSubmit={saveAccountProfile}>
+                        <div className="border-b border-neutral-200 px-5 py-4 sm:px-6 dark:border-white/10">
+                          <h2 className="text-sm font-semibold">{t.accountProfileTab}</h2>
+                          <p className="mt-1 text-xs leading-5 text-neutral-500 dark:text-neutral-400">{t.accountProfileDescription}</p>
+                        </div>
+                        <div className="space-y-5 px-5 py-6 sm:px-6">
+                          <label className="block">
+                            <span className="mb-2 block text-xs font-medium">{t.profileName}<span className="ml-1 text-red-500">*</span></span>
+                            <input
+                              required
+                              maxLength={120}
+                              value={profileName}
+                              onChange={(event) => {
+                                setProfileName(event.target.value);
+                                setProfileError('');
+                                setProfileNotice('');
+                              }}
+                              className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm outline-none transition-colors focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950"
+                            />
+                          </label>
+                          <div>
+                            <label className="mb-2 block text-xs font-medium" htmlFor="client-profile-email">{t.profileLoginEmail}</label>
+                            <input id="client-profile-email" readOnly value={project.client_email || ''} placeholder={t.accountEmailMissing} className="w-full rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-3 font-mono text-xs text-neutral-600 outline-none dark:border-white/15 dark:bg-white/[0.03] dark:text-neutral-300" />
+                            <p className="mt-2 text-[10px] text-neutral-500 dark:text-neutral-400">{t.profileLastLogin} {lastLoginText}</p>
+                          </div>
+                          {profileError && <ErrorBanner message={profileError} />}
+                          {profileNotice && <p role="status" className="text-xs text-emerald-700 dark:text-emerald-300">{profileNotice}</p>}
+                        </div>
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200 px-5 py-4 sm:px-6 dark:border-white/10">
+                          <p className="text-xs text-neutral-500 dark:text-neutral-400">{profileHasChanges ? t.profileUnsaved : t.profileNoChanges}</p>
+                          <button disabled={!profileHasChanges || profileSaving} className="rounded-xl bg-[#8c795e] px-4 py-3 text-xs font-medium text-white transition-colors hover:bg-[#746349] disabled:cursor-not-allowed disabled:opacity-50">
+                            {profileSaving ? t.profileSaving : t.saveChanges}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+
+                    {accountSettingsSection === 'billing' && (
+                      <div>
+                        <div className="border-b border-neutral-200 px-5 py-4 sm:px-6 dark:border-white/10">
+                          <h2 className="text-sm font-semibold">{t.accountBillingTab}</h2>
+                          <p className="mt-1 text-xs leading-5 text-neutral-500 dark:text-neutral-400">{t.accountBillingDescription}</p>
+                        </div>
+                        <dl className="grid gap-x-6 gap-y-5 px-5 py-6 sm:grid-cols-2 sm:px-6">
+                          <div><dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{t.invoiceContact}</dt><dd className="mt-1 text-sm font-medium">{project.client_name}</dd></div>
+                          <div><dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{t.accountEmail}</dt><dd className="mt-1 break-all text-sm">{project.client_email || t.accountEmailMissing}</dd></div>
+                          <div><dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{t.clientPhone}</dt><dd className="mt-1 text-sm">{project.client_phone || '—'}</dd></div>
+                          <div><dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{t.accountProject}</dt><dd className="mt-1 text-sm">{project.project_name} <span className="text-neutral-500">· {project.project_code}</span></dd></div>
+                          <div><dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{t.accountLocation}</dt><dd className="mt-1 text-sm">{project.location || '—'}</dd></div>
+                          <div><dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{t.accountOpenBills}</dt><dd className="mt-1 text-sm">{openBillingCount}</dd></div>
+                        </dl>
+                        <div className="border-t border-neutral-200 px-5 py-4 sm:px-6 dark:border-white/10">
+                          <button type="button" onClick={() => openProjectSection('project-billing')} className="rounded-xl border border-neutral-300 px-4 py-2.5 text-xs font-medium text-neutral-700 transition-colors hover:border-[#8c795e] dark:border-white/15 dark:text-neutral-200">
+                            {t.accountOpenBilling}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {accountSettingsSection === 'security' && (
+                      <form onSubmit={changePassword}>
+                        <div className="border-b border-neutral-200 px-5 py-4 sm:px-6 dark:border-white/10">
+                          <h2 className="text-sm font-semibold">{t.accountSecurityTab}</h2>
+                          <p className="mt-1 text-xs leading-5 text-neutral-500 dark:text-neutral-400">{t.accountSecurityDescription}</p>
+                        </div>
+                        <div className="space-y-5 px-5 py-6 sm:px-6">
+                          <p className="text-xs text-neutral-500 dark:text-neutral-400">{t.passwordMinLength}</p>
+                          <div className="grid gap-4 lg:grid-cols-3">
+                            <PasswordField label={t.currentPassword} value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" />
+                            <PasswordField label={t.newPassword} value={newPassword} onChange={setNewPassword} autoComplete="new-password" minLength={8} />
+                            <PasswordField label={t.confirmPassword} value={confirmNewPassword} onChange={setConfirmNewPassword} autoComplete="new-password" minLength={8} />
+                          </div>
+                          {passwordChangeError && <ErrorBanner message={passwordChangeError} />}
+                          {passwordChangeNotice && <p role="status" className="text-xs text-emerald-700 dark:text-emerald-300">{passwordChangeNotice}</p>}
+                        </div>
+                        <div className="flex justify-end border-t border-neutral-200 px-5 py-4 sm:px-6 dark:border-white/10">
+                          <button disabled={passwordChanging} className="rounded-xl bg-[#8c795e] px-4 py-3 text-xs font-medium text-white transition-colors hover:bg-[#746349] disabled:cursor-wait disabled:opacity-50">
+                            {passwordChanging ? t.savingPassword : t.savePassword}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+
+                    {accountSettingsSection === 'sessions' && (
+                      <div>
+                        <div className="border-b border-neutral-200 px-5 py-4 sm:px-6 dark:border-white/10">
+                          <h2 className="text-sm font-semibold">{t.accountSessionsTab}</h2>
+                          <p className="mt-1 text-xs leading-5 text-neutral-500 dark:text-neutral-400">{t.accountSessionsDescription}</p>
+                        </div>
+                        <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-6 sm:px-6">
+                          <div className="flex items-start gap-3">
+                            <Monitor size={18} className="mt-0.5 text-[#8c795e] dark:text-bronze-400" />
+                            <div>
+                              <p className="text-sm font-medium">{t.currentSession}</p>
+                              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{t.sessionDuration}</p>
+                            </div>
+                          </div>
+                          <span className="rounded-full bg-emerald-500/10 px-3 py-1.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-300">{t.currentSessionActive}</span>
+                        </div>
+                        <div className="border-t border-neutral-200 px-5 py-4 sm:px-6 dark:border-white/10">
+                          <button type="button" onClick={() => void signOut()} className="rounded-xl border border-neutral-300 px-4 py-2.5 text-xs font-medium text-neutral-700 transition-colors hover:border-red-400 hover:text-red-600 dark:border-white/15 dark:text-neutral-200 dark:hover:text-red-300">
+                            {t.logout}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {accountSettingsSection === 'apps' && (
+                      <div>
+                        <div className="border-b border-neutral-200 px-5 py-4 sm:px-6 dark:border-white/10">
+                          <h2 className="text-sm font-semibold">{t.accountAppsTab}</h2>
+                          <p className="mt-1 text-xs leading-5 text-neutral-500 dark:text-neutral-400">{t.accountAppsDescription}</p>
+                        </div>
+                        <div className="px-5 py-12 text-center sm:px-6">
+                          <Link2 size={22} className="mx-auto text-neutral-400" />
+                          <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">{t.accountAppsEmpty}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </form>
+              </section>
             )}
             {activeSection === 'client-activity' && (
             <>
@@ -1875,10 +2007,14 @@ const ClientPortal: React.FC = () => {
                 </form>
               </div>
             )}
-            <button type="button" onClick={() => setFeedbackChatOpen((open) => !open)} aria-label={feedbackChatOpen ? t.feedbackClose : t.feedbackOpen} aria-expanded={feedbackChatOpen} aria-controls={feedbackChatOpen ? 'client-feedback-chat' : undefined} title={feedbackChatOpen ? t.feedbackClose : t.feedbackOpen} className="fixed bottom-24 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#272925] text-white shadow-[0_12px_35px_rgba(27,25,20,0.28)] transition hover:-translate-y-0.5 hover:bg-bronze-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-bronze-500 dark:bg-white dark:text-neutral-950 dark:hover:bg-bronze-300 md:bottom-5">
-              {feedbackChatOpen ? <X size={21} /> : <MessageCircle size={21} />}
-            </button>
-            {mobileNavigation}
+            {activeSection !== 'client-account' && (
+              <>
+                <button type="button" onClick={() => setFeedbackChatOpen((open) => !open)} aria-label={feedbackChatOpen ? t.feedbackClose : t.feedbackOpen} aria-expanded={feedbackChatOpen} aria-controls={feedbackChatOpen ? 'client-feedback-chat' : undefined} title={feedbackChatOpen ? t.feedbackClose : t.feedbackOpen} className="fixed bottom-24 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#272925] text-white shadow-[0_12px_35px_rgba(27,25,20,0.28)] transition hover:-translate-y-0.5 hover:bg-bronze-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-bronze-500 dark:bg-white dark:text-neutral-950 dark:hover:bg-bronze-300 md:bottom-5">
+                  {feedbackChatOpen ? <X size={21} /> : <MessageCircle size={21} />}
+                </button>
+                {mobileNavigation}
+              </>
+            )}
             {previewAttachment && (
               <PortalFilePreview
                 attachment={previewAttachment}

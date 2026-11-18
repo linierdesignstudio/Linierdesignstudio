@@ -10,6 +10,8 @@ create table if not exists public.client_projects (
   status text not null default 'Berjalan',
   progress_percent integer not null default 0 check (progress_percent between 0 and 100),
   client_email text,
+  client_profile_name text,
+  client_last_login_at timestamptz,
   client_login_salt text,
   client_login_hash text,
   password_salt text not null,
@@ -29,6 +31,30 @@ alter table public.client_projects
 
 alter table public.client_projects
   add column if not exists client_email text;
+
+alter table public.client_projects
+  add column if not exists client_profile_name text;
+
+alter table public.client_projects
+  add column if not exists client_last_login_at timestamptz;
+
+with account_profile_names as (
+  select distinct on (client_email)
+    client_email,
+    client_name as profile_name
+  from public.client_projects
+  where client_email is not null
+  order by client_email, created_at asc, id asc
+)
+update public.client_projects as project
+  set client_profile_name = account_profile_names.profile_name
+  from account_profile_names
+  where project.client_email = account_profile_names.client_email
+    and project.client_profile_name is null;
+
+update public.client_projects
+  set client_profile_name = client_name
+  where client_profile_name is null;
 
 alter table public.client_projects
   add column if not exists client_login_salt text;

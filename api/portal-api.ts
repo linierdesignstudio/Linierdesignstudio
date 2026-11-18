@@ -15,6 +15,7 @@ import clientChangeOrders from '../server/portal/client-change-orders.js';
 import clientChangePassword from '../server/portal/client-change-password.js';
 import clientLogin from '../server/portal/client-login.js';
 import clientPasswordResetRequests from '../server/portal/client-password-reset-requests.js';
+import clientProfile from '../server/portal/client-profile.js';
 import clientSession from '../server/portal/client-session.js';
 import clientUpdates from '../server/portal/client-updates.js';
 import logout from '../server/portal/portal-logout.js';
@@ -35,6 +36,7 @@ const routes: Record<string, (request: ApiRequest, response: ApiResponse) => Pro
   'api/portal/client/change-password': clientChangePassword,
   'api/portal/client/login': clientLogin,
   'api/portal/client/password-reset-requests': clientPasswordResetRequests,
+  'api/portal/client/profile': clientProfile,
   'api/portal/client/session': clientSession,
   'api/portal/client/updates': clientUpdates,
   'api/portal/logout': logout,

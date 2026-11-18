@@ -9,6 +9,8 @@ import {
 
 interface LoginProject extends ProjectRecord {
   client_email: string | null;
+  client_profile_name: string | null;
+  client_last_login_at: string | null;
   client_login_salt: string | null;
   client_login_hash: string | null;
   password_salt: string;
@@ -36,8 +38,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
     const projects = await supabaseRequest<LoginProject[]>(
       isProjectCode
-        ? `client_projects?select=id,project_code,project_name,client_name,project_type,client_phone,location,status,progress_percent,start_date,client_email,client_login_salt,client_login_hash,password_salt,password_hash&project_code=eq.${encodeURIComponent(identifier.toUpperCase())}&limit=1`
-        : `client_projects?select=id,project_code,project_name,client_name,project_type,client_phone,location,status,progress_percent,start_date,client_email,client_login_salt,client_login_hash,password_salt,password_hash&client_email=eq.${encodeURIComponent(email)}&order=created_at.asc`
+        ? `client_projects?select=id,project_code,project_name,client_name,project_type,client_phone,location,status,progress_percent,start_date,client_email,client_profile_name,client_last_login_at,client_login_salt,client_login_hash,password_salt,password_hash&project_code=eq.${encodeURIComponent(identifier.toUpperCase())}&limit=1`
+        : `client_projects?select=id,project_code,project_name,client_name,project_type,client_phone,location,status,progress_percent,start_date,client_email,client_profile_name,client_last_login_at,client_login_salt,client_login_hash,password_salt,password_hash&client_email=eq.${encodeURIComponent(email)}&order=created_at.asc`
     );
     const project = projects[0];
     if (!project) {
@@ -69,14 +71,28 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       method: 'POST',
       body: JSON.stringify({ p_project_id: project.id, p_success: true }),
     });
+    const lastLoginAt = new Date().toISOString();
+    const updatedProjects = await supabaseRequest<Array<{ id: string }>>(
+      `client_projects?${isProjectCode ? `id=eq.${encodeURIComponent(project.id)}` : `client_email=eq.${encodeURIComponent(email)}`}&select=id`,
+      {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify({ client_last_login_at: lastLoginAt }),
+      }
+    );
+    if (updatedProjects.length !== projects.length) {
+      throw new HttpError(503, 'Waktu masuk akun tidak dapat disimpan. Coba kembali.');
+    }
     setSessionCookie(response, createSession('client', isProjectCode ? project.id : email));
     sendJson(response, 200, {
-      projects: projects.map(({ id, project_code, project_name, client_name, client_email, project_type, client_phone, location, status, progress_percent, start_date }) => ({
+      projects: projects.map(({ id, project_code, project_name, client_name, client_email, client_profile_name, project_type, client_phone, location, status, progress_percent, start_date }) => ({
         id,
         project_code,
         project_name,
         client_name,
         client_email,
+        client_profile_name: client_profile_name || client_name,
+        client_last_login_at: lastLoginAt,
         project_type,
         client_phone,
         location,
