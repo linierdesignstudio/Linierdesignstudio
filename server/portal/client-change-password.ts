@@ -2,8 +2,7 @@ import type { ApiRequest, ApiResponse } from './http.js';
 import { clearSessionCookie, HttpError, readJson, requireMethod, sendError, sendJson } from './http.js';
 import {
   createPasswordHash,
-  getSession,
-  requireRole,
+  getClientSession,
   supabaseRequest,
   verifyPassword,
 } from './portal.js';
@@ -20,8 +19,7 @@ interface PasswordProject {
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {
     requireMethod(request, 'POST');
-    const session = getSession(request);
-    requireRole(session, 'client');
+    const session = await getClientSession(request);
 
     const body = await readJson(request);
     const currentPassword = typeof body.currentPassword === 'string' ? body.currentPassword : '';
@@ -95,6 +93,14 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       throw new HttpError(409, 'Password akun sudah berubah. Gunakan password terbaru lalu coba kembali.');
     }
 
+    await supabaseRequest<Array<{ id: string }>>(
+      `portal_client_sessions?account_key=eq.${encodeURIComponent(session.account ?? '')}&revoked_at=is.null&select=id`,
+      {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify({ revoked_at: new Date().toISOString() }),
+      }
+    );
     clearSessionCookie(response);
     sendJson(response, 200, { changed: true });
   } catch (error) {

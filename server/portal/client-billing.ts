@@ -5,9 +5,8 @@ import {
   createStorageObjectPath,
   createStorageUploadUrl,
   deleteStorageObjects,
-  getSession,
+  getClientSession,
   requireProjectAccess,
-  requireRole,
   supabaseRequest,
 } from './portal.js';
 import { PORTAL_BANKS, type PortalBankCode } from '../../lib/portalBanks.js';
@@ -49,8 +48,7 @@ const UPLOAD_WINDOW_MS = 10 * 60 * 1000;
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {
-    const session = getSession(request);
-    requireRole(session, 'client');
+    const session = await getClientSession(request);
     const url = new URL(request.url ?? '/', 'http://localhost');
     const projectId = getProjectId(request, session.sub);
     await requireProjectAccess(projectId, session.sub);

@@ -1,6 +1,6 @@
 import type { ApiRequest, ApiResponse } from './http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from './http.js';
-import { getSession, requireAdminPermission, requireProjectAccess, requireRole, supabaseRequest } from './portal.js';
+import { getSession, requireAdminPermission, requireProjectAccess, verifyClientSession, supabaseRequest } from './portal.js';
 
 interface NotificationRecord {
   id: string;
@@ -29,7 +29,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     let projectId = '';
 
     if (isClient) {
-      requireRole(session, 'client');
+      await verifyClientSession(session);
       projectId = url.searchParams.get('projectId') ?? '';
       if (!isUuid(projectId)) throw new HttpError(400, 'Pilih proyek yang valid.');
       await requireProjectAccess(projectId, session.sub);

@@ -15,6 +15,16 @@ export interface PortalProject {
   created_at?: string;
 }
 
+export interface PortalClientSession {
+  id: string;
+  ip_address: string;
+  user_agent: string;
+  created_at: string;
+  last_active_at: string;
+  expires_at: string;
+  current: boolean;
+}
+
 export interface PortalUpdate {
   id: string;
   title: string;

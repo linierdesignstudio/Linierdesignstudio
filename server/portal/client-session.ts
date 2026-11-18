@@ -1,12 +1,11 @@
 import type { ApiRequest, ApiResponse } from './http.js';
 import { clearSessionCookie, requireMethod, sendError, sendJson } from './http.js';
-import { getProjectById, getSession, requireRole, supabaseRequest, type ProjectRecord } from './portal.js';
+import { getClientSession, getProjectById, supabaseRequest, type ProjectRecord } from './portal.js';
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {
     requireMethod(request, 'GET');
-    const session = getSession(request);
-    requireRole(session, 'client');
+    const session = await getClientSession(request);
     const projects = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(session.sub)
       ? [await getProjectById(session.sub)].filter((project): project is ProjectRecord => project !== null)
       : await supabaseRequest<ProjectRecord[]>(

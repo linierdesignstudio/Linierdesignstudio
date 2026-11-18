@@ -9,12 +9,19 @@ import type { ApiRequest } from './http.js';
 import { getCookie, HttpError } from './http.js';
 
 const SESSION_COOKIE = 'portal_session';
-const SESSION_TTL_SECONDS = 12 * 60 * 60;
+export const SESSION_TTL_SECONDS = 12 * 60 * 60;
 
 export interface PortalSession {
   role: 'client' | 'admin' | 'staff';
   sub: string;
   exp: number;
+  sid?: string;
+  account?: string;
+}
+
+export interface ClientSessionContext {
+  id: string;
+  account: string;
 }
 
 export type AdminPermission =
@@ -76,11 +83,16 @@ export function verifyPassword(password: string, salt: string, hash: string): bo
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 
-export function createSession(role: PortalSession['role'], subject: string): string {
+export function createSession(
+  role: PortalSession['role'],
+  subject: string,
+  clientContext?: ClientSessionContext
+): string {
   const payload = Buffer.from(JSON.stringify({
     role,
     sub: subject,
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
+    ...(clientContext ? { sid: clientContext.id, account: clientContext.account } : {}),
   })).toString('base64url');
   return `${payload}.${sign(payload)}`;
 }
@@ -120,6 +132,31 @@ export function requireRole(session: PortalSession, role: PortalSession['role'])
   if (session.role !== role) {
     throw new HttpError(403, 'Anda tidak memiliki akses ke fitur ini.');
   }
+}
+
+export async function getClientSession(request: ApiRequest): Promise<PortalSession> {
+  return verifyClientSession(getSession(request));
+}
+
+export async function verifyClientSession(session: PortalSession): Promise<PortalSession> {
+  requireRole(session, 'client');
+  if (!session.sid || !session.account) {
+    throw new HttpError(401, 'Sesi telah berakhir. Silakan masuk kembali.');
+  }
+
+  const now = new Date();
+  const activeSessions = await supabaseRequest<Array<{ id: string }>>(
+    `portal_client_sessions?id=eq.${encodeURIComponent(session.sid)}&account_key=eq.${encodeURIComponent(session.account)}&revoked_at=is.null&expires_at=gt.${encodeURIComponent(now.toISOString())}&select=id&limit=1`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ last_active_at: now.toISOString() }),
+    }
+  );
+  if (activeSessions.length !== 1) {
+    throw new HttpError(401, 'Sesi telah dicabut atau berakhir. Silakan masuk kembali.');
+  }
+  return session;
 }
 
 export function requireAdminPermission(session: PortalSession, permission: AdminPermission): void {

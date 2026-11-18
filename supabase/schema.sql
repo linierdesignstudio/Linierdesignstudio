@@ -56,6 +56,23 @@ update public.client_projects
   set client_profile_name = client_name
   where client_profile_name is null;
 
+create table if not exists public.portal_client_sessions (
+  id uuid primary key,
+  account_key text not null,
+  client_email text,
+  project_id uuid references public.client_projects(id) on delete cascade,
+  ip_address text not null default '',
+  user_agent text not null default '',
+  created_at timestamptz not null default now(),
+  last_active_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  revoked_at timestamptz
+);
+
+create index if not exists portal_client_sessions_account_activity_idx
+  on public.portal_client_sessions (account_key, last_active_at desc)
+  where revoked_at is null;
+
 alter table public.client_projects
   add column if not exists client_login_salt text;
 
@@ -630,6 +647,7 @@ alter table public.project_billing_items enable row level security;
 alter table public.portal_payment_accounts enable row level security;
 alter table public.project_change_orders enable row level security;
 alter table public.portal_notifications enable row level security;
+alter table public.portal_client_sessions enable row level security;
 
 create or replace function public.portal_allow_login_attempt(
   p_project_id uuid,
@@ -995,7 +1013,7 @@ grant execute on function public.portal_delete_project(uuid) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
 grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
 
-revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.portal_payment_settings, public.portal_payment_accounts, public.project_change_orders, public.portal_notifications from anon, authenticated;
+revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.portal_payment_settings, public.portal_payment_accounts, public.project_change_orders, public.portal_notifications, public.portal_client_sessions from anon, authenticated;
 grant select, insert on public.client_projects to service_role;
 grant select, insert, update, delete on public.project_updates to service_role;
 grant select, insert, update, delete on public.project_login_attempts to service_role;
@@ -1006,6 +1024,7 @@ grant select, insert, update on public.portal_payment_settings to service_role;
 grant select, insert, update on public.portal_payment_accounts to service_role;
 grant select, insert, update, delete on public.project_change_orders to service_role;
 grant select, insert, update, delete on public.portal_notifications to service_role;
+grant select, insert, update, delete on public.portal_client_sessions to service_role;
 grant update on public.client_projects to service_role;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

@@ -1,6 +1,6 @@
 import type { ApiRequest, ApiResponse } from './http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from './http.js';
-import { getSession, requireRole, supabaseRequest } from './portal.js';
+import { getClientSession, supabaseRequest } from './portal.js';
 
 const isProjectId = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -8,8 +8,7 @@ const isProjectId = (value: string): boolean =>
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {
     requireMethod(request, 'PATCH');
-    const session = getSession(request);
-    requireRole(session, 'client');
+    const session = await getClientSession(request);
 
     const body = await readJson(request);
     const profileName = typeof body.profileName === 'string' ? body.profileName.trim() : '';

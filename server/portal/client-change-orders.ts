@@ -1,6 +1,6 @@
 import type { ApiRequest, ApiResponse } from './http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from './http.js';
-import { getSession, requireProjectAccess, requireRole, supabaseRequest } from './portal.js';
+import { getClientSession, requireProjectAccess, supabaseRequest } from './portal.js';
 
 interface ChangeOrderRecord {
   id: string;
@@ -22,8 +22,7 @@ const CHANGE_ORDER_FIELDS = 'id,project_id,title,description,requested_by,cost_i
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {
-    const session = getSession(request);
-    requireRole(session, 'client');
+    const session = await getClientSession(request);
     const projectId = getProjectId(request, session.sub);
     await requireProjectAccess(projectId, session.sub);
 

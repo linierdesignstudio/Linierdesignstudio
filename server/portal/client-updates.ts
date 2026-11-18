@@ -1,6 +1,6 @@
 import type { ApiRequest, ApiResponse } from './http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson } from './http.js';
-import { createStorageDownloadUrl, getSession, requireProjectAccess, requireRole, supabaseRequest, type PortalAttachment } from './portal.js';
+import { createStorageDownloadUrl, getClientSession, requireProjectAccess, supabaseRequest, type PortalAttachment } from './portal.js';
 
 interface ProjectUpdate {
   id: string;
@@ -27,8 +27,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   try {
     const url = new URL(request.url ?? '/', 'http://localhost');
     if (url.searchParams.get('resource') === 'feedback') {
-      const session = getSession(request);
-      requireRole(session, 'client');
+      const session = await getClientSession(request);
 
       if (request.method === 'GET') {
         const projectId = getProjectId(request, session.sub);
@@ -63,8 +62,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     requireMethod(request, 'GET');
-    const session = getSession(request);
-    requireRole(session, 'client');
+    const session = await getClientSession(request);
     const projectId = getProjectId(request, session.sub);
     await requireProjectAccess(projectId, session.sub);
 

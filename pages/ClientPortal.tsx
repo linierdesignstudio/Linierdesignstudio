@@ -5,7 +5,7 @@ import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalNotification, type PortalPaymentAccount, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalClientSession, type PortalNotification, type PortalPaymentAccount, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 import { findPortalBank } from '../lib/portalBanks';
 import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
 
@@ -108,7 +108,23 @@ const copy = {
     accountOpenBills: 'Tagihan terbuka',
     accountOpenBilling: 'Lihat tagihan',
     accountSecurityDescription: 'Kelola password yang digunakan untuk masuk ke portal klien.',
-    accountSessionsDescription: 'Sesi portal yang sedang digunakan pada perangkat ini.',
+    accountSessionsDescription: 'Tempat akun Anda sedang masuk. Cabut sesi yang tidak Anda kenali.',
+    sessionsDevice: 'Perangkat',
+    sessionsIp: 'IP',
+    sessionsSignedIn: 'Masuk',
+    sessionsLastActive: 'Aktif terakhir',
+    sessionsRevoke: 'Cabut',
+    sessionsRevokeAll: 'Cabut semua sesi lain',
+    sessionsCurrentDevice: 'Perangkat ini',
+    sessionsNow: 'Sekarang',
+    sessionsLoading: 'Memuat sesi...',
+    sessionsEmpty: 'Tidak ada sesi aktif.',
+    sessionsNoOtherSessions: 'Tidak ada sesi lain untuk dicabut.',
+    sessionsRevokeConfirm: 'Cabut akses sesi ini?',
+    sessionsRevokeAllConfirm: 'Cabut akses semua sesi lain pada akun ini?',
+    sessionsRevokedOne: 'Sesi berhasil dicabut.',
+    sessionsRevokedOthers: 'Semua sesi lain berhasil dicabut.',
+    sessionsRevokeFailed: 'Sesi tidak dapat dicabut.',
     currentSession: 'Sesi perangkat ini',
     currentSessionActive: 'Aktif',
     sessionDuration: 'Sesi berakhir otomatis setelah 12 jam.',
@@ -310,7 +326,23 @@ const copy = {
     accountOpenBills: 'Open bills',
     accountOpenBilling: 'View billing',
     accountSecurityDescription: 'Manage the password used to sign in to the client portal.',
-    accountSessionsDescription: 'Portal session currently being used on this device.',
+    accountSessionsDescription: 'Where your account is signed in. Revoke any session you do not recognize.',
+    sessionsDevice: 'Device',
+    sessionsIp: 'IP',
+    sessionsSignedIn: 'Signed in',
+    sessionsLastActive: 'Last active',
+    sessionsRevoke: 'Revoke',
+    sessionsRevokeAll: 'Revoke all other sessions',
+    sessionsCurrentDevice: 'This device',
+    sessionsNow: 'Now',
+    sessionsLoading: 'Loading sessions...',
+    sessionsEmpty: 'No active sessions.',
+    sessionsNoOtherSessions: 'There are no other sessions to revoke.',
+    sessionsRevokeConfirm: 'Revoke access for this session?',
+    sessionsRevokeAllConfirm: 'Revoke access for all other sessions on this account?',
+    sessionsRevokedOne: 'Session revoked.',
+    sessionsRevokedOthers: 'All other sessions revoked.',
+    sessionsRevokeFailed: 'The session could not be revoked.',
     currentSession: 'This device session',
     currentSessionActive: 'Active',
     sessionDuration: 'Sessions expire automatically after 12 hours.',
@@ -512,7 +544,23 @@ const copy = {
     accountOpenBills: '未结账单',
     accountOpenBilling: '查看账单',
     accountSecurityDescription: '管理用于登录客户门户的密码。',
-    accountSessionsDescription: '此设备上正在使用的门户会话。',
+    accountSessionsDescription: '账号当前登录的位置。请撤销您不认识的会话。',
+    sessionsDevice: '设备',
+    sessionsIp: 'IP',
+    sessionsSignedIn: '登录时间',
+    sessionsLastActive: '最后活动',
+    sessionsRevoke: '撤销',
+    sessionsRevokeAll: '撤销其他所有会话',
+    sessionsCurrentDevice: '此设备',
+    sessionsNow: '现在',
+    sessionsLoading: '正在加载会话...',
+    sessionsEmpty: '没有有效会话。',
+    sessionsNoOtherSessions: '没有其他会话可撤销。',
+    sessionsRevokeConfirm: '撤销此会话的访问权限？',
+    sessionsRevokeAllConfirm: '撤销此账号的所有其他会话？',
+    sessionsRevokedOne: '会话已撤销。',
+    sessionsRevokedOthers: '其他会话已全部撤销。',
+    sessionsRevokeFailed: '无法撤销会话。',
     currentSession: '此设备会话',
     currentSessionActive: '使用中',
     sessionDuration: '会话将在 12 小时后自动过期。',
@@ -631,6 +679,33 @@ const getClientInitials = (name: string): string => {
   const words = name.trim().split(/\s+/).filter(Boolean);
   return words.slice(0, 2).map((word) => [...word][0].toUpperCase()).join('') || 'CL';
 };
+const getSessionDeviceLabel = (userAgent: string, language: keyof typeof copy): string => {
+  const browser = /Edg\//i.test(userAgent)
+    ? 'Edge'
+    : /Firefox\//i.test(userAgent)
+      ? 'Firefox'
+      : /Chrome\//i.test(userAgent)
+        ? 'Chrome'
+        : /Safari\//i.test(userAgent)
+          ? 'Safari'
+          : '';
+  const platform = /Android/i.test(userAgent)
+    ? 'Android'
+    : /iPhone|iPad|iPod/i.test(userAgent)
+      ? 'iOS'
+      : /Windows/i.test(userAgent)
+        ? 'Windows'
+        : /Macintosh|Mac OS/i.test(userAgent)
+          ? 'macOS'
+          : /Linux/i.test(userAgent)
+            ? 'Linux'
+            : '';
+  if (!browser && !platform) return language === 'EN' ? 'Unknown device' : language === 'CN' ? '未知设备' : 'Perangkat tidak dikenal';
+  if (!browser) return platform;
+  if (!platform) return browser;
+  const connector = language === 'EN' ? ' on ' : language === 'CN' ? ' · ' : ' di ';
+  return `${browser}${connector}${platform}`;
+};
 
 const ClientPortal: React.FC = () => {
   const location = useLocation();
@@ -682,6 +757,11 @@ const ClientPortal: React.FC = () => {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState('');
   const [profileNotice, setProfileNotice] = useState('');
+  const [clientSessions, setClientSessions] = useState<PortalClientSession[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionsError, setSessionsError] = useState('');
+  const [sessionsNotice, setSessionsNotice] = useState('');
+  const [sessionsActionBusy, setSessionsActionBusy] = useState('');
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackNotice, setFeedbackNotice] = useState('');
   const [feedbackError, setFeedbackError] = useState('');
@@ -722,6 +802,24 @@ const ClientPortal: React.FC = () => {
     }
     setProfileName(project.client_profile_name?.trim() || project.client_name);
   }, [project?.id, project?.client_profile_name, project?.client_name]);
+
+  useEffect(() => {
+    if (!project || activeSection !== 'client-account' || accountSettingsSection !== 'sessions') return;
+    let active = true;
+    setSessionsLoading(true);
+    setSessionsError('');
+    portalRequest<{ sessions: PortalClientSession[] }>('/api/portal/client/sessions')
+      .then(({ sessions }) => {
+        if (active) setClientSessions(sessions);
+      })
+      .catch((cause: unknown) => {
+        if (active) setSessionsError(cause instanceof Error ? cause.message : t.sessionsRevokeFailed);
+      })
+      .finally(() => {
+        if (active) setSessionsLoading(false);
+      });
+    return () => { active = false; };
+  }, [project?.id, activeSection, accountSettingsSection, t.sessionsRevokeFailed]);
 
   useEffect(() => {
     if (!resetNotice) return;
@@ -1181,6 +1279,35 @@ const ClientPortal: React.FC = () => {
       setProfileSaving(false);
     }
   };
+  const revokeSession = async (target?: PortalClientSession) => {
+    if (sessionsActionBusy) return;
+    const confirmed = window.confirm(target ? t.sessionsRevokeConfirm : t.sessionsRevokeAllConfirm);
+    if (!confirmed) return;
+
+    setSessionsActionBusy(target?.id ?? 'all');
+    setSessionsError('');
+    setSessionsNotice('');
+    try {
+      const { revoked } = await portalRequest<{ revoked: number }>('/api/portal/client/sessions', {
+        method: 'POST',
+        body: JSON.stringify(target
+          ? { action: 'revoke', sessionId: target.id }
+          : { action: 'revoke-others' }),
+      });
+      if (revoked === 0) {
+        setSessionsNotice(t.sessionsNoOtherSessions);
+        return;
+      }
+      setClientSessions((current) => current.filter((session) =>
+        session.current || (target ? session.id !== target.id : false)
+      ));
+      setSessionsNotice(target ? t.sessionsRevokedOne : t.sessionsRevokedOthers);
+    } catch (cause) {
+      setSessionsError(cause instanceof Error ? cause.message : t.sessionsRevokeFailed);
+    } finally {
+      setSessionsActionBusy('');
+    }
+  };
   const getNotificationLabel = (eventType: PortalNotification['event_type']) => {
     switch (eventType) {
       case 'project_update':
@@ -1570,16 +1697,72 @@ const ClientPortal: React.FC = () => {
                           <h2 className="text-sm font-semibold">{t.accountSessionsTab}</h2>
                           <p className="mt-1 text-xs leading-5 text-neutral-500 dark:text-neutral-400">{t.accountSessionsDescription}</p>
                         </div>
-                        <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-6 sm:px-6">
-                          <div className="flex items-start gap-3">
-                            <Monitor size={18} className="mt-0.5 text-[#8c795e] dark:text-bronze-400" />
-                            <div>
-                              <p className="text-sm font-medium">{t.currentSession}</p>
-                              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{t.sessionDuration}</p>
-                            </div>
-                          </div>
-                          <span className="rounded-full bg-emerald-500/10 px-3 py-1.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-300">{t.currentSessionActive}</span>
+                        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-6">
+                          <p className="text-xs text-neutral-500 dark:text-neutral-400">{t.sessionDuration}</p>
+                          <button
+                            type="button"
+                            onClick={() => void revokeSession()}
+                            disabled={sessionsLoading || !!sessionsActionBusy || !clientSessions.some((session) => !session.current)}
+                            className="rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-400/30 dark:text-red-300 dark:hover:bg-red-400/10"
+                          >
+                            {sessionsActionBusy === 'all' ? t.sessionsLoading : t.sessionsRevokeAll}
+                          </button>
                         </div>
+                        {sessionsError && <div className="px-5 pb-4 sm:px-6"><ErrorBanner message={sessionsError} /></div>}
+                        {sessionsNotice && (
+                          <div role="status" className="mx-5 mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-xs text-emerald-700 sm:mx-6 dark:text-emerald-300">
+                            {sessionsNotice}
+                          </div>
+                        )}
+                        {sessionsLoading ? (
+                          <p className="px-5 py-10 text-center text-xs text-neutral-500 sm:px-6">{t.sessionsLoading}</p>
+                        ) : clientSessions.length === 0 ? (
+                          <p className="px-5 py-10 text-center text-xs text-neutral-500 sm:px-6">{t.sessionsEmpty}</p>
+                        ) : (
+                          <div className="overflow-x-auto border-y border-neutral-200 dark:border-white/10">
+                            <table className="w-full min-w-[700px] text-left text-xs">
+                              <thead className="bg-neutral-50 text-[10px] uppercase tracking-wider text-neutral-500 dark:bg-white/[0.03]">
+                                <tr>
+                                  <th scope="col" className="px-5 py-3 font-medium sm:px-6">{t.sessionsDevice}</th>
+                                  <th scope="col" className="px-4 py-3 font-medium">{t.sessionsIp}</th>
+                                  <th scope="col" className="px-4 py-3 font-medium">{t.sessionsSignedIn}</th>
+                                  <th scope="col" className="px-4 py-3 font-medium">{t.sessionsLastActive}</th>
+                                  <th scope="col" className="px-5 py-3 text-right font-medium sm:px-6">{t.sessionsRevoke}</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-neutral-200 dark:divide-white/10">
+                                {clientSessions.map((session) => (
+                                  <tr key={session.id}>
+                                    <td className="px-5 py-4 sm:px-6">
+                                      <div className="flex items-center gap-2.5">
+                                        <Monitor size={16} className="shrink-0 text-[#8c795e] dark:text-bronze-400" />
+                                        <div className="min-w-0">
+                                          <p className="font-medium text-neutral-800 dark:text-neutral-100">{getSessionDeviceLabel(session.user_agent, language)}</p>
+                                          {session.current && <span className="mt-1 inline-flex rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-medium text-emerald-700 dark:text-emerald-300">{t.sessionsCurrentDevice} · {t.currentSessionActive}</span>}
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-4 font-mono text-neutral-600 dark:text-neutral-300">{session.ip_address || '—'}</td>
+                                    <td className="px-4 py-4 text-neutral-600 dark:text-neutral-300"><time dateTime={session.created_at}>{formatDateTime(session.created_at, language)}</time></td>
+                                    <td className="px-4 py-4 text-neutral-600 dark:text-neutral-300"><time dateTime={session.last_active_at}>{formatDateTime(session.last_active_at, language)}</time></td>
+                                    <td className="px-5 py-4 text-right sm:px-6">
+                                      {!session.current && (
+                                        <button
+                                          type="button"
+                                          onClick={() => void revokeSession(session)}
+                                          disabled={!!sessionsActionBusy}
+                                          className="rounded-lg px-2.5 py-1.5 font-medium text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-400/10"
+                                        >
+                                          {sessionsActionBusy === session.id ? t.sessionsLoading : t.sessionsRevoke}
+                                        </button>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
                         <div className="border-t border-neutral-200 px-5 py-4 sm:px-6 dark:border-white/10">
                           <button type="button" onClick={() => void signOut()} className="rounded-xl border border-neutral-300 px-4 py-2.5 text-xs font-medium text-neutral-700 transition-colors hover:border-red-400 hover:text-red-600 dark:border-white/15 dark:text-neutral-200 dark:hover:text-red-300">
                             {t.logout}

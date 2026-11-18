@@ -1,7 +1,9 @@
 import type { ApiRequest, ApiResponse } from './http.js';
 import { HttpError, readJson, requireMethod, sendError, sendJson, setSessionCookie } from './http.js';
+import { randomUUID } from 'node:crypto';
 import {
   createSession,
+  SESSION_TTL_SECONDS,
   supabaseRequest,
   verifyPassword,
   type ProjectRecord,
@@ -83,7 +85,35 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     if (updatedProjects.length !== projects.length) {
       throw new HttpError(503, 'Waktu masuk akun tidak dapat disimpan. Coba kembali.');
     }
-    setSessionCookie(response, createSession('client', isProjectCode ? project.id : email));
+    const sessionId = randomUUID();
+    const accountKey = project.client_email?.trim().toLowerCase() || project.id;
+    const forwardedFor = request.headers['x-forwarded-for'];
+    const ipAddress = (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor)?.split(',')[0].trim()
+      || request.socket.remoteAddress
+      || '';
+    const userAgentHeader = request.headers['user-agent'];
+    const userAgent = (Array.isArray(userAgentHeader) ? userAgentHeader[0] : userAgentHeader)?.slice(0, 1000) || '';
+    const storedSession = await supabaseRequest<Array<{ id: string }>>('portal_client_sessions?select=id', {
+      method: 'POST',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({
+        id: sessionId,
+        account_key: accountKey,
+        client_email: project.client_email,
+        project_id: project.id,
+        ip_address: ipAddress,
+        user_agent: userAgent,
+        expires_at: new Date(Date.now() + SESSION_TTL_SECONDS * 1000).toISOString(),
+      }),
+    });
+    if (storedSession.length !== 1) {
+      throw new HttpError(503, 'Sesi perangkat tidak dapat disimpan. Coba kembali.');
+    }
+    setSessionCookie(response, createSession(
+      'client',
+      isProjectCode ? project.id : email,
+      { id: sessionId, account: accountKey }
+    ));
     sendJson(response, 200, {
       projects: projects.map(({ id, project_code, project_name, client_name, client_email, client_profile_name, project_type, client_phone, location, status, progress_percent, start_date }) => ({
         id,
