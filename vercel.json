@@ -8,6 +8,10 @@
     {
       "source": "/api/portal/:path*",
       "destination": "/api/portal-api?route=api/portal/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

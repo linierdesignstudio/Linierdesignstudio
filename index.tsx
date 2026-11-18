@@ -2,10 +2,25 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
-// Restore last path if available (useful for iframe refreshes that clear the hash)
+const legacyHashRoute = window.location.hash;
+if (legacyHashRoute.startsWith('#/')) {
+  const legacyUrl = new URL(legacyHashRoute.slice(1), window.location.origin);
+  const currentSearch = new URLSearchParams(window.location.search);
+  currentSearch.forEach((value, key) => {
+    if (!legacyUrl.searchParams.has(key)) legacyUrl.searchParams.append(key, value);
+  });
+  window.history.replaceState(null, '', `${legacyUrl.pathname}${legacyUrl.search}${legacyUrl.hash}`);
+}
+
+// Restore the previous route only when an embedded page reloads at its root.
 const lastPath = sessionStorage.getItem('last_path');
-if (lastPath && !window.location.hash) {
-  window.location.hash = lastPath;
+if (
+  lastPath?.startsWith('/')
+  && window.location.pathname === '/'
+  && !window.location.search
+  && window.self !== window.top
+) {
+  window.history.replaceState(null, '', lastPath);
 }
 
 

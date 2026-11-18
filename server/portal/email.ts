@@ -44,8 +44,8 @@ export async function sendPasswordResetEmail(
   clientName: string,
   token: string
 ): Promise<void> {
-  const resetUrl = new URL('/', config.publicUrl.origin);
-  resetUrl.hash = `/portal?resetToken=${encodeURIComponent(token)}`;
+  const resetUrl = new URL('/portal', config.publicUrl.origin);
+  resetUrl.searchParams.set('resetToken', token);
   const escapedName = escapeHtml(clientName);
   const escapedUrl = escapeHtml(resetUrl.toString());
   const resend = new Resend(config.apiKey);
