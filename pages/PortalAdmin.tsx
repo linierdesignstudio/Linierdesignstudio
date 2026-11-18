@@ -47,6 +47,13 @@ const copy = {
     clientEmailEditHint: 'Password akun email tidak berubah. Email yang sudah terhubung ke akun dengan password berbeda tidak dapat dipakai.',
     saveClientAccount: 'Simpan akun klien',
     savedClientAccount: 'Akun email klien berhasil disimpan.',
+    resetAccountPassword: 'Password baru (opsional)',
+    resetAccountPasswordHint: 'Isi hanya jika ingin mengganti password akun email. Password baru minimal 12 karakter.',
+    accountActive: 'Akun aktif',
+    accountInactive: 'Belum ada akun',
+    removeClientAccount: 'Putuskan akun',
+    confirmRemoveClientAccount: 'Putuskan akun email dari proyek klien ini? Tindakan ini tidak menghapus riwayat proyek.',
+    removedClientAccount: 'Akun klien berhasil diputuskan dari proyek.',
     create: 'Buat proyek',
     newUpdate: 'Update progress',
     chooseProject: 'Pilih proyek',
@@ -293,6 +300,13 @@ const copy = {
     clientEmailEditHint: 'The email account password stays unchanged. An email linked to an account with a different password cannot be used.',
     saveClientAccount: 'Save client account',
     savedClientAccount: 'Client email login saved.',
+    resetAccountPassword: 'New password (optional)',
+    resetAccountPasswordHint: 'Fill only to change the email account password. New passwords require at least 12 characters.',
+    accountActive: 'Account active',
+    accountInactive: 'No account',
+    removeClientAccount: 'Disconnect account',
+    confirmRemoveClientAccount: 'Disconnect the email account from this client project? Project history will not be deleted.',
+    removedClientAccount: 'Client account disconnected from the project.',
     create: 'Create project',
     newUpdate: 'Progress update',
     chooseProject: 'Choose a project',
@@ -539,6 +553,13 @@ const copy = {
     clientEmailEditHint: '邮箱账号密码保持不变。目标邮箱若已关联不同密码的账号，则无法使用。',
     saveClientAccount: '保存客户账号',
     savedClientAccount: '客户邮箱登录已保存。',
+    resetAccountPassword: '新密码（可选）',
+    resetAccountPasswordHint: '仅在需要修改邮箱账号密码时填写。新密码至少需要 12 个字符。',
+    accountActive: '账号已启用',
+    accountInactive: '尚未设置账号',
+    removeClientAccount: '解绑账号',
+    confirmRemoveClientAccount: '解除此客户项目的邮箱账号绑定？项目记录不会被删除。',
+    removedClientAccount: '客户账号已从项目中解绑。',
     create: '创建项目',
     newUpdate: '进度更新',
     chooseProject: '选择项目',
@@ -1166,12 +1187,35 @@ const PortalAdmin: React.FC = () => {
         body: JSON.stringify({
           projectId: form.get('projectId'),
           clientEmail: form.get('clientEmail'),
+          accountPassword: form.get('accountPassword') || '',
         }),
       });
       setProjects((current) => current.map((project) => project.id === result.project.id ? result.project : project));
       setNotice(t.savedClientAccount);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Akun email klien tidak dapat disimpan.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const removeClientAccount = async (project: PortalProject) => {
+    if (!window.confirm(t.confirmRemoveClientAccount)) return;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const result = await portalRequest<{ project: PortalProject }>('/api/portal/admin/projects', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          projectId: project.id,
+          removeClientAccount: true,
+        }),
+      });
+      setProjects((current) => current.map((item) => item.id === result.project.id ? result.project : item));
+      setNotice(t.removedClientAccount);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t.removedClientAccount);
     } finally {
       setBusy(false);
     }
@@ -2124,6 +2168,56 @@ const PortalAdmin: React.FC = () => {
                             </li>
                           ))}
                         </ul>
+                        {adminRole === 'admin' && (
+                          <form
+                            onSubmit={saveClientAccount}
+                            className="mt-4 grid gap-3 border-t border-neutral-200 pt-4 dark:border-white/10"
+                          >
+                            <input type="hidden" name="projectId" value={client.projects[0]?.id ?? ''} />
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">
+                                {client.email ? t.accountActive : t.accountInactive}
+                              </span>
+                              {client.email && (
+                                <button
+                                  type="button"
+                                  disabled={busy}
+                                  onClick={() => removeClientAccount(client.projects[0])}
+                                  className="font-mono text-[9px] uppercase tracking-widest text-red-500 transition-colors hover:text-red-700 disabled:opacity-50"
+                                >
+                                  {t.removeClientAccount}
+                                </button>
+                              )}
+                            </div>
+                            <Field
+                              name="clientEmail"
+                              label={t.clientEmail}
+                              type="email"
+                              defaultValue={client.email ?? ''}
+                              required
+                              maxLength={254}
+                              autoCapitalize="none"
+                            />
+                            <label className="block">
+                              <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.resetAccountPassword}</span>
+                              <input
+                                name="accountPassword"
+                                type="password"
+                                minLength={12}
+                                maxLength={256}
+                                autoComplete="new-password"
+                                className="w-full rounded-xl border border-[#d9d4c9] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#8c795e] focus:ring-4 focus:ring-[#8c795e]/10 dark:border-white/15 dark:bg-neutral-950 dark:focus:border-bronze-400"
+                              />
+                            </label>
+                            <p className="-mt-1 text-[10px] leading-5 text-neutral-500">{t.resetAccountPasswordHint}</p>
+                            <button
+                              disabled={busy}
+                              className="rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-mono text-[9px] uppercase tracking-widest transition-colors hover:border-bronze-500 disabled:opacity-50 dark:border-white/15 dark:bg-white/[0.03]"
+                            >
+                              {t.saveClientAccount}
+                            </button>
+                          </form>
+                        )}
                       </li>
                     ))}
                   </ul>
