@@ -81,6 +81,10 @@ const copy = {
     accountDetails: 'Detail akun',
     accountEmail: 'Email akun',
     accountEmailMissing: 'Email akun belum diatur',
+    clientMenu: 'Menu klien',
+    profileAndPreferences: 'Profil & preferensi',
+    darkMode: 'Mode gelap',
+    studioHelp: 'Bantuan studio',
     currentPassword: 'Password saat ini',
     newPassword: 'Password baru',
     confirmPassword: 'Konfirmasi password baru',
@@ -249,6 +253,10 @@ const copy = {
     accountDetails: 'Account details',
     accountEmail: 'Account email',
     accountEmailMissing: 'Account email is not set',
+    clientMenu: 'Client menu',
+    profileAndPreferences: 'Profile & preferences',
+    darkMode: 'Dark mode',
+    studioHelp: 'Studio help',
     currentPassword: 'Current password',
     newPassword: 'New password',
     confirmPassword: 'Confirm new password',
@@ -417,6 +425,10 @@ const copy = {
     accountDetails: '账号信息',
     accountEmail: '账号邮箱',
     accountEmailMissing: '尚未设置账号邮箱',
+    clientMenu: '客户菜单',
+    profileAndPreferences: '资料与偏好设置',
+    darkMode: '深色模式',
+    studioHelp: '工作室帮助',
     currentPassword: '当前密码',
     newPassword: '新密码',
     confirmPassword: '确认新密码',
@@ -574,6 +586,7 @@ const ClientPortal: React.FC = () => {
   const [passwordChangeError, setPasswordChangeError] = useState('');
   const [passwordChangeNotice, setPasswordChangeNotice] = useState('');
   const [profileOpen, setProfileOpen] = useState(false);
+  const [profileDetailsOpen, setProfileDetailsOpen] = useState(false);
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackNotice, setFeedbackNotice] = useState('');
   const [feedbackError, setFeedbackError] = useState('');
@@ -582,11 +595,34 @@ const ClientPortal: React.FC = () => {
   const [billingNotice, setBillingNotice] = useState('');
   const [changeSubmitting, setChangeSubmitting] = useState(false);
   const [changeNotice, setChangeNotice] = useState('');
+  const accountMenuRef = useRef<HTMLDivElement>(null);
   const feedbackMessagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setActiveSection(getClientPortalSection(location.search));
   }, [location.search]);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    const closeOnPointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Node && !accountMenuRef.current?.contains(event.target)) {
+        setProfileOpen(false);
+        setProfileDetailsOpen(false);
+      }
+    };
+    const closeOnKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setProfileOpen(false);
+        setProfileDetailsOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', closeOnPointerDown);
+    document.addEventListener('keydown', closeOnKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnPointerDown);
+      document.removeEventListener('keydown', closeOnKeyDown);
+    };
+  }, [profileOpen]);
 
   useEffect(() => {
     if (!resetNotice) return;
@@ -955,6 +991,7 @@ const ClientPortal: React.FC = () => {
       setUpdates([]);
       setActiveSection('client-dashboard');
       setFeedbackChatOpen(false);
+      setProfileOpen(false);
       setError('');
       setResetMode(false);
       closePasswordChange();
@@ -998,6 +1035,7 @@ const ClientPortal: React.FC = () => {
 
   const openClientPage = (sectionId: string) => {
     setActiveSection(sectionId);
+    setProfileOpen(false);
     setFeedbackChatOpen(false);
     const searchParams = new URLSearchParams(location.search);
     if (getClientPortalSection(location.search) !== sectionId) {
@@ -1121,10 +1159,13 @@ const ClientPortal: React.FC = () => {
           <div className="flex items-center gap-2">
             {project && !loading && (
               <>
-                <div className="relative">
+                <div ref={accountMenuRef} className="relative">
                   <button
                     type="button"
-                    onClick={() => setProfileOpen((open) => !open)}
+                    onClick={() => {
+                      setProfileOpen((open) => !open);
+                      setProfileDetailsOpen(false);
+                    }}
                     aria-label={t.clientProfile}
                     aria-expanded={profileOpen}
                     aria-controls="client-account-profile"
@@ -1139,45 +1180,124 @@ const ClientPortal: React.FC = () => {
                     </span>
                   </button>
                   {profileOpen && (
-                    <div id="client-account-profile" className="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-900 shadow-xl dark:border-white/10 dark:bg-neutral-900 dark:text-white">
-                      <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-400">{t.accountDetails}</p>
-                      <p className="mt-2 truncate text-sm font-medium">{project.client_name}</p>
-                      <p className="mt-3 text-[10px] text-neutral-500 dark:text-neutral-400">{t.accountEmail}</p>
-                      <p className="mt-1 break-all text-xs">{project.client_email || t.accountEmailMissing}</p>
-                      {project.client_phone && (
-                        <>
-                          <p className="mt-3 text-[10px] text-neutral-500 dark:text-neutral-400">{t.clientPhone}</p>
-                          <p className="mt-1 break-all text-xs">{project.client_phone}</p>
-                        </>
-                      )}
+                    <div id="client-account-profile" className="absolute right-0 top-full z-50 mt-2 max-h-[min(80vh,36rem)] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-3 text-neutral-900 shadow-[0_20px_60px_rgba(27,25,20,0.2)] dark:border-white/10 dark:bg-[#181916] dark:text-white sm:p-4">
+                      <div className="flex items-center gap-3 border-b border-neutral-100 px-1 pb-4 dark:border-white/10">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#262722] font-mono text-xs font-medium uppercase text-white dark:bg-white dark:text-neutral-900">
+                          {getClientInitials(project.client_name)}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">{project.client_name}</p>
+                          <p className="mt-1 break-all text-[10px] text-neutral-500 dark:text-neutral-400">{project.client_email || t.accountEmailMissing}</p>
+                        </div>
+                      </div>
+                      <nav aria-label={t.clientMenu} className="space-y-1 py-2">
+                        {portalNavigation.map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => openProjectSection(item.id)}
+                            aria-current={activeSection === item.id ? 'page' : undefined}
+                            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs transition-colors ${activeSection === item.id ? 'bg-[#f4f1eb] font-medium text-[#746349] dark:bg-white/[0.08] dark:text-bronze-300' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]'}`}
+                          >
+                            <span className="text-[#8c795e] dark:text-bronze-400">{item.icon}</span>
+                            <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                          </button>
+                        ))}
+                      </nav>
+                      <div className="space-y-1 border-t border-neutral-100 py-2 dark:border-white/10">
+                        <button
+                          type="button"
+                          onClick={() => setProfileDetailsOpen((open) => !open)}
+                          aria-expanded={profileDetailsOpen}
+                          className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+                        >
+                          <span className="flex items-center gap-3">
+                            <ShieldCheck size={16} className="text-[#8c795e] dark:text-bronze-400" />
+                            {t.profileAndPreferences}
+                          </span>
+                          <span className="text-neutral-400">{profileDetailsOpen ? '−' : '+'}</span>
+                        </button>
+                        {profileDetailsOpen && (
+                          <div className="mx-3 space-y-2 rounded-xl bg-neutral-50 px-3 py-3 text-[10px] dark:bg-white/[0.04]">
+                            <div>
+                              <p className="text-neutral-500 dark:text-neutral-400">{t.accountDetails}</p>
+                              <p className="mt-1 text-xs font-medium">{project.client_name}</p>
+                            </div>
+                            <div>
+                              <p className="text-neutral-500 dark:text-neutral-400">{t.accountEmail}</p>
+                              <p className="mt-1 break-all text-xs">{project.client_email || t.accountEmailMissing}</p>
+                            </div>
+                            {project.client_phone && (
+                              <div>
+                                <p className="text-neutral-500 dark:text-neutral-400">{t.clientPhone}</p>
+                                <p className="mt-1 text-xs">{project.client_phone}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={toggleTheme}
+                          aria-pressed={isDark}
+                          className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+                        >
+                          <span className="flex items-center gap-3">
+                            {isDark ? <Sun size={16} className="text-[#8c795e] dark:text-bronze-400" /> : <Moon size={16} className="text-[#8c795e] dark:text-bronze-400" />}
+                            {t.darkMode}
+                          </span>
+                          <span className={`relative h-5 w-9 rounded-full transition-colors ${isDark ? 'bg-[#8c795e]' : 'bg-neutral-300 dark:bg-white/20'}`}>
+                            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${isDark ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProfileOpen(false);
+                            setPasswordChangeOpen(true);
+                            setPasswordChangeError('');
+                            setPasswordChangeNotice('');
+                          }}
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+                        >
+                          <LockKeyhole size={16} className="text-[#8c795e] dark:text-bronze-400" />
+                          {t.changePassword}
+                        </button>
+                        <Link
+                          to="/contact"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+                        >
+                          <MessageCircle size={16} className="text-[#8c795e] dark:text-bronze-400" />
+                          {t.studioHelp}
+                        </Link>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 border-t border-neutral-100 pt-3 dark:border-white/10">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProfileOpen(false);
+                            setFeedbackChatOpen(true);
+                          }}
+                          className="rounded-lg px-3 py-2 text-[10px] text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
+                        >
+                          {t.feedbackTitle}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProfileOpen(false);
+                            void signOut();
+                          }}
+                          className="flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-[10px] font-medium text-neutral-600 transition-colors hover:border-red-300 hover:text-red-600 dark:border-white/10 dark:text-neutral-300 dark:hover:border-red-400/40 dark:hover:text-red-300"
+                        >
+                          {t.logout} <LogOut size={13} />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (passwordChangeOpen) {
-                      closePasswordChange();
-                    } else {
-                      setPasswordChangeOpen(true);
-                      setPasswordChangeError('');
-                      setPasswordChangeNotice('');
-                    }
-                  }}
-                  aria-label={t.changePassword}
-                  title={t.changePassword}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-neutral-400 hover:text-neutral-900 dark:border-white/15 dark:bg-[#181916] dark:text-neutral-200 dark:hover:border-white/30"
-                >
-                  <LockKeyhole size={15} />
-                </button>
-                <button type="button" onClick={signOut} aria-label={t.logout} title={t.logout} className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-red-300 hover:text-red-600 dark:border-white/15 dark:bg-[#181916] dark:text-neutral-200 dark:hover:border-red-400/40">
-                  <LogOut size={15} />
-                </button>
               </>
             )}
-            <button type="button" onClick={toggleTheme} aria-label={isDark ? t.switchToLightTheme : t.switchToDarkTheme} title={isDark ? t.switchToLightTheme : t.switchToDarkTheme} className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/15 dark:bg-[#181916] dark:text-neutral-200 dark:hover:border-bronze-400 sm:h-10 sm:w-10">
-              {isDark ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
             <PortalLanguageSwitcher language={language} onChange={setLanguage} />
           </div>
         </div>
