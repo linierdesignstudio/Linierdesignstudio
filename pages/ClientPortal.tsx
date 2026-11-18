@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, Link2, LockKeyhole, LogOut, MapPin, MessageCircle, Monitor, Moon, Phone, Search, Send, ShieldCheck, Sun, Upload, UserRound, X } from 'lucide-react';
+import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ChevronDown, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, Link2, LockKeyhole, LogOut, MapPin, MessageCircle, Monitor, Moon, Phone, Search, Send, ShieldCheck, Sun, Upload, UserRound, X } from 'lucide-react';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
@@ -78,6 +78,10 @@ const copy = {
     resetSent: 'Jika ID proyek atau email terdaftar, tim studio akan memverifikasi permintaan dan menghubungi Anda lewat WhatsApp.',
     changePassword: 'Ganti password',
     clientProfile: 'Profil klien',
+    clientMenu: 'Menu akun klien',
+    menuProfilePreferences: 'Profil saya & preferensi',
+    studioHelp: 'Bantuan studio',
+    darkMode: 'Mode gelap',
     accountEmail: 'Email akun',
     accountEmailMissing: 'Email akun belum diatur',
     accountSettingsTitle: 'Pengaturan akun',
@@ -276,6 +280,10 @@ const copy = {
     resetSent: 'If the project ID or email is registered, the studio will verify the request and contact you via WhatsApp.',
     changePassword: 'Change password',
     clientProfile: 'Client profile',
+    clientMenu: 'Client account menu',
+    menuProfilePreferences: 'My profile & preferences',
+    studioHelp: 'Studio help',
+    darkMode: 'Dark mode',
     accountEmail: 'Account email',
     accountEmailMissing: 'Account email is not set',
     accountSettingsTitle: 'Account settings',
@@ -474,6 +482,10 @@ const copy = {
     resetSent: '如果项目编号或邮箱已注册，工作室将核实请求并通过 WhatsApp 联系您。',
     changePassword: '更改密码',
     clientProfile: '客户资料',
+    clientMenu: '客户账号菜单',
+    menuProfilePreferences: '我的资料与偏好设置',
+    studioHelp: '工作室帮助',
+    darkMode: '深色模式',
     accountEmail: '账号邮箱',
     accountEmailMissing: '尚未设置账号邮箱',
     accountSettingsTitle: '账号设置',
@@ -665,6 +677,7 @@ const ClientPortal: React.FC = () => {
   const [passwordChangeError, setPasswordChangeError] = useState('');
   const [passwordChangeNotice, setPasswordChangeNotice] = useState('');
   const [accountSettingsSection, setAccountSettingsSection] = useState<AccountSettingsSection>('profile');
+  const [profileOpen, setProfileOpen] = useState(false);
   const [profileName, setProfileName] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState('');
@@ -677,11 +690,30 @@ const ClientPortal: React.FC = () => {
   const [billingNotice, setBillingNotice] = useState('');
   const [changeSubmitting, setChangeSubmitting] = useState(false);
   const [changeNotice, setChangeNotice] = useState('');
+  const accountMenuRef = useRef<HTMLDivElement>(null);
   const feedbackMessagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setActiveSection(getClientPortalSection(location.search));
   }, [location.search]);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    const closeOnPointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Node && !accountMenuRef.current?.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    };
+    const closeOnKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setProfileOpen(false);
+    };
+    document.addEventListener('pointerdown', closeOnPointerDown);
+    document.addEventListener('keydown', closeOnKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnPointerDown);
+      document.removeEventListener('keydown', closeOnKeyDown);
+    };
+  }, [profileOpen]);
 
   useEffect(() => {
     if (!project) {
@@ -1100,6 +1132,7 @@ const ClientPortal: React.FC = () => {
 
   const openClientPage = (sectionId: string) => {
     setActiveSection(sectionId);
+    setProfileOpen(false);
     setFeedbackChatOpen(false);
     const searchParams = new URLSearchParams(location.search);
     if (getClientPortalSection(location.search) !== sectionId) {
@@ -1116,6 +1149,10 @@ const ClientPortal: React.FC = () => {
   };
   const openProjectSection = (sectionId: string) => {
     openClientPage(sectionId);
+  };
+  const openAccountSettings = (section: AccountSettingsSection) => {
+    setAccountSettingsSection(section);
+    openProjectSection('client-account');
   };
   const saveAccountProfile = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -1216,6 +1253,12 @@ const ClientPortal: React.FC = () => {
     { id: 'project-billing', label: t.billingTitle, icon: <FileCheck2 size={17} /> },
     { id: 'project-changes', label: t.changeTitle, icon: <ClipboardList size={17} /> },
   ];
+  const accountMenuNavigation = [
+    { id: 'client-dashboard', label: t.dashboardNav, icon: <LayoutDashboard size={16} /> },
+    { id: 'project-documents', label: t.documents, icon: <FileText size={16} /> },
+    { id: 'client-activity', label: t.activityCenter, icon: <Activity size={16} /> },
+    { id: 'project-updates', label: t.updated, icon: <Clock3 size={16} /> },
+  ];
   const mobileNavigation = (
     <nav aria-label={t.journal} className="fixed inset-x-3 z-40 grid grid-cols-6 rounded-2xl border border-neutral-200 bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-[0_12px_36px_rgba(27,25,20,0.16)] backdrop-blur-xl dark:border-white/10 dark:bg-[#111210]/95 md:hidden" style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
       {portalNavigation.map((item) => (
@@ -1264,15 +1307,13 @@ const ClientPortal: React.FC = () => {
           </Link>
           <div className="flex items-center gap-2">
             {project && !loading && (
-              <>
+              <div ref={accountMenuRef} className="relative">
                 <button
                   type="button"
-                  onClick={() => {
-                    setAccountSettingsSection('profile');
-                    openProjectSection('client-account');
-                  }}
-                  aria-label={t.accountSettingsTitle}
-                  aria-current={activeSection === 'client-account' ? 'page' : undefined}
+                  onClick={() => setProfileOpen((open) => !open)}
+                  aria-label={t.clientProfile}
+                  aria-expanded={profileOpen}
+                  aria-controls="client-account-menu"
                   className="flex max-w-[190px] items-center gap-2 rounded-full border border-neutral-200 bg-white px-2 py-1.5 text-left text-neutral-700 shadow-sm transition-colors hover:border-neutral-400 dark:border-white/15 dark:bg-[#181916] dark:text-neutral-200 dark:hover:border-white/30 sm:max-w-[240px] sm:gap-2.5 sm:px-2.5"
                 >
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#262722] font-mono text-[10px] font-medium uppercase text-white dark:bg-white dark:text-neutral-900">
@@ -1282,17 +1323,98 @@ const ClientPortal: React.FC = () => {
                     <span className="block truncate text-xs font-medium">{profileName || project.client_name}</span>
                     <span className="block font-mono text-[8px] uppercase tracking-wider text-neutral-400">{t.clientProfile}</span>
                   </span>
+                  <ChevronDown size={14} className={`shrink-0 text-neutral-400 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
                 </button>
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  aria-label={isDark ? t.switchToLightTheme : t.switchToDarkTheme}
-                  aria-pressed={isDark}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/15 dark:bg-[#181916] dark:text-neutral-200 dark:hover:border-bronze-400"
-                >
-                  {isDark ? <Sun size={15} /> : <Moon size={15} />}
-                </button>
-              </>
+                {profileOpen && (
+                  <div id="client-account-menu" className="absolute right-0 top-full z-50 mt-2 max-h-[min(80vh,36rem)] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-3 text-neutral-900 shadow-[0_20px_60px_rgba(27,25,20,0.2)] dark:border-white/10 dark:bg-[#181916] dark:text-white sm:p-4">
+                    <div className="flex items-center gap-3 border-b border-neutral-100 px-1 pb-4 dark:border-white/10">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#262722] font-mono text-xs font-medium uppercase text-white dark:bg-white dark:text-neutral-900">
+                        {getClientInitials(profileName || project.client_name)}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{profileName || project.client_name}</p>
+                        <p className="mt-1 break-all text-[10px] text-neutral-500 dark:text-neutral-400">{project.client_email || t.accountEmailMissing}</p>
+                      </div>
+                    </div>
+                    <nav aria-label={t.clientMenu} className="space-y-1 py-2">
+                      {accountMenuNavigation.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => openProjectSection(item.id)}
+                          aria-current={activeSection === item.id ? 'page' : undefined}
+                          className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs transition-colors ${activeSection === item.id ? 'bg-[#f4f1eb] font-medium text-[#746349] dark:bg-white/[0.08] dark:text-bronze-300' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]'}`}
+                        >
+                          <span className="text-[#8c795e] dark:text-bronze-400">{item.icon}</span>
+                          <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                        </button>
+                      ))}
+                    </nav>
+                    <div className="space-y-1 border-t border-neutral-100 py-2 dark:border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => openAccountSettings('billing')}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+                      >
+                        <FileCheck2 size={16} className="text-[#8c795e] dark:text-bronze-400" />
+                        {t.accountBillingTab}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={toggleTheme}
+                        aria-pressed={isDark}
+                        className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+                      >
+                        <span className="flex items-center gap-3">
+                          {isDark ? <Sun size={16} className="text-[#8c795e] dark:text-bronze-400" /> : <Moon size={16} className="text-[#8c795e] dark:text-bronze-400" />}
+                          {t.darkMode}
+                        </span>
+                        <span className={`relative h-5 w-9 rounded-full transition-colors ${isDark ? 'bg-[#8c795e]' : 'bg-neutral-300 dark:bg-white/20'}`}>
+                          <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${isDark ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openAccountSettings('profile')}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+                      >
+                        <UserRound size={16} className="text-[#8c795e] dark:text-bronze-400" />
+                        {t.menuProfilePreferences}
+                      </button>
+                      <Link
+                        to="/contact"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+                      >
+                        <MessageCircle size={16} className="text-[#8c795e] dark:text-bronze-400" />
+                        {t.studioHelp}
+                      </Link>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 border-t border-neutral-100 pt-3 dark:border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileOpen(false);
+                          setFeedbackChatOpen(true);
+                        }}
+                        className="rounded-lg px-3 py-2 text-[10px] text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
+                      >
+                        {t.feedbackTitle}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileOpen(false);
+                          void signOut();
+                        }}
+                        className="flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-[10px] font-medium text-neutral-600 transition-colors hover:border-red-300 hover:text-red-600 dark:border-white/10 dark:text-neutral-300 dark:hover:border-red-400/40 dark:hover:text-red-300"
+                      >
+                        {t.logout} <LogOut size={13} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
             <PortalLanguageSwitcher language={language} onChange={setLanguage} />
           </div>
