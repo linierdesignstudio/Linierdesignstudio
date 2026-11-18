@@ -5,7 +5,7 @@ import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalClientSession, type PortalNotification, type PortalPaymentAccount, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalClientSession, type PortalNotification, type PortalPaymentAccount, type PortalProject, type PortalProjectDocument, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 import { findPortalBank } from '../lib/portalBanks';
 import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
 
@@ -49,6 +49,15 @@ const copy = {
     complete: 'Selesai',
     inProgress: 'Sedang berjalan',
     documents: 'Dokumen proyek',
+    projectDocumentsDescription: 'Kontrak dan dokumen proyek lain yang dibagikan oleh tim studio.',
+    projectDocumentsEmpty: 'Belum ada dokumen proyek yang dibagikan.',
+    projectDocumentsLoading: 'Memuat dokumen proyek...',
+    projectDocumentsLoadFailed: 'Dokumen proyek tidak dapat dimuat.',
+    documentContract: 'Kontrak / perjanjian',
+    documentOther: 'Dokumen lain',
+    progressFilesTitle: 'Lampiran pembaruan harian',
+    progressFilesDescription: 'Foto dan file yang dibagikan tim pada catatan progress harian.',
+    progressFilesEmpty: 'Belum ada file pada pembaruan harian.',
     documentsEmpty: 'Belum ada dokumen untuk proyek ini.',
     documentsSearch: 'Cari nama file atau update',
     documentsType: 'Jenis file',
@@ -267,6 +276,15 @@ const copy = {
     complete: 'Complete',
     inProgress: 'In progress',
     documents: 'Project documents',
+    projectDocumentsDescription: 'Contracts and other project documents shared by the studio team.',
+    projectDocumentsEmpty: 'There are no shared project documents yet.',
+    projectDocumentsLoading: 'Loading project documents...',
+    projectDocumentsLoadFailed: 'Project documents could not be loaded.',
+    documentContract: 'Contract / agreement',
+    documentOther: 'Other document',
+    progressFilesTitle: 'Daily update attachments',
+    progressFilesDescription: 'Photos and files shared by the team in daily progress notes.',
+    progressFilesEmpty: 'There are no files in daily updates yet.',
     documentsEmpty: 'There are no documents for this project yet.',
     documentsSearch: 'Search file or update name',
     documentsType: 'File type',
@@ -485,6 +503,15 @@ const copy = {
     complete: '已完成',
     inProgress: '进行中',
     documents: '项目文件',
+    projectDocumentsDescription: '工作室团队分享的合同及其他项目文件。',
+    projectDocumentsEmpty: '暂无已分享的项目文件。',
+    projectDocumentsLoading: '正在加载项目文件...',
+    projectDocumentsLoadFailed: '无法加载项目文件。',
+    documentContract: '合同 / 协议',
+    documentOther: '其他文件',
+    progressFilesTitle: '每日更新附件',
+    progressFilesDescription: '团队在每日进度记录中分享的照片和文件。',
+    progressFilesEmpty: '每日更新中暂无文件。',
     documentsEmpty: '此项目暂无文件。',
     documentsSearch: '搜索文件名或更新标题',
     documentsType: '文件类型',
@@ -715,6 +742,9 @@ const ClientPortal: React.FC = () => {
   const [projects, setProjects] = useState<PortalProject[]>([]);
   const [project, setProject] = useState<PortalProject | null>(null);
   const [updates, setUpdates] = useState<PortalUpdate[]>([]);
+  const [projectDocuments, setProjectDocuments] = useState<PortalProjectDocument[]>([]);
+  const [projectDocumentsLoading, setProjectDocumentsLoading] = useState(false);
+  const [projectDocumentsError, setProjectDocumentsError] = useState('');
   const [feedbackItems, setFeedbackItems] = useState<ClientFeedback[]>([]);
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
   const [paymentAccounts, setPaymentAccounts] = useState<PortalPaymentAccount[]>([]);
@@ -887,6 +917,33 @@ const ClientPortal: React.FC = () => {
       });
     return () => { active = false; };
   }, [project?.id]);
+
+  useEffect(() => {
+    let active = true;
+    if (!project) {
+      setProjectDocuments([]);
+      setProjectDocumentsError('');
+      setProjectDocumentsLoading(false);
+      return () => { active = false; };
+    }
+
+    setProjectDocuments([]);
+    setProjectDocumentsError('');
+    setProjectDocumentsLoading(true);
+    portalRequest<{ documents: PortalProjectDocument[] }>(
+      `/api/portal/client/project-documents?projectId=${encodeURIComponent(project.id)}`
+    )
+      .then(({ documents }) => {
+        if (active) setProjectDocuments(documents);
+      })
+      .catch((cause: unknown) => {
+        if (active) setProjectDocumentsError(cause instanceof Error ? cause.message : t.projectDocumentsLoadFailed);
+      })
+      .finally(() => {
+        if (active) setProjectDocumentsLoading(false);
+      });
+    return () => { active = false; };
+  }, [project?.id, t.projectDocumentsLoadFailed]);
 
   useEffect(() => {
     let active = true;
@@ -1358,11 +1415,11 @@ const ClientPortal: React.FC = () => {
       openProjectSection('project-updates');
     }
   };
-  const projectDocuments = updates.flatMap((update) =>
+  const progressAttachments = updates.flatMap((update) =>
     update.attachments
       .map((attachment) => ({ ...attachment, updateTitle: update.title, updateDate: update.update_date }))
   );
-  const filteredProjectDocuments = projectDocuments.filter((attachment) => {
+  const filteredProjectDocuments = progressAttachments.filter((attachment) => {
     const query = documentSearch.trim().toLowerCase();
     const matchesQuery = !query
       || attachment.name.toLowerCase().includes(query)
@@ -1980,82 +2037,135 @@ const ClientPortal: React.FC = () => {
             </>
             )}
 
-            {activeSection === 'project-documents' && <section id="project-documents" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
-              <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
-                <div>
-                  <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p>
-                  <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.documents}</h2>
-                </div>
-                <span className="ml-auto rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-xs tabular-nums text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">{filteredProjectDocuments.length.toString().padStart(2, '0')}</span>
-              </div>
-              {projectDocuments.length === 0 ? (
-                <p className="py-2 text-sm text-neutral-500">{t.documentsEmpty}</p>
-              ) : (
-                <>
-                  <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <label className="relative sm:col-span-2 lg:col-span-1">
-                      <span className="sr-only">{t.documentsSearch}</span>
-                      <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                      <input value={documentSearch} onChange={(event) => setDocumentSearch(event.target.value)} placeholder={t.documentsSearch} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950" />
-                    </label>
-                    <label>
-                      <span className="sr-only">{t.documentsType}</span>
-                      <select value={documentType} onChange={(event) => setDocumentType(event.target.value as PortalDocumentKind | 'all')} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950 dark:[color-scheme:dark]">
-                        <option value="all">{t.documentsAllTypes}</option>
-                        <option value="image">{t.documentsImage}</option>
-                        <option value="pdf">{t.documentsPdf}</option>
-                        <option value="word">{t.documentsWord}</option>
-                        <option value="spreadsheet">{t.documentsSpreadsheet}</option>
-                        <option value="other">{t.documentsOther}</option>
-                      </select>
-                    </label>
-                    <label>
-                      <span className="sr-only">{t.documentsFrom}</span>
-                      <input aria-label={t.documentsFrom} type="date" value={documentDateFrom} onChange={(event) => setDocumentDateFrom(event.target.value)} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-600 outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-300 dark:[color-scheme:dark]" />
-                    </label>
-                    <label>
-                      <span className="sr-only">{t.documentsTo}</span>
-                      <input aria-label={t.documentsTo} type="date" value={documentDateTo} onChange={(event) => setDocumentDateTo(event.target.value)} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-600 outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-300 dark:[color-scheme:dark]" />
-                    </label>
+            {activeSection === 'project-documents' && (
+              <>
+                <section id="project-documents" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
+                  <div className="mb-4 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p>
+                      <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.documents}</h2>
+                    </div>
+                    <span className="ml-auto rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-xs tabular-nums text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">{projectDocuments.length.toString().padStart(2, '0')}</span>
                   </div>
-                  {filteredProjectDocuments.length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-neutral-200 px-4 py-8 text-center text-sm text-neutral-500 dark:border-white/10">{t.documentsNoResults}</p>
+                  <p className="mb-5 text-sm leading-6 text-neutral-500 dark:text-neutral-400">{t.projectDocumentsDescription}</p>
+                  {projectDocumentsError && <p role="alert" className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-700 dark:text-red-300">{projectDocumentsError}</p>}
+                  {projectDocumentsLoading ? (
+                    <p className="py-8 text-center text-sm text-neutral-500">{t.projectDocumentsLoading}</p>
+                  ) : projectDocuments.length === 0 ? (
+                    <p className="py-5 text-sm text-neutral-500">{t.projectDocumentsEmpty}</p>
                   ) : (
                     <ul className="grid gap-3 md:grid-cols-2">
-                      {filteredProjectDocuments.map((attachment) => {
-                        const href = attachment.downloadUrl ?? attachment.url;
-                        const isImage = getPortalDocumentKind(attachment) === 'image';
-                        const canPreview = canPreviewPortalDocument(attachment) && Boolean(attachment.url);
+                      {projectDocuments.map((document) => {
+                        const href = document.downloadUrl ?? document.url;
+                        const isImage = getPortalDocumentKind(document) === 'image';
+                        const canPreview = canPreviewPortalDocument(document) && Boolean(document.url);
                         return (
-                          <li key={attachment.path} className="flex min-w-0 items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50/70 p-3 sm:p-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                            {isImage && attachment.url ? (
-                              <button type="button" onClick={() => setPreviewAttachment(attachment)} aria-label={`${t.previewFile}: ${attachment.name}`} className="h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bronze-500 sm:h-16 sm:w-20">
-                                <img src={attachment.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                          <li key={document.id} className="flex min-w-0 items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50/70 p-3 sm:p-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                            {isImage && document.url ? (
+                              <button type="button" onClick={() => setPreviewAttachment(document)} aria-label={`${t.previewFile}: ${document.name}`} className="h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bronze-500">
+                                <img src={document.url} alt="" loading="lazy" className="h-full w-full object-cover" />
                               </button>
                             ) : (
                               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-bronze-600 dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
                             )}
                             <div className="min-w-0 flex-1">
                               {canPreview ? (
-                                <button type="button" onClick={() => setPreviewAttachment(attachment)} className="block max-w-full truncate text-left text-sm font-medium text-neutral-800 transition-colors hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{attachment.name}</button>
+                                <button type="button" onClick={() => setPreviewAttachment(document)} className="block max-w-full truncate text-left text-sm font-medium text-neutral-800 hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{document.name}</button>
                               ) : href ? (
-                                <a href={href} target="_blank" rel="noreferrer" className="block truncate text-sm font-medium text-neutral-800 transition-colors hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{attachment.name}</a>
+                                <a href={href} target="_blank" rel="noreferrer" className="block truncate text-sm font-medium text-neutral-800 hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{document.name}</a>
                               ) : (
-                                <p className="truncate text-sm font-medium">{attachment.name}</p>
+                                <p className="truncate text-sm font-medium">{document.name}</p>
                               )}
-                              <p className="mt-1 truncate text-xs text-neutral-500">{attachment.updateTitle} · {formatDate(attachment.updateDate, language)}</p>
+                              <p className="mt-1 truncate text-xs text-neutral-500">{document.category === 'contract' ? t.documentContract : t.documentOther} · {formatDate(document.created_at, language)}</p>
                             </div>
-                            {canPreview && <button type="button" onClick={() => setPreviewAttachment(attachment)} aria-label={`${t.previewFile}: ${attachment.name}`} title={t.previewFile} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Eye size={16} /></button>}
-                            {href && <a href={href} target="_blank" rel="noreferrer" aria-label={`${t.downloadFile}: ${attachment.name}`} title={t.downloadFile} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition-colors hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Download size={15} /></a>}
+                            {canPreview && <button type="button" onClick={() => setPreviewAttachment(document)} aria-label={`${t.previewFile}: ${document.name}`} title={t.previewFile} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Eye size={16} /></button>}
+                            {href && <a href={href} target="_blank" rel="noreferrer" aria-label={`${t.downloadFile}: ${document.name}`} title={t.downloadFile} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Download size={15} /></a>}
                           </li>
                         );
                       })}
                     </ul>
                   )}
-                </>
-              )}
-            </section>}
+                </section>
+
+                <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
+                  <div className="mb-4 flex items-center justify-between gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p>
+                      <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.progressFilesTitle}</h2>
+                    </div>
+                    <span className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-xs tabular-nums text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">{filteredProjectDocuments.length.toString().padStart(2, '0')}</span>
+                  </div>
+                  <p className="mb-5 text-sm leading-6 text-neutral-500 dark:text-neutral-400">{t.progressFilesDescription}</p>
+                  {progressAttachments.length === 0 ? (
+                    <p className="py-2 text-sm text-neutral-500">{t.progressFilesEmpty}</p>
+                  ) : (
+                    <>
+                      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <label className="relative sm:col-span-2 lg:col-span-1">
+                          <span className="sr-only">{t.documentsSearch}</span>
+                          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                          <input value={documentSearch} onChange={(event) => setDocumentSearch(event.target.value)} placeholder={t.documentsSearch} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950" />
+                        </label>
+                        <label>
+                          <span className="sr-only">{t.documentsType}</span>
+                          <select value={documentType} onChange={(event) => setDocumentType(event.target.value as PortalDocumentKind | 'all')} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950 dark:[color-scheme:dark]">
+                            <option value="all">{t.documentsAllTypes}</option>
+                            <option value="image">{t.documentsImage}</option>
+                            <option value="pdf">{t.documentsPdf}</option>
+                            <option value="word">{t.documentsWord}</option>
+                            <option value="spreadsheet">{t.documentsSpreadsheet}</option>
+                            <option value="other">{t.documentsOther}</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span className="sr-only">{t.documentsFrom}</span>
+                          <input aria-label={t.documentsFrom} type="date" value={documentDateFrom} onChange={(event) => setDocumentDateFrom(event.target.value)} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-600 outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-300 dark:[color-scheme:dark]" />
+                        </label>
+                        <label>
+                          <span className="sr-only">{t.documentsTo}</span>
+                          <input aria-label={t.documentsTo} type="date" value={documentDateTo} onChange={(event) => setDocumentDateTo(event.target.value)} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-600 outline-none transition focus:border-[#8c795e] dark:border-white/10 dark:bg-neutral-950 dark:text-neutral-300 dark:[color-scheme:dark]" />
+                        </label>
+                      </div>
+                      {filteredProjectDocuments.length === 0 ? (
+                        <p className="rounded-xl border border-dashed border-neutral-200 px-4 py-8 text-center text-sm text-neutral-500 dark:border-white/10">{t.documentsNoResults}</p>
+                      ) : (
+                        <ul className="grid gap-3 md:grid-cols-2">
+                          {filteredProjectDocuments.map((attachment) => {
+                            const href = attachment.downloadUrl ?? attachment.url;
+                            const isImage = getPortalDocumentKind(attachment) === 'image';
+                            const canPreview = canPreviewPortalDocument(attachment) && Boolean(attachment.url);
+                            return (
+                              <li key={attachment.path} className="flex min-w-0 items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50/70 p-3 sm:p-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                                {isImage && attachment.url ? (
+                                  <button type="button" onClick={() => setPreviewAttachment(attachment)} aria-label={`${t.previewFile}: ${attachment.name}`} className="h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bronze-500 sm:h-16 sm:w-20">
+                                    <img src={attachment.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                                  </button>
+                                ) : (
+                                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-bronze-600 dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                  {canPreview ? (
+                                    <button type="button" onClick={() => setPreviewAttachment(attachment)} className="block max-w-full truncate text-left text-sm font-medium text-neutral-800 hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{attachment.name}</button>
+                                  ) : href ? (
+                                    <a href={href} target="_blank" rel="noreferrer" className="block truncate text-sm font-medium text-neutral-800 hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{attachment.name}</a>
+                                  ) : (
+                                    <p className="truncate text-sm font-medium">{attachment.name}</p>
+                                  )}
+                                  <p className="mt-1 truncate text-xs text-neutral-500">{attachment.updateTitle} · {formatDate(attachment.updateDate, language)}</p>
+                                </div>
+                                {canPreview && <button type="button" onClick={() => setPreviewAttachment(attachment)} aria-label={`${t.previewFile}: ${attachment.name}`} title={t.previewFile} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Eye size={16} /></button>}
+                                {href && <a href={href} target="_blank" rel="noreferrer" aria-label={`${t.downloadFile}: ${attachment.name}`} title={t.downloadFile} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Download size={15} /></a>}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </>
+                  )}
+                </section>
+              </>
+            )}
 
             {activeSection === 'project-billing' && <section id="project-billing" className="scroll-mt-24 mt-8 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:mt-10 sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">

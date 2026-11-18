@@ -44,6 +44,15 @@ export interface PortalAttachment {
   downloadUrl?: string;
 }
 
+export type PortalProjectDocumentCategory = 'contract' | 'other';
+
+export interface PortalProjectDocument extends PortalAttachment {
+  id: string;
+  project_id: string;
+  category: PortalProjectDocumentCategory;
+  created_at: string;
+}
+
 export interface PasswordResetRequest {
   id: string;
   project_id: string;

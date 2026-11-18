@@ -73,6 +73,20 @@ create index if not exists portal_client_sessions_account_activity_idx
   on public.portal_client_sessions (account_key, last_active_at desc)
   where revoked_at is null;
 
+create table if not exists public.portal_project_documents (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.client_projects(id) on delete cascade,
+  category text not null default 'other' check (category in ('contract', 'other')),
+  path text not null unique,
+  name text not null check (length(btrim(name)) between 1 and 120),
+  content_type text not null,
+  size bigint not null check (size between 1 and 20971520),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists portal_project_documents_project_created_idx
+  on public.portal_project_documents (project_id, created_at desc);
+
 alter table public.client_projects
   add column if not exists client_login_salt text;
 
@@ -648,6 +662,7 @@ alter table public.portal_payment_accounts enable row level security;
 alter table public.project_change_orders enable row level security;
 alter table public.portal_notifications enable row level security;
 alter table public.portal_client_sessions enable row level security;
+alter table public.portal_project_documents enable row level security;
 
 create or replace function public.portal_allow_login_attempt(
   p_project_id uuid,
@@ -878,15 +893,22 @@ begin
 
   return query
     select p_project_id,
-      coalesce(jsonb_agg(attachment.value ->> 'path'), '[]'::jsonb)
-    from public.project_updates as project_update
-    cross join lateral jsonb_array_elements(
-      case
-        when jsonb_typeof(project_update.attachments) = 'array' then project_update.attachments
-        else '[]'::jsonb
-      end
-    ) as attachment(value)
-    where project_update.project_id = p_project_id;
+      coalesce(jsonb_agg(project_files.path), '[]'::jsonb)
+    from (
+      select attachment.value ->> 'path' as path
+      from public.project_updates as project_update
+      cross join lateral jsonb_array_elements(
+        case
+          when jsonb_typeof(project_update.attachments) = 'array' then project_update.attachments
+          else '[]'::jsonb
+        end
+      ) as attachment(value)
+      where project_update.project_id = p_project_id
+      union all
+      select document.path
+      from public.portal_project_documents as document
+      where document.project_id = p_project_id
+    ) as project_files;
 
   delete from public.client_projects
     where id = p_project_id;
@@ -1013,7 +1035,7 @@ grant execute on function public.portal_delete_project(uuid) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
 grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
 
-revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.portal_payment_settings, public.portal_payment_accounts, public.project_change_orders, public.portal_notifications, public.portal_client_sessions from anon, authenticated;
+revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.portal_payment_settings, public.portal_payment_accounts, public.project_change_orders, public.portal_notifications, public.portal_client_sessions, public.portal_project_documents from anon, authenticated;
 grant select, insert on public.client_projects to service_role;
 grant select, insert, update, delete on public.project_updates to service_role;
 grant select, insert, update, delete on public.project_login_attempts to service_role;
@@ -1025,6 +1047,7 @@ grant select, insert, update on public.portal_payment_accounts to service_role;
 grant select, insert, update, delete on public.project_change_orders to service_role;
 grant select, insert, update, delete on public.portal_notifications to service_role;
 grant select, insert, update, delete on public.portal_client_sessions to service_role;
+grant select, insert, update, delete on public.portal_project_documents to service_role;
 grant update on public.client_projects to service_role;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

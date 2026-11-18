@@ -4,7 +4,7 @@ import { ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, ChartNoAxes
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type AdminFeedback, type BillingItem, type PasswordResetRequest, type PortalAttachment, type PortalNotification, type PortalPaymentAccount, type PortalProject, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { portalRequest, type AdminFeedback, type BillingItem, type PasswordResetRequest, type PortalAttachment, type PortalNotification, type PortalPaymentAccount, type PortalProject, type PortalProjectDocument, type PortalProjectDocumentCategory, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 import { findPortalBank, PORTAL_BANKS } from '../lib/portalBanks';
 import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
@@ -69,7 +69,7 @@ const copy = {
     deleteFileCleanupWarning: 'Update terhapus, tetapi sebagian file lampiran gagal dibersihkan dari penyimpanan.',
     deleteProject: 'Hapus proyek',
     deletingProject: 'Menghapus proyek...',
-    confirmDeleteProject: 'Hapus proyek ini beserta semua riwayat progress, foto, file lampiran, dan akses login klien? Tindakan ini tidak dapat dibatalkan.',
+    confirmDeleteProject: 'Hapus proyek ini beserta semua riwayat progress, foto, dokumen proyek, lampiran, dan akses login klien? Tindakan ini tidak dapat dibatalkan.',
     deletedProject: 'Proyek beserta riwayat progress dan aksesnya berhasil dihapus.',
     deleteProjectFailed: 'Proyek tidak dapat dihapus.',
     deleteProjectRefreshFailed: 'Proyek terhapus, tetapi daftar proyek gagal dimuat ulang. Muat ulang halaman.',
@@ -108,6 +108,29 @@ const copy = {
     photo: 'Foto progress',
     progressFiles: 'File progress',
     documents: 'Dokumen',
+    projectDocumentsTitle: 'Dokumen proyek',
+    projectDocumentsDescription: 'Unggah kontrak dan dokumen lain agar klien dapat melihat dan mengunduhnya.',
+    projectDocumentCategory: 'Kategori dokumen',
+    projectDocumentContract: 'Kontrak / perjanjian',
+    projectDocumentOther: 'Dokumen lain',
+    projectDocumentChoose: 'Pilih dokumen',
+    projectDocumentHint: 'PDF, DOC, DOCX, XLSX, TXT, CSV, JPG, PNG, WEBP · Maksimal 5 file, 20 MB per file.',
+    projectDocumentInvalidFile: 'Pilih file JPG, PNG, WEBP, PDF, DOC, DOCX, XLSX, TXT, atau CSV.',
+    projectDocumentFileCountLimit: 'Maksimal 5 dokumen dapat diunggah sekaligus.',
+    projectDocumentUpload: 'Unggah dokumen',
+    projectDocumentUploading: 'Mengunggah dokumen...',
+    projectDocumentDelete: 'Hapus dokumen',
+    projectDocumentEmpty: 'Belum ada dokumen khusus untuk proyek ini.',
+    projectDocumentUploaded: 'Dokumen proyek berhasil diunggah.',
+    projectDocumentDeleted: 'Dokumen proyek berhasil dihapus.',
+    projectDocumentDeleteConfirm: 'Hapus dokumen proyek ini? Tindakan ini tidak dapat dibatalkan.',
+    projectDocumentDeleteFailed: 'Dokumen proyek tidak dapat dihapus.',
+    projectDocumentCleanupFailed: 'Dokumen dihapus, tetapi file gagal dibersihkan dari penyimpanan.',
+    projectDocumentRefreshFailed: 'Dokumen tersimpan, tetapi daftar gagal dimuat ulang.',
+    projectDocumentLoading: 'Memuat dokumen proyek...',
+    projectDocumentLoadFailed: 'Daftar dokumen proyek tidak dapat dimuat.',
+    progressAttachmentsTitle: 'Lampiran pembaruan harian',
+    progressAttachmentsDescription: 'File yang dilampirkan pada catatan progress harian. Pilih proyek, jenis file, atau rentang tanggal untuk menemukan lampiran.',
     documentsDescription: 'Foto dan dokumen yang dilampirkan pada update proyek. Pilih proyek, jenis file, atau rentang tanggal untuk menemukan lampiran.',
     documentsEmpty: 'Belum ada dokumen pada proyek ini.',
     documentsSearch: 'Cari nama file atau update',
@@ -315,7 +338,7 @@ const copy = {
     deleteFileCleanupWarning: 'The update was deleted, but some attachments could not be removed from storage.',
     deleteProject: 'Delete project',
     deletingProject: 'Deleting project...',
-    confirmDeleteProject: 'Delete this project and all progress history, photos, attachments, and client login access? This cannot be undone.',
+    confirmDeleteProject: 'Delete this project and all progress history, project documents, attachments, and client login access? This cannot be undone.',
     deletedProject: 'Project, progress history, and access deleted.',
     deleteProjectFailed: 'The project could not be deleted.',
     deleteProjectRefreshFailed: 'The project was deleted, but the project list could not be refreshed. Reload the page.',
@@ -354,6 +377,29 @@ const copy = {
     photo: 'Progress photos',
     progressFiles: 'Progress files',
     documents: 'Documents',
+    projectDocumentsTitle: 'Project documents',
+    projectDocumentsDescription: 'Upload contracts and other documents for clients to view and download.',
+    projectDocumentCategory: 'Document category',
+    projectDocumentContract: 'Contract / agreement',
+    projectDocumentOther: 'Other document',
+    projectDocumentChoose: 'Choose documents',
+    projectDocumentHint: 'PDF, DOC, DOCX, XLSX, TXT, CSV, JPG, PNG, WEBP · Up to 5 files, 20 MB each.',
+    projectDocumentInvalidFile: 'Choose JPG, PNG, WEBP, PDF, DOC, DOCX, XLSX, TXT, or CSV files.',
+    projectDocumentFileCountLimit: 'Choose no more than 5 documents at a time.',
+    projectDocumentUpload: 'Upload documents',
+    projectDocumentUploading: 'Uploading documents...',
+    projectDocumentDelete: 'Delete document',
+    projectDocumentEmpty: 'There are no project documents yet.',
+    projectDocumentUploaded: 'Project documents uploaded.',
+    projectDocumentDeleted: 'Project document deleted.',
+    projectDocumentDeleteConfirm: 'Delete this project document? This cannot be undone.',
+    projectDocumentDeleteFailed: 'The project document could not be deleted.',
+    projectDocumentCleanupFailed: 'The document was deleted, but its file could not be removed from storage.',
+    projectDocumentRefreshFailed: 'The document was saved, but the list could not be refreshed.',
+    projectDocumentLoading: 'Loading project documents...',
+    projectDocumentLoadFailed: 'Project documents could not be loaded.',
+    progressAttachmentsTitle: 'Daily update attachments',
+    progressAttachmentsDescription: 'Files attached to daily progress notes. Choose a project, file type, or date range to find attachments.',
     documentsDescription: 'Photos and documents attached to project updates. Choose a project, file type, or date range to find attachments.',
     documentsEmpty: 'There are no documents for this project yet.',
     documentsSearch: 'Search file or update name',
@@ -561,7 +607,7 @@ const copy = {
     deleteFileCleanupWarning: '更新已删除，但部分附件无法从存储中清理。',
     deleteProject: '删除项目',
     deletingProject: '正在删除项目...',
-    confirmDeleteProject: '删除此项目及其所有进度记录、照片、附件和客户登录权限？此操作无法撤销。',
+    confirmDeleteProject: '删除此项目及其所有进度记录、项目文件、附件和客户登录权限？此操作无法撤销。',
     deletedProject: '项目、进度记录和访问权限已删除。',
     deleteProjectFailed: '无法删除此项目。',
     deleteProjectRefreshFailed: '项目已删除，但项目列表无法刷新。请重新加载页面。',
@@ -600,6 +646,29 @@ const copy = {
     photo: '进度照片',
     progressFiles: '进度文件',
     documents: '项目文件',
+    projectDocumentsTitle: '项目文件',
+    projectDocumentsDescription: '上传合同及其他文件，供客户查看和下载。',
+    projectDocumentCategory: '文件类别',
+    projectDocumentContract: '合同 / 协议',
+    projectDocumentOther: '其他文件',
+    projectDocumentChoose: '选择文件',
+    projectDocumentHint: 'PDF、DOC、DOCX、XLSX、TXT、CSV、JPG、PNG、WEBP · 最多 5 个文件，每个最大 20 MB。',
+    projectDocumentInvalidFile: '请选择 JPG、PNG、WEBP、PDF、DOC、DOCX、XLSX、TXT 或 CSV 文件。',
+    projectDocumentFileCountLimit: '一次最多可上传 5 个文件。',
+    projectDocumentUpload: '上传项目文件',
+    projectDocumentUploading: '正在上传文件...',
+    projectDocumentDelete: '删除文件',
+    projectDocumentEmpty: '此项目暂无专属文件。',
+    projectDocumentUploaded: '项目文件已上传。',
+    projectDocumentDeleted: '项目文件已删除。',
+    projectDocumentDeleteConfirm: '删除此项目文件？此操作无法撤销。',
+    projectDocumentDeleteFailed: '无法删除项目文件。',
+    projectDocumentCleanupFailed: '文件记录已删除，但无法从存储中清理文件。',
+    projectDocumentRefreshFailed: '文件已保存，但列表无法刷新。',
+    projectDocumentLoading: '正在加载项目文件...',
+    projectDocumentLoadFailed: '无法加载项目文件。',
+    progressAttachmentsTitle: '每日更新附件',
+    progressAttachmentsDescription: '附加在每日进度记录中的文件。可按项目、文件类型或日期范围筛选。',
     documentsDescription: '项目更新中的照片和文件附件。可按项目、文件类型或日期范围筛选。',
     documentsEmpty: '此项目暂无文件。',
     documentsSearch: '搜索文件名或更新标题',
@@ -752,6 +821,7 @@ const copy = {
 
 const ACCEPTED_IMAGES = '.jpg,.jpeg,.png,.webp';
 const ACCEPTED_DOCUMENTS = '.pdf,.doc,.docx,.xlsx,.txt,.csv';
+const ACCEPTED_PROJECT_DOCUMENTS = `${ACCEPTED_IMAGES},${ACCEPTED_DOCUMENTS}`;
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const DOCUMENT_TYPES = [
   'application/pdf',
@@ -804,6 +874,13 @@ async function loadAdminUpdates(projectId: string): Promise<PortalUpdate[]> {
   return result.updates;
 }
 
+async function loadAdminProjectDocuments(projectId: string): Promise<PortalProjectDocument[]> {
+  const result = await portalRequest<{ documents: PortalProjectDocument[] }>(
+    `/api/portal/admin/project-documents?projectId=${encodeURIComponent(projectId)}`
+  );
+  return result.documents;
+}
+
 const PortalAdmin: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -832,6 +909,11 @@ const PortalAdmin: React.FC = () => {
   const [issuedPassword, setIssuedPassword] = useState<IssuedPassword | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [adminUpdates, setAdminUpdates] = useState<PortalUpdate[]>([]);
+  const [projectDocuments, setProjectDocuments] = useState<PortalProjectDocument[]>([]);
+  const [projectDocumentsLoading, setProjectDocumentsLoading] = useState(false);
+  const [projectDocumentFiles, setProjectDocumentFiles] = useState<File[]>([]);
+  const [projectDocumentCategory, setProjectDocumentCategory] = useState<PortalProjectDocumentCategory>('contract');
+  const selectedProjectIdRef = React.useRef(selectedProjectId);
   const [documentSearch, setDocumentSearch] = useState('');
   const [documentType, setDocumentType] = useState<PortalDocumentKind | 'all'>('all');
   const [documentDateFrom, setDocumentDateFrom] = useState('');
@@ -854,10 +936,17 @@ const PortalAdmin: React.FC = () => {
   const [isDark, setIsDark] = useState(false);
   const imageInputRef = React.useRef<HTMLInputElement>(null);
   const documentInputRef = React.useRef<HTMLInputElement>(null);
+  const projectDocumentInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'));
   }, []);
+
+  useEffect(() => {
+    selectedProjectIdRef.current = selectedProjectId;
+    setProjectDocumentFiles([]);
+    if (projectDocumentInputRef.current) projectDocumentInputRef.current.value = '';
+  }, [selectedProjectId]);
 
   useEffect(() => {
     if (!notice) return;
@@ -953,6 +1042,28 @@ const PortalAdmin: React.FC = () => {
       });
     return () => { active = false; };
   }, [authenticated, selectedProjectId]);
+
+  useEffect(() => {
+    let active = true;
+    if (!authenticated || !selectedProjectId || activeSection !== 'admin-documents') {
+      setProjectDocumentsLoading(false);
+      return () => { active = false; };
+    }
+
+    setProjectDocuments([]);
+    setProjectDocumentsLoading(true);
+    loadAdminProjectDocuments(selectedProjectId)
+      .then((documents) => {
+        if (active) setProjectDocuments(documents);
+      })
+      .catch((cause: unknown) => {
+        if (active) setError(cause instanceof Error ? cause.message : t.projectDocumentLoadFailed);
+      })
+      .finally(() => {
+        if (active) setProjectDocumentsLoading(false);
+      });
+    return () => { active = false; };
+  }, [authenticated, selectedProjectId, activeSection, t.projectDocumentLoadFailed]);
 
   useEffect(() => {
     let active = true;
@@ -1555,6 +1666,143 @@ const PortalAdmin: React.FC = () => {
     setSelectedFiles(combinedFiles);
   };
 
+  const handleProjectDocumentSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    if (files.length === 0) return;
+
+    if (files.some((file) => ![...IMAGE_TYPES, ...DOCUMENT_TYPES].includes(file.type))) {
+      setError(t.projectDocumentInvalidFile);
+      return;
+    }
+    if (files.some((file) => file.size > 20 * 1024 * 1024)) {
+      setError(t.fileSizeLimit);
+      return;
+    }
+    if (projectDocumentFiles.length + files.length > 5) {
+      setError(t.projectDocumentFileCountLimit);
+      return;
+    }
+
+    setError('');
+    setProjectDocumentFiles((current) => [...current, ...files]);
+  };
+
+  const uploadProjectDocuments = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedProjectId || projectDocumentFiles.length === 0) return;
+    const formElement = event.currentTarget;
+    const targetProjectId = selectedProjectId;
+    const uploadedPaths: string[] = [];
+    let recordsSaved = false;
+    setBusy(true);
+    setError('');
+    setNotice('');
+
+    try {
+      const { uploads } = await portalRequest<{
+        uploads: Array<PortalAttachment & { uploadUrl: string }>;
+      }>('/api/portal/admin/uploads', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: targetProjectId,
+          files: projectDocumentFiles.map((file) => ({
+            name: file.name,
+            contentType: file.type,
+            size: file.size,
+          })),
+        }),
+      });
+      uploadedPaths.push(...uploads.map((upload) => upload.path));
+      if (uploads.length !== projectDocumentFiles.length) {
+        throw new Error(t.projectDocumentInvalidFile);
+      }
+
+      for (const [index, upload] of uploads.entries()) {
+        const file = projectDocumentFiles[index];
+        const result = await fetch(upload.uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type, 'x-upsert': 'false' },
+          body: file,
+        });
+        if (!result.ok) {
+          throw new Error('File gagal diunggah ke penyimpanan. Periksa konfigurasi bucket dan coba kembali.');
+        }
+      }
+
+      const { documents } = await portalRequest<{ documents: PortalProjectDocument[] }>(
+        '/api/portal/admin/project-documents',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            projectId: targetProjectId,
+            documents: uploads.map((upload) => ({
+              path: upload.path,
+              name: upload.name,
+              contentType: upload.contentType,
+              size: upload.size,
+              category: projectDocumentCategory,
+            })),
+          }),
+        }
+      );
+      recordsSaved = true;
+      setNotice(t.projectDocumentUploaded);
+
+      if (selectedProjectIdRef.current === targetProjectId) {
+        formElement.reset();
+        setProjectDocuments(documents);
+        setProjectDocumentFiles([]);
+        if (projectDocumentInputRef.current) projectDocumentInputRef.current.value = '';
+        try {
+          setProjectDocuments(await loadAdminProjectDocuments(targetProjectId));
+        } catch {
+          setError(t.projectDocumentRefreshFailed);
+        }
+      }
+    } catch (cause) {
+      let message = cause instanceof Error ? cause.message : t.projectDocumentInvalidFile;
+      if (!recordsSaved && uploadedPaths.length > 0) {
+        try {
+          await portalRequest('/api/portal/admin/uploads', {
+            method: 'DELETE',
+            body: JSON.stringify({ paths: uploadedPaths }),
+          });
+        } catch {
+          message += ' File yang sempat terunggah belum dapat dibersihkan; hubungi administrator.';
+        }
+      }
+      setError(message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteProjectDocument = async (document: PortalProjectDocument) => {
+    if (!window.confirm(t.projectDocumentDeleteConfirm)) return;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const result = await portalRequest<{ deleted: boolean; cleanupFailed: boolean }>(
+        '/api/portal/admin/project-documents',
+        {
+          method: 'DELETE',
+          body: JSON.stringify({ documentId: document.id }),
+        }
+      );
+      if (!result.deleted) throw new Error(t.projectDocumentDeleteFailed);
+      setProjectDocuments((current) => current.filter((item) => item.id !== document.id));
+      setNotice(t.projectDocumentDeleted);
+      if (result.cleanupFailed) setError(t.projectDocumentCleanupFailed);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t.projectDocumentDeleteFailed);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const deleteProgressUpdate = async (update: PortalUpdate) => {
     if (!window.confirm(t.confirmDeleteUpdate)) return;
 
@@ -1617,6 +1865,8 @@ const PortalAdmin: React.FC = () => {
 
       if (selectedProjectId === project.id) {
         setAdminUpdates([]);
+        setProjectDocuments([]);
+        setProjectDocumentFiles([]);
         setEditingUpdateId('');
         setEditingAttachments([]);
         setSelectedFiles([]);
@@ -2400,11 +2650,11 @@ const PortalAdmin: React.FC = () => {
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
                   <div>
                     <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{selectedProject?.project_code ?? t.documents}</p>
-                    <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.documents}</h2>
+                    <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.projectDocumentsTitle}</h2>
                   </div>
-                  <span className="ml-auto rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-xs tabular-nums text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">{filteredProjectDocuments.length.toString().padStart(2, '0')}</span>
+                  <span className="ml-auto rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-xs tabular-nums text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">{projectDocuments.length.toString().padStart(2, '0')}</span>
                 </div>
-                <p className="mb-5 text-sm leading-6 text-neutral-500">{t.documentsDescription}</p>
+                <p className="mb-5 text-sm leading-6 text-neutral-500">{t.projectDocumentsDescription}</p>
                 {projects.length === 0 ? (
                   <p className="text-sm text-neutral-500">{t.emptyProjects}</p>
                 ) : (
@@ -2413,8 +2663,10 @@ const PortalAdmin: React.FC = () => {
                       <span className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t.projects}</span>
                       <select
                         value={selectedProjectId}
+                        disabled={busy}
                         onChange={(event) => {
                           setAdminUpdates([]);
+                          setProjectDocuments([]);
                           setEditingUpdateId('');
                           setEditingAttachments([]);
                           setLoadingAdminUpdates(Boolean(event.target.value));
@@ -2425,6 +2677,98 @@ const PortalAdmin: React.FC = () => {
                         {projects.map((project) => <option key={project.id} value={project.id}>{project.project_code} — {project.project_name}</option>)}
                       </select>
                     </label>
+                    <form onSubmit={uploadProjectDocuments} className="mb-6 grid gap-4 rounded-xl border border-neutral-200 bg-neutral-50/70 p-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_auto] sm:items-end dark:border-white/10 dark:bg-white/[0.02]">
+                      <label className="block">
+                        <span className="mb-2 block text-xs font-medium text-neutral-700 dark:text-neutral-300">{t.projectDocumentCategory}</span>
+                        <select
+                          value={projectDocumentCategory}
+                          disabled={busy}
+                          onChange={(event) => setProjectDocumentCategory(event.target.value as PortalProjectDocumentCategory)}
+                          className="w-full rounded-xl border border-[#d9d4c9] bg-white px-3 py-3 text-sm outline-none focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950 dark:[color-scheme:dark]"
+                        >
+                          <option value="contract">{t.projectDocumentContract}</option>
+                          <option value="other">{t.projectDocumentOther}</option>
+                        </select>
+                      </label>
+                      <label className="block">
+                        <span className="mb-2 block text-xs font-medium text-neutral-700 dark:text-neutral-300">{t.projectDocumentChoose}</span>
+                        <input
+                          ref={projectDocumentInputRef}
+                          type="file"
+                          multiple
+                          disabled={busy}
+                          accept={ACCEPTED_PROJECT_DOCUMENTS}
+                          onChange={handleProjectDocumentSelection}
+                          className="block w-full text-xs text-neutral-500 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:text-xs file:font-medium file:text-neutral-700 dark:file:bg-neutral-800 dark:file:text-neutral-200"
+                        />
+                      </label>
+                      <button
+                        type="submit"
+                        disabled={busy || !selectedProjectId || projectDocumentFiles.length === 0}
+                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 text-xs font-medium text-white transition-colors hover:bg-bronze-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
+                      >
+                        <Upload size={15} /> {busy ? t.projectDocumentUploading : t.projectDocumentUpload}
+                      </button>
+                      <p className="text-[10px] leading-5 text-neutral-500 sm:col-span-3">{t.projectDocumentHint}</p>
+                      {projectDocumentFiles.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-2 sm:col-span-3">
+                          {projectDocumentFiles.map((file, index) => (
+                            <span key={`${file.name}-${file.size}-${file.lastModified}-${index}`} className="max-w-full truncate rounded-lg border border-neutral-200 bg-white px-3 py-2 text-[10px] text-neutral-600 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-300">
+                              {file.name} · {formatBytes(file.size)}
+                            </span>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => { setProjectDocumentFiles([]); if (projectDocumentInputRef.current) projectDocumentInputRef.current.value = ''; }}
+                            className="rounded-lg px-2 py-2 text-[10px] font-medium text-red-600 hover:bg-red-500/5 dark:text-red-300"
+                          >
+                            {t.removeFiles}
+                          </button>
+                        </div>
+                      )}
+                    </form>
+                    {projectDocumentsLoading ? (
+                      <p className="py-4 text-sm text-neutral-500">{t.projectDocumentLoading}</p>
+                    ) : projectDocuments.length === 0 ? (
+                      <p className="py-4 text-sm text-neutral-500">{t.projectDocumentEmpty}</p>
+                    ) : (
+                      <ul className="mb-7 grid gap-3 md:grid-cols-2">
+                        {projectDocuments.map((document) => {
+                          const attachment: PortalAttachment = {
+                            path: document.path,
+                            name: document.name,
+                            contentType: document.contentType,
+                            size: document.size,
+                            url: document.url,
+                            downloadUrl: document.downloadUrl,
+                          };
+                          const href = document.downloadUrl ?? document.url;
+                          const canPreview = canPreviewPortalDocument(document) && Boolean(document.url);
+                          return (
+                            <li key={document.id} className="flex min-w-0 items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50/70 p-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-bronze-600 dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={17} /></span>
+                              <div className="min-w-0 flex-1">
+                                {canPreview ? (
+                                  <button type="button" onClick={() => setPreviewAttachment(attachment)} className="block max-w-full truncate text-left text-xs font-medium text-neutral-800 hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{document.name}</button>
+                                ) : href ? (
+                                  <a href={href} target="_blank" rel="noreferrer" className="block truncate text-xs font-medium text-neutral-800 hover:text-bronze-700 dark:text-neutral-100 dark:hover:text-bronze-300">{document.name}</a>
+                                ) : (
+                                  <p className="truncate text-xs font-medium">{document.name}</p>
+                                )}
+                                <p className="mt-1 text-[10px] text-neutral-500">{document.category === 'contract' ? t.projectDocumentContract : t.projectDocumentOther} · {formatAdminDate(document.created_at, language)}</p>
+                              </div>
+                              {canPreview && <button type="button" onClick={() => setPreviewAttachment(attachment)} aria-label={`${t.previewFile}: ${document.name}`} title={t.previewFile} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Eye size={15} /></button>}
+                              {href && <a href={href} target="_blank" rel="noreferrer" aria-label={`${t.downloadFile}: ${document.name}`} title={t.downloadFile} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 hover:border-bronze-500 hover:text-bronze-600 dark:border-white/10 dark:text-neutral-300"><Download size={14} /></a>}
+                              <button type="button" disabled={busy} onClick={() => void deleteProjectDocument(document)} aria-label={`${t.projectDocumentDelete}: ${document.name}`} title={t.projectDocumentDelete} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition-colors hover:border-red-400 hover:text-red-600 disabled:opacity-50 dark:border-white/10 dark:text-neutral-300 dark:hover:text-red-300"><Trash2 size={14} /></button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                    <div className="mb-5 border-t border-neutral-200 pt-6 dark:border-white/10">
+                      <h3 className="font-display text-lg font-medium tracking-tight">{t.progressAttachmentsTitle}</h3>
+                      <p className="mt-1 text-sm leading-6 text-neutral-500">{t.progressAttachmentsDescription}</p>
+                    </div>
                     {loadingAdminUpdates ? (
                       <p className="py-4 text-sm text-neutral-500">{t.documentsLoading}</p>
                     ) : selectedProjectDocuments.length === 0 ? (

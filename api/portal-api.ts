@@ -16,10 +16,12 @@ import clientChangePassword from '../server/portal/client-change-password.js';
 import clientLogin from '../server/portal/client-login.js';
 import clientPasswordResetRequests from '../server/portal/client-password-reset-requests.js';
 import clientProfile from '../server/portal/client-profile.js';
+import clientProjectDocuments from '../server/portal/client-project-documents.js';
 import clientSession from '../server/portal/client-session.js';
 import clientSessions from '../server/portal/client-sessions.js';
 import clientUpdates from '../server/portal/client-updates.js';
 import logout from '../server/portal/portal-logout.js';
+import adminProjectDocuments from '../server/portal/admin-project-documents.js';
 
 const routes: Record<string, (request: ApiRequest, response: ApiResponse) => Promise<void>> = {
   'api/portal/admin/billing': adminBilling,
@@ -27,6 +29,7 @@ const routes: Record<string, (request: ApiRequest, response: ApiResponse) => Pro
   'api/portal/admin/login': adminLogin,
   'api/portal/admin/password-reset-requests': adminPasswordResetRequests,
   'api/portal/admin/projects': adminProjects,
+  'api/portal/admin/project-documents': adminProjectDocuments,
   'api/portal/admin/session': adminSession,
   'api/portal/admin/updates': adminUpdates,
   'api/portal/admin/uploads': adminUploads,
@@ -38,6 +41,7 @@ const routes: Record<string, (request: ApiRequest, response: ApiResponse) => Pro
   'api/portal/client/login': clientLogin,
   'api/portal/client/password-reset-requests': clientPasswordResetRequests,
   'api/portal/client/profile': clientProfile,
+  'api/portal/client/project-documents': clientProjectDocuments,
   'api/portal/client/session': clientSession,
   'api/portal/client/sessions': clientSessions,
   'api/portal/client/updates': clientUpdates,
