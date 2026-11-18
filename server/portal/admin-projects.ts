@@ -34,30 +34,9 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       requireAdminPermission(session, 'manage_client_access');
       const body = await readJson(request);
       const projectId = typeof body.projectId === 'string' ? body.projectId : '';
-      if (typeof body.removeClientAccount === 'boolean' && body.removeClientAccount) {
-        if (!isUuid(projectId)) throw new HttpError(400, 'Pilih proyek yang valid.');
-        const updated = await supabaseRequest<AdminProject[]>(
-          `client_projects?id=eq.${encodeURIComponent(projectId)}&select=id,project_code,project_name,client_name,project_type,client_phone,client_email,location,start_date,status,progress_percent,created_at`,
-          {
-            method: 'PATCH',
-            headers: { Prefer: 'return=representation' },
-            body: JSON.stringify({
-              client_email: null,
-              client_login_salt: null,
-              client_login_hash: null,
-            }),
-          }
-        );
-        if (!updated[0]) throw new HttpError(404, 'Proyek tidak ditemukan.');
-        sendJson(response, 200, { project: updated[0] });
-        return;
-      }
-
-      if (typeof body.clientEmail === 'string' || typeof body.accountPassword === 'string') {
+      if (typeof body.clientEmail === 'string' || typeof body.clientLoginPassword === 'string') {
         const clientEmail = text(body.clientEmail).toLowerCase();
-        const clientLoginPassword = typeof body.accountPassword === 'string'
-          ? body.accountPassword
-          : (typeof body.clientLoginPassword === 'string' ? body.clientLoginPassword : '');
+        const clientLoginPassword = typeof body.clientLoginPassword === 'string' ? body.clientLoginPassword : '';
         const passwordProvided = clientLoginPassword.length > 0;
         if (!isUuid(projectId)) throw new HttpError(400, 'Pilih proyek yang valid.');
         if (!isValidEmail(clientEmail)) throw new HttpError(400, 'Masukkan email klien yang valid.');
@@ -78,16 +57,10 @@ export default async function handler(request: ApiRequest, response: ApiResponse
           if (existingAccount) {
             const salt = existingAccount.client_login_salt;
             const hash = existingAccount.client_login_hash;
-            const explicitlyResettingPassword = typeof body.accountPassword === 'string';
-            if (!explicitlyResettingPassword && (!salt || !hash || !verifyPassword(clientLoginPassword, salt, hash))) {
+            if (!salt || !hash || !verifyPassword(clientLoginPassword, salt, hash)) {
               throw new HttpError(409, 'Email klien sudah memiliki password akun. Gunakan password email yang sama.');
             }
-            accountCredentials = explicitlyResettingPassword
-              ? (() => {
-                  const generated = createPasswordHash(clientLoginPassword);
-                  return { client_login_salt: generated.salt, client_login_hash: generated.hash };
-                })()
-              : { client_login_salt: salt!, client_login_hash: hash! };
+            accountCredentials = { client_login_salt: salt, client_login_hash: hash };
           } else {
             const generated = createPasswordHash(clientLoginPassword);
             accountCredentials = { client_login_salt: generated.salt, client_login_hash: generated.hash };
@@ -130,18 +103,6 @@ export default async function handler(request: ApiRequest, response: ApiResponse
           }
         );
         if (!updated[0]) throw new HttpError(404, 'Proyek tidak ditemukan.');
-        if (typeof body.accountPassword === 'string' && body.accountPassword.length > 0) {
-          await supabaseRequest<AdminProject[]>(
-            `client_projects?client_email=eq.${encodeURIComponent(clientEmail)}&select=id,project_code,project_name,client_name,project_type,client_phone,client_email,location,start_date,status,progress_percent,created_at`,
-            {
-              method: 'PATCH',
-              body: JSON.stringify({
-                client_login_salt: accountCredentials.client_login_salt,
-                client_login_hash: accountCredentials.client_login_hash,
-              }),
-            }
-          );
-        }
         sendJson(response, 200, { project: updated[0] });
         return;
       }

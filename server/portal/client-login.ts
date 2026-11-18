@@ -71,11 +71,12 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     });
     setSessionCookie(response, createSession('client', isProjectCode ? project.id : email));
     sendJson(response, 200, {
-      projects: projects.map(({ id, project_code, project_name, client_name, project_type, client_phone, location, status, progress_percent, start_date }) => ({
+      projects: projects.map(({ id, project_code, project_name, client_name, client_email, project_type, client_phone, location, status, progress_percent, start_date }) => ({
         id,
         project_code,
         project_name,
         client_name,
+        client_email,
         project_type,
         client_phone,
         location,

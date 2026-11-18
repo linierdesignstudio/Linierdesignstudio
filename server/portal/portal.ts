@@ -40,6 +40,7 @@ export interface ProjectRecord {
   project_code: string;
   project_name: string;
   client_name: string;
+  client_email?: string | null;
   project_type: string | null;
   client_phone: string;
   location: string;
@@ -243,7 +244,7 @@ function absoluteStorageUrl(path: string | undefined): string {
 
 export async function getProjectById(id: string): Promise<ProjectRecord | null> {
   const projects = await supabaseRequest<ProjectRecord[]>(
-    `client_projects?select=id,project_code,project_name,client_name,project_type,client_phone,location,status,progress_percent,start_date&id=eq.${encodeURIComponent(id)}&limit=1`
+    `client_projects?select=id,project_code,project_name,client_name,client_email,project_type,client_phone,location,status,progress_percent,start_date&id=eq.${encodeURIComponent(id)}&limit=1`
   );
   return projects[0] ?? null;
 }

@@ -77,6 +77,10 @@ const copy = {
     backToSignIn: 'Kembali ke login',
     resetSent: 'Jika ID proyek atau email terdaftar, tim studio akan memverifikasi permintaan dan menghubungi Anda lewat WhatsApp.',
     changePassword: 'Ganti password',
+    clientProfile: 'Profil klien',
+    accountDetails: 'Detail akun',
+    accountEmail: 'Email akun',
+    accountEmailMissing: 'Email akun belum diatur',
     currentPassword: 'Password saat ini',
     newPassword: 'Password baru',
     confirmPassword: 'Konfirmasi password baru',
@@ -241,6 +245,10 @@ const copy = {
     backToSignIn: 'Back to sign in',
     resetSent: 'If the project ID or email is registered, the studio will verify the request and contact you via WhatsApp.',
     changePassword: 'Change password',
+    clientProfile: 'Client profile',
+    accountDetails: 'Account details',
+    accountEmail: 'Account email',
+    accountEmailMissing: 'Account email is not set',
     currentPassword: 'Current password',
     newPassword: 'New password',
     confirmPassword: 'Confirm new password',
@@ -405,6 +413,10 @@ const copy = {
     backToSignIn: '返回登录',
     resetSent: '如果项目编号或邮箱已注册，工作室将核实请求并通过 WhatsApp 联系您。',
     changePassword: '更改密码',
+    clientProfile: '客户资料',
+    accountDetails: '账号信息',
+    accountEmail: '账号邮箱',
+    accountEmailMissing: '尚未设置账号邮箱',
     currentPassword: '当前密码',
     newPassword: '新密码',
     confirmPassword: '确认新密码',
@@ -511,6 +523,10 @@ const getClientPortalSection = (search: string): ClientPortalSection => {
   const requestedSection = new URLSearchParams(search).get('section');
   return clientPortalSections.find((section) => section === requestedSection) ?? 'client-dashboard';
 };
+const getClientInitials = (name: string): string => {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  return words.slice(0, 2).map((word) => [...word][0].toUpperCase()).join('') || 'CL';
+};
 
 const ClientPortal: React.FC = () => {
   const location = useLocation();
@@ -557,6 +573,7 @@ const ClientPortal: React.FC = () => {
   const [passwordChanging, setPasswordChanging] = useState(false);
   const [passwordChangeError, setPasswordChangeError] = useState('');
   const [passwordChangeNotice, setPasswordChangeNotice] = useState('');
+  const [profileOpen, setProfileOpen] = useState(false);
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackNotice, setFeedbackNotice] = useState('');
   const [feedbackError, setFeedbackError] = useState('');
@@ -1104,6 +1121,38 @@ const ClientPortal: React.FC = () => {
           <div className="flex items-center gap-2">
             {project && !loading && (
               <>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setProfileOpen((open) => !open)}
+                    aria-label={t.clientProfile}
+                    aria-expanded={profileOpen}
+                    aria-controls="client-account-profile"
+                    className="flex max-w-[190px] items-center gap-2 rounded-full border border-neutral-200 bg-white px-2 py-1.5 text-left text-neutral-700 shadow-sm transition-colors hover:border-neutral-400 dark:border-white/15 dark:bg-[#181916] dark:text-neutral-200 dark:hover:border-white/30 sm:max-w-[240px] sm:gap-2.5 sm:px-2.5"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#262722] font-mono text-[10px] font-medium uppercase text-white dark:bg-white dark:text-neutral-900">
+                      {getClientInitials(project.client_name)}
+                    </span>
+                    <span className="hidden min-w-0 sm:block">
+                      <span className="block truncate text-xs font-medium">{project.client_name}</span>
+                      <span className="block font-mono text-[8px] uppercase tracking-wider text-neutral-400">{t.clientProfile}</span>
+                    </span>
+                  </button>
+                  {profileOpen && (
+                    <div id="client-account-profile" className="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-900 shadow-xl dark:border-white/10 dark:bg-neutral-900 dark:text-white">
+                      <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-400">{t.accountDetails}</p>
+                      <p className="mt-2 truncate text-sm font-medium">{project.client_name}</p>
+                      <p className="mt-3 text-[10px] text-neutral-500 dark:text-neutral-400">{t.accountEmail}</p>
+                      <p className="mt-1 break-all text-xs">{project.client_email || t.accountEmailMissing}</p>
+                      {project.client_phone && (
+                        <>
+                          <p className="mt-3 text-[10px] text-neutral-500 dark:text-neutral-400">{t.clientPhone}</p>
+                          <p className="mt-1 break-all text-xs">{project.client_phone}</p>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => {
