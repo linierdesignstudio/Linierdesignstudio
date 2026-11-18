@@ -158,6 +158,25 @@ create table if not exists public.project_password_reset_requests (
   processed_at timestamptz
 );
 
+create table if not exists public.portal_password_reset_tokens (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.client_projects(id) on delete cascade,
+  credential_type text not null check (credential_type in ('project', 'account')),
+  account_email text,
+  token_hash text not null unique check (token_hash ~ '^[0-9a-f]{64}$'),
+  rate_key text not null check (rate_key ~ '^[0-9a-f]{64}$'),
+  expires_at timestamptz not null,
+  consumed_at timestamptz,
+  created_at timestamptz not null default now(),
+  check (
+    (credential_type = 'account' and account_email is not null)
+    or (credential_type = 'project' and account_email is null)
+  )
+);
+
+create index if not exists portal_password_reset_rate_idx
+  on public.portal_password_reset_tokens (rate_key, created_at desc);
+
 create table if not exists public.client_feedback (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.client_projects(id) on delete cascade,
@@ -697,6 +716,7 @@ alter table public.client_projects enable row level security;
 alter table public.project_updates enable row level security;
 alter table public.project_login_attempts enable row level security;
 alter table public.project_password_reset_requests enable row level security;
+alter table public.portal_password_reset_tokens enable row level security;
 alter table public.client_feedback enable row level security;
 alter table public.project_billing_items enable row level security;
 alter table public.portal_payment_accounts enable row level security;
@@ -1038,6 +1058,203 @@ begin
 end;
 $$;
 
+create or replace function public.portal_issue_password_reset_token(
+  p_project_id uuid,
+  p_credential_type text,
+  p_account_email text,
+  p_token_hash text,
+  p_rate_key text,
+  p_expires_at timestamptz
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_recent_requests integer;
+begin
+  if p_credential_type is null
+    or p_credential_type not in ('project', 'account')
+    or p_token_hash is null
+    or p_token_hash !~ '^[0-9a-f]{64}$'
+    or p_rate_key is null
+    or p_rate_key !~ '^[0-9a-f]{64}$'
+    or p_expires_at is null
+    or p_expires_at <= now()
+    or p_expires_at > now() + interval '1 hour'
+  then
+    raise exception 'Invalid password reset request';
+  end if;
+
+  if p_credential_type = 'account' then
+    if p_account_email is null or p_account_email <> lower(btrim(p_account_email)) then
+      raise exception 'Invalid account reset request';
+    end if;
+
+    perform project.id
+      from public.client_projects as project
+      where lower(btrim(project.client_email)) = p_account_email
+      order by project.id
+      for update;
+
+    if not found or not exists (
+      select 1
+      from public.client_projects as project
+      where project.id = p_project_id
+        and lower(btrim(project.client_email)) = p_account_email
+    ) then
+      return false;
+    end if;
+  else
+    if p_account_email is not null then
+      raise exception 'Invalid project reset request';
+    end if;
+
+    perform project.id
+      from public.client_projects as project
+      where project.id = p_project_id
+      for update;
+
+    if not found then
+      return false;
+    end if;
+  end if;
+
+  select count(*)::integer
+    into v_recent_requests
+    from public.portal_password_reset_tokens as reset_token
+    where reset_token.rate_key = p_rate_key
+      and reset_token.created_at > now() - interval '15 minutes';
+
+  if v_recent_requests >= 3 then
+    return false;
+  end if;
+
+  update public.portal_password_reset_tokens
+    set consumed_at = now()
+    where consumed_at is null
+      and (
+        (p_credential_type = 'account' and credential_type = 'account' and account_email = p_account_email)
+        or (p_credential_type = 'project' and credential_type = 'project' and project_id = p_project_id)
+      );
+
+  insert into public.portal_password_reset_tokens (
+    project_id,
+    credential_type,
+    account_email,
+    token_hash,
+    rate_key,
+    expires_at
+  )
+  values (
+    p_project_id,
+    p_credential_type,
+    p_account_email,
+    p_token_hash,
+    p_rate_key,
+    p_expires_at
+  );
+
+  return true;
+end;
+$$;
+
+create or replace function public.portal_complete_password_reset(
+  p_token_hash text,
+  p_password_salt text,
+  p_password_hash text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_reset_token public.portal_password_reset_tokens%rowtype;
+  v_updated_count integer;
+  v_account_key text;
+begin
+  if p_token_hash is null
+    or p_token_hash !~ '^[0-9a-f]{64}$'
+    or p_password_salt is null
+    or p_password_salt !~ '^[0-9a-f]{32}$'
+    or p_password_hash is null
+    or p_password_hash !~ '^[0-9a-f]{128}$'
+  then
+    return false;
+  end if;
+
+  select *
+    into v_reset_token
+    from public.portal_password_reset_tokens
+    where token_hash = p_token_hash
+      and consumed_at is null
+      and expires_at > now()
+    for update;
+
+  if not found then
+    return false;
+  end if;
+
+  if v_reset_token.credential_type = 'account' then
+    perform project.id
+      from public.client_projects as project
+      where lower(btrim(project.client_email)) = v_reset_token.account_email
+      order by project.id
+      for update;
+
+    update public.client_projects
+      set client_login_salt = p_password_salt,
+          client_login_hash = p_password_hash,
+          updated_at = now()
+      where lower(btrim(client_email)) = v_reset_token.account_email;
+
+    get diagnostics v_updated_count = row_count;
+    if v_updated_count = 0 then
+      return false;
+    end if;
+
+    update public.portal_client_sessions
+      set revoked_at = now()
+      where account_key = v_reset_token.account_email
+        and revoked_at is null;
+  else
+    select coalesce(nullif(lower(btrim(client_email)), ''), id::text)
+      into v_account_key
+      from public.client_projects
+      where id = v_reset_token.project_id
+      for update;
+
+    if not found then
+      return false;
+    end if;
+
+    update public.client_projects
+      set password_salt = p_password_salt,
+          password_hash = p_password_hash,
+          updated_at = now()
+      where id = v_reset_token.project_id;
+
+    get diagnostics v_updated_count = row_count;
+    if v_updated_count = 0 then
+      return false;
+    end if;
+
+    update public.portal_client_sessions
+      set revoked_at = now()
+      where account_key = v_account_key
+        and revoked_at is null;
+  end if;
+
+  update public.portal_password_reset_tokens
+    set consumed_at = now()
+    where id = v_reset_token.id;
+
+  return true;
+end;
+$$;
+
 create or replace function public.portal_change_client_password(
   p_project_id uuid,
   p_current_password_salt text,
@@ -1175,6 +1392,8 @@ revoke all on function public.portal_create_project_update(uuid, text, text, int
 revoke all on function public.portal_update_project_update(uuid, text, text, integer, date, jsonb) from public, anon, authenticated;
 revoke all on function public.portal_delete_project_update(uuid) from public, anon, authenticated;
 revoke all on function public.portal_resolve_password_reset(uuid, text, text) from public, anon, authenticated;
+revoke all on function public.portal_issue_password_reset_token(uuid, text, text, text, text, timestamptz) from public, anon, authenticated;
+revoke all on function public.portal_complete_password_reset(text, text, text) from public, anon, authenticated;
 revoke all on function public.portal_change_client_password(uuid, text, text, text, text) from public, anon, authenticated;
 revoke all on function public.portal_approve_billing_item(uuid) from public, anon, authenticated;
 grant execute on function public.portal_allow_login_attempt(uuid, boolean) to service_role;
@@ -1183,14 +1402,17 @@ grant execute on function public.portal_update_project_update(uuid, text, text, 
 grant execute on function public.portal_delete_project_update(uuid) to service_role;
 grant execute on function public.portal_delete_project(uuid) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
+grant execute on function public.portal_issue_password_reset_token(uuid, text, text, text, text, timestamptz) to service_role;
+grant execute on function public.portal_complete_password_reset(text, text, text) to service_role;
 grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
 grant execute on function public.portal_approve_billing_item(uuid) to service_role;
 
-revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.portal_payment_settings, public.portal_payment_accounts, public.project_change_orders, public.portal_notifications, public.portal_client_sessions, public.portal_project_documents, public.portal_invoices from anon, authenticated;
+revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.portal_password_reset_tokens, public.client_feedback, public.project_billing_items, public.portal_payment_settings, public.portal_payment_accounts, public.project_change_orders, public.portal_notifications, public.portal_client_sessions, public.portal_project_documents, public.portal_invoices from anon, authenticated;
 grant select, insert on public.client_projects to service_role;
 grant select, insert, update, delete on public.project_updates to service_role;
 grant select, insert, update, delete on public.project_login_attempts to service_role;
 grant select, insert, update on public.project_password_reset_requests to service_role;
+grant select, insert, update, delete on public.portal_password_reset_tokens to service_role;
 grant select, insert, update on public.client_feedback to service_role;
 grant select, insert, update, delete on public.project_billing_items to service_role;
 grant select, insert, update on public.portal_payment_settings to service_role;

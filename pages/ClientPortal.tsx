@@ -79,13 +79,19 @@ const copy = {
     photo: 'Foto progress',
     feedbackNav: 'Feedback',
     forgotPassword: 'Lupa password?',
-    resetTitle: 'Minta reset password',
-    resetIdentifier: 'ID proyek untuk reset password proyek, atau email untuk reset password akun',
-    whatsapp: 'Nomor WhatsApp',
-    whatsappHint: 'Gunakan kode negara, contoh: +62 812 3456 7890',
-    sendReset: 'Kirim permintaan',
+    resetTitle: 'Atur ulang password',
+    resetIdentifier: 'Masukkan ID proyek atau email akun yang terdaftar',
+    resetEmailHelp: 'Jika email terdaftar, tautan reset akan dikirim. Proyek tanpa email terdaftar perlu menghubungi studio untuk memperbarui email.',
+    sendReset: 'Kirim tautan reset',
+    sendingReset: 'Mengirim tautan...',
+    setNewPassword: 'Buat password baru',
+    confirmNewPassword: 'Ulangi password baru',
+    resetPasswordMismatch: 'Konfirmasi password tidak sama.',
+    saveResetPassword: 'Simpan password baru',
+    savingResetPassword: 'Menyimpan password...',
+    resetPasswordSaved: 'Password berhasil diperbarui. Silakan masuk menggunakan password baru.',
     backToSignIn: 'Kembali ke login',
-    resetSent: 'Jika ID proyek atau email terdaftar, tim studio akan memverifikasi permintaan dan menghubungi Anda lewat WhatsApp.',
+    resetSent: 'Jika email terdaftar, tautan reset akan segera dikirim. Periksa juga folder spam.',
     changePassword: 'Ganti password',
     clientProfile: 'Profil klien',
     clientMenu: 'Menu akun klien',
@@ -329,13 +335,19 @@ const copy = {
     photo: 'Progress photo',
     feedbackNav: 'Feedback',
     forgotPassword: 'Forgot password?',
-    resetTitle: 'Request a password reset',
-    resetIdentifier: 'Project ID for project password, or email for account password',
-    whatsapp: 'WhatsApp number',
-    whatsappHint: 'Include your country code, e.g. +1 555 123 4567',
-    sendReset: 'Send request',
+    resetTitle: 'Reset your password',
+    resetIdentifier: 'Enter your registered project ID or account email',
+    resetEmailHelp: 'If an email is registered, a reset link will be sent. Projects without an email must contact the studio to add one.',
+    sendReset: 'Send reset link',
+    sendingReset: 'Sending link...',
+    setNewPassword: 'Create a new password',
+    confirmNewPassword: 'Confirm new password',
+    resetPasswordMismatch: 'The passwords do not match.',
+    saveResetPassword: 'Save new password',
+    savingResetPassword: 'Saving password...',
+    resetPasswordSaved: 'Password updated. Sign in with your new password.',
     backToSignIn: 'Back to sign in',
-    resetSent: 'If the project ID or email is registered, the studio will verify the request and contact you via WhatsApp.',
+    resetSent: 'If the email is registered, a reset link will be sent shortly. Check your spam folder too.',
     changePassword: 'Change password',
     clientProfile: 'Client profile',
     clientMenu: 'Client account menu',
@@ -579,13 +591,19 @@ const copy = {
     photo: '进度照片',
     feedbackNav: '反馈',
     forgotPassword: '忘记密码？',
-    resetTitle: '申请重置密码',
-    resetIdentifier: '重置项目密码请输入项目编号，重置邮箱账号请输入邮箱',
-    whatsapp: 'WhatsApp 号码',
-    whatsappHint: '请加国家代码，例如：+86 138 0000 0000',
-    sendReset: '发送申请',
+    resetTitle: '重置密码',
+    resetIdentifier: '请输入已登记的项目编号或账号邮箱',
+    resetEmailHelp: '如果该邮箱已登记，我们会发送重置链接。未登记邮箱的项目请联系工作室更新邮箱。',
+    sendReset: '发送重置链接',
+    sendingReset: '正在发送链接...',
+    setNewPassword: '创建新密码',
+    confirmNewPassword: '确认新密码',
+    resetPasswordMismatch: '两次输入的密码不一致。',
+    saveResetPassword: '保存新密码',
+    savingResetPassword: '正在保存密码...',
+    resetPasswordSaved: '密码已更新，请使用新密码登录。',
     backToSignIn: '返回登录',
-    resetSent: '如果项目编号或邮箱已注册，工作室将核实请求并通过 WhatsApp 联系您。',
+    resetSent: '如果邮箱已登记，我们会尽快发送重置链接。请同时检查垃圾邮件文件夹。',
     changePassword: '更改密码',
     clientProfile: '客户资料',
     clientMenu: '客户账号菜单',
@@ -933,6 +951,9 @@ const ClientPortal: React.FC = () => {
   const navigate = useNavigate();
   const { language, setLanguage } = useLanguage();
   const t = copy[language];
+  const resetSearch = new URLSearchParams(location.search);
+  const resetToken = resetSearch.get('resetToken') ?? '';
+  const hasResetToken = resetSearch.has('resetToken');
   const [projects, setProjects] = useState<PortalProject[]>([]);
   const [project, setProject] = useState<PortalProject | null>(null);
   const [updates, setUpdates] = useState<PortalUpdate[]>([]);
@@ -969,8 +990,9 @@ const ClientPortal: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [resetMode, setResetMode] = useState(false);
-  const [whatsappNumber, setWhatsappNumber] = useState('');
   const [resetNotice, setResetNotice] = useState('');
+  const [resetPassword, setResetPassword] = useState('');
+  const [confirmResetPassword, setConfirmResetPassword] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
@@ -1049,7 +1071,7 @@ const ClientPortal: React.FC = () => {
 
   useEffect(() => {
     if (!resetNotice) return;
-    const timeout = window.setTimeout(() => setResetNotice(''), 3000);
+    const timeout = window.setTimeout(() => setResetNotice(''), 12000);
     return () => window.clearTimeout(timeout);
   }, [resetNotice]);
 
@@ -1298,13 +1320,48 @@ const ClientPortal: React.FC = () => {
     setError('');
     setResetNotice('');
     try {
-      await portalRequest<{ accepted: boolean }>('/api/portal/client/password-reset-requests', {
+      await portalRequest<{ accepted: boolean }>('/api/portal/client/password-reset', {
         method: 'POST',
-        body: JSON.stringify({ identifier: projectCode, whatsappNumber }),
+        body: JSON.stringify({ action: 'request', identifier: projectCode }),
       });
       setResetNotice(t.resetSent);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Permintaan reset tidak dapat dikirim.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const completePasswordReset = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (resetPassword !== confirmResetPassword) {
+      setError(t.resetPasswordMismatch);
+      return;
+    }
+    if (resetPassword.length < 8 || resetPassword.length > 256) {
+      setError(t.passwordMinLength);
+      return;
+    }
+
+    setSubmitting(true);
+    setError('');
+    setResetNotice('');
+    try {
+      await portalRequest<{ changed: boolean }>('/api/portal/client/password-reset', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'complete', token: resetToken, newPassword: resetPassword }),
+      });
+      setProject(null);
+      setProjects([]);
+      setLoading(false);
+      setResetMode(false);
+      setPassword('');
+      setResetPassword('');
+      setConfirmResetPassword('');
+      navigate('/portal', { replace: true });
+      setResetNotice(t.resetPasswordSaved);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Password tidak dapat diperbarui.');
     } finally {
       setSubmitting(false);
     }
@@ -1749,7 +1806,7 @@ const ClientPortal: React.FC = () => {
             <ArrowDownLeft size={15} /> {t.back}
           </Link>
           <div className="flex items-center gap-2">
-            {project && !loading && (
+            {project && !loading && !hasResetToken && (
               <div ref={accountMenuRef} className="relative">
                 <button
                   type="button"
@@ -1863,7 +1920,7 @@ const ClientPortal: React.FC = () => {
           </div>
         </div>
 
-        {project && !loading && activeSection !== 'client-account' && (
+        {project && !loading && !hasResetToken && activeSection !== 'client-account' && (
           <nav aria-label={t.journal} className="mb-6 hidden grid-cols-3 gap-2 rounded-2xl border border-neutral-200 bg-white/80 p-2 shadow-lg shadow-neutral-900/5 backdrop-blur-xl dark:border-white/10 dark:bg-neutral-900/80 dark:shadow-black/20 md:grid lg:grid-cols-6">
             {portalNavigation.map((item) => (
               <button
@@ -1880,12 +1937,12 @@ const ClientPortal: React.FC = () => {
           </nav>
         )}
 
-        {loading ? (
+        {loading && !hasResetToken ? (
           <div className="mx-auto flex min-h-[40vh] max-w-md flex-col items-center justify-center rounded-2xl border border-neutral-200 bg-white p-6 text-center shadow-sm sm:min-h-[50vh] sm:rounded-3xl sm:p-10 dark:border-white/10 dark:bg-neutral-900">
             <span className="mb-5 h-9 w-9 animate-spin rounded-full border-2 border-neutral-200 border-t-[#8c795e] dark:border-white/10 dark:border-t-bronze-400" />
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">{t.loading}</p>
           </div>
-        ) : project ? (
+        ) : project && !hasResetToken ? (
           <section className="space-y-5">
             {error && <ErrorBanner message={error} />}
             {activeSection === 'client-account' && (
@@ -2738,15 +2795,15 @@ const ClientPortal: React.FC = () => {
               </div>
             </section>
 
-            <form onSubmit={resetMode ? requestPasswordReset : signIn} className="relative flex flex-col justify-center bg-[#090a08] px-6 py-9 text-white sm:px-10 sm:py-12 lg:px-12 lg:py-14">
+            <form onSubmit={hasResetToken ? completePasswordReset : resetMode ? requestPasswordReset : signIn} className="relative flex flex-col justify-center bg-[#090a08] px-6 py-9 text-white sm:px-10 sm:py-12 lg:px-12 lg:py-14">
               <div className="mb-9 flex items-center justify-between gap-3 sm:mb-14">
                 <span className="flex h-10 w-10 items-center justify-center border border-white/15 text-[#c5d2b0]">
                   <LockKeyhole size={16} strokeWidth={1.5} />
                 </span>
                 <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">ACCESS / 01</span>
               </div>
-              <h2 className="mb-8 max-w-[12ch] font-display text-4xl font-bold leading-[0.92] tracking-[-0.06em] sm:text-[3.25rem]">{resetMode ? t.resetTitle : t.signIn}</h2>
-              <label className="mb-6 block">
+              <h2 className="mb-8 max-w-[12ch] font-display text-4xl font-bold leading-[0.92] tracking-[-0.06em] sm:text-[3.25rem]">{hasResetToken ? t.setNewPassword : resetMode ? t.resetTitle : t.signIn}</h2>
+              {!hasResetToken && <label className="mb-6 block">
                 <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
                 <input
                   autoComplete="username"
@@ -2757,22 +2814,20 @@ const ClientPortal: React.FC = () => {
                   maxLength={254}
                   className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10"
                 />
-              </label>
-              {resetMode ? (
-                <label className="mb-6 block">
-                  <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{t.whatsapp}</span>
-                  <input
-                    type="tel"
-                    autoComplete="tel"
-                    placeholder="+6281234567890"
-                    value={whatsappNumber}
-                    onChange={(event) => setWhatsappNumber(event.target.value)}
-                    required
-                    maxLength={24}
-                    className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10"
-                  />
-                  <span className="mt-2 block text-xs text-white/45">{t.whatsappHint}</span>
-                </label>
+              </label>}
+              {hasResetToken ? (
+                <>
+                  <label className="mb-5 block">
+                    <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{t.password}</span>
+                    <input type="password" autoComplete="new-password" value={resetPassword} onChange={(event) => setResetPassword(event.target.value)} required minLength={8} maxLength={256} className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 text-sm text-white outline-none transition focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10" />
+                  </label>
+                  <label className="mb-2 block">
+                    <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{t.confirmNewPassword}</span>
+                    <input type="password" autoComplete="new-password" value={confirmResetPassword} onChange={(event) => setConfirmResetPassword(event.target.value)} required minLength={8} maxLength={256} className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 text-sm text-white outline-none transition focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10" />
+                  </label>
+                </>
+              ) : resetMode ? (
+                <p className="mb-2 text-xs leading-6 text-white/55">{t.resetEmailHelp}</p>
               ) : (
                 <div className="mb-2">
                   <label htmlFor="client-portal-password" className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{t.password}</label>
@@ -2803,11 +2858,19 @@ const ClientPortal: React.FC = () => {
               {error && <div className="mt-5"><ErrorBanner message={error} /></div>}
               {resetNotice && <p role="status" className="mt-5 border-l-2 border-emerald-700 bg-emerald-50 px-4 py-3 text-xs leading-5 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200">{resetNotice}</p>}
               <button disabled={submitting} className="mt-7 flex w-full items-center justify-between rounded-lg bg-[#b8c89f] px-5 py-4 text-left text-sm font-semibold text-[#171914] shadow-sm transition-colors hover:bg-[#c7d4b3] disabled:cursor-wait disabled:opacity-60">
-                {submitting ? t.signingIn : resetMode ? t.sendReset : t.signIn} <ArrowUpRight size={17} />
+                {submitting ? (hasResetToken ? t.savingResetPassword : resetMode ? t.sendingReset : t.signingIn) : hasResetToken ? t.saveResetPassword : resetMode ? t.sendReset : t.signIn} <ArrowUpRight size={17} />
               </button>
               <button
                 type="button"
                 onClick={() => {
+                  if (hasResetToken) {
+                    setResetPassword('');
+                    setConfirmResetPassword('');
+                    setError('');
+                    setResetNotice('');
+                    navigate('/portal', { replace: true });
+                    return;
+                  }
                   setResetMode((current) => !current);
                   setProjectCode('');
                   setPasswordVisible(false);
@@ -2816,9 +2879,9 @@ const ClientPortal: React.FC = () => {
                 }}
                 className="mt-6 w-fit rounded-sm text-sm text-white/55 underline decoration-white/25 underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b8c89f]"
               >
-                {resetMode ? t.backToSignIn : t.forgotPassword}
+                {resetMode || hasResetToken ? t.backToSignIn : t.forgotPassword}
               </button>
-              {!resetMode && <p className="mt-8 border-t border-white/10 pt-5 text-xs leading-6 text-white/45"><ShieldCheck size={15} className="mr-2 inline text-white/50" />{t.secure}</p>}
+              {!resetMode && !hasResetToken && <p className="mt-8 border-t border-white/10 pt-5 text-xs leading-6 text-white/45"><ShieldCheck size={15} className="mr-2 inline text-white/50" />{t.secure}</p>}
             </form>
           </div>
         )}
