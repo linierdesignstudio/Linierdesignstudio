@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Activity, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, ChevronDown, ClipboardList, Clock3, Download, Eye, EyeOff, FileCheck2, FileText, LayoutDashboard, Link2, LockKeyhole, LogOut, MapPin, MessageCircle, Monitor, Moon, Phone, Search, Send, ShieldCheck, Sun, Upload, UserRound, X } from 'lucide-react';
+import logoImage from '../LInier-logo-transparent.png';
 import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
@@ -195,11 +196,16 @@ const copy = {
     invoiceTitle: 'Invoice pembayaran',
     invoiceNumber: 'Nomor invoice',
     invoiceDate: 'Tanggal invoice',
+    invoiceDueDate: 'Jatuh tempo',
     invoicePaidDate: 'Tanggal pembayaran',
+    invoicePaid: 'LUNAS',
     invoiceBilledTo: 'Ditagihkan kepada',
+    invoiceStudio: 'Diterbitkan oleh',
     invoiceProject: 'Proyek',
+    invoiceLineNumber: 'No.',
     invoiceDescription: 'Deskripsi',
     invoiceAmount: 'Jumlah',
+    invoiceSubtotal: 'Subtotal',
     invoiceTotal: 'Total dibayar',
     invoicePaymentMethod: 'Metode pembayaran',
     invoicePaymentConfirmed: 'Pembayaran telah diverifikasi oleh Linier Studio.',
@@ -207,6 +213,8 @@ const copy = {
     invoicePopupBlocked: 'Invoice tidak dapat dibuka. Izinkan pop-up lalu coba lagi.',
     invoiceBankUnavailable: 'Informasi rekening tidak tersedia',
     invoiceLoadFailed: 'Invoice belum dapat dimuat. Silakan muat ulang portal atau hubungi studio.',
+    invoiceThankYou: 'Terima kasih atas kepercayaan Anda.',
+    invoiceGeneratedAt: 'Dokumen dibuat',
     billingProofReceived: 'Bukti pembayaran sudah diunggah.',
     billingProofLinkUnavailable: 'Bukti sudah diterima, tetapi tautan pratinjau belum tersedia. Muat ulang portal atau hubungi studio.',
     billingSubmittedAt: 'Dikirim',
@@ -438,11 +446,16 @@ const copy = {
     invoiceTitle: 'Payment invoice',
     invoiceNumber: 'Invoice number',
     invoiceDate: 'Invoice date',
+    invoiceDueDate: 'Due date',
     invoicePaidDate: 'Payment date',
+    invoicePaid: 'PAID',
     invoiceBilledTo: 'Billed to',
+    invoiceStudio: 'Issued by',
     invoiceProject: 'Project',
+    invoiceLineNumber: 'No.',
     invoiceDescription: 'Description',
     invoiceAmount: 'Amount',
+    invoiceSubtotal: 'Subtotal',
     invoiceTotal: 'Total paid',
     invoicePaymentMethod: 'Payment method',
     invoicePaymentConfirmed: 'Payment verified by Linier Studio.',
@@ -450,6 +463,8 @@ const copy = {
     invoicePopupBlocked: 'The invoice could not be opened. Allow pop-ups and try again.',
     invoiceBankUnavailable: 'Bank account information unavailable',
     invoiceLoadFailed: 'Invoices could not be loaded. Refresh the portal or contact the studio.',
+    invoiceThankYou: 'Thank you for your trust.',
+    invoiceGeneratedAt: 'Document generated',
     billingProofReceived: 'Payment proof uploaded.',
     billingProofLinkUnavailable: 'The proof was received, but its preview link is unavailable. Refresh the portal or contact the studio.',
     billingSubmittedAt: 'Submitted',
@@ -681,11 +696,16 @@ const copy = {
     invoiceTitle: '付款发票',
     invoiceNumber: '发票编号',
     invoiceDate: '发票日期',
+    invoiceDueDate: '到期日',
     invoicePaidDate: '付款日期',
+    invoicePaid: '已付款',
     invoiceBilledTo: '账单收件人',
+    invoiceStudio: '开具方',
     invoiceProject: '项目',
+    invoiceLineNumber: '序号',
     invoiceDescription: '描述',
     invoiceAmount: '金额',
+    invoiceSubtotal: '小计',
     invoiceTotal: '已付总额',
     invoicePaymentMethod: '付款方式',
     invoicePaymentConfirmed: 'Linier Studio 已核实付款。',
@@ -693,6 +713,8 @@ const copy = {
     invoicePopupBlocked: '无法打开发票。请允许弹出窗口后重试。',
     invoiceBankUnavailable: '银行账户信息不可用',
     invoiceLoadFailed: '无法加载发票。请刷新门户或联系工作室。',
+    invoiceThankYou: '感谢您的信任。',
+    invoiceGeneratedAt: '文件生成时间',
     billingProofReceived: '付款凭证已上传。',
     billingProofLinkUnavailable: '已收到凭证，但预览链接暂不可用。请刷新门户或联系工作室。',
     billingSubmittedAt: '提交时间',
@@ -784,22 +806,32 @@ const getSessionDeviceLabel = (userAgent: string, language: keyof typeof copy): 
 
 interface InvoiceDocumentLabels {
   htmlLanguage: string;
+  logoUrl: string;
   title: string;
   invoiceNumber: string;
   invoiceDate: string;
+  dueDate: string;
   paidDate: string;
+  paidStatus: string;
   billedTo: string;
+  studio: string;
   project: string;
+  lineNumber: string;
   description: string;
   amount: string;
+  subtotal: string;
   total: string;
   paymentMethod: string;
   paymentConfirmed: string;
   print: string;
   bankUnavailable: string;
   issuedAt: string;
+  dueAt: string;
   paidAt: string;
+  generatedAt: string;
+  generatedAtValue: string;
   formattedAmount: string;
+  thankYou: string;
 }
 
 const escapeHtml = (value: string): string => value
@@ -813,6 +845,8 @@ const buildInvoiceHtml = (invoice: PortalInvoice, labels: InvoiceDocumentLabels)
   const bank = findPortalBank(invoice.payment_bank_code);
   const paymentMethod = bank?.label ?? labels.bankUnavailable;
   const issuerAddress = escapeHtml(invoice.issuer_address).replace(/,\s*/g, ',<br>');
+  const clientContact = [invoice.client_email, invoice.client_phone].filter(Boolean).map(escapeHtml).join('<br>');
+  const projectDetails = [invoice.project_code, invoice.project_location].filter(Boolean).map(escapeHtml).join(' · ');
   return `<!doctype html>
 <html lang="${escapeHtml(labels.htmlLanguage)}">
 <head>
@@ -820,37 +854,75 @@ const buildInvoiceHtml = (invoice: PortalInvoice, labels: InvoiceDocumentLabels)
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(labels.title)} · ${escapeHtml(invoice.invoice_number)}</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#f4f2ee;color:#27251f;font:14px/1.55 Arial,sans-serif}
-    main{max-width:820px;margin:36px auto;padding:48px;background:#fff;box-shadow:0 12px 40px #27251f12}
-    header{display:flex;justify-content:space-between;gap:24px;padding-bottom:28px;border-bottom:2px solid #8c795e}
-    h1{margin:0 0 6px;font-size:28px;letter-spacing:.03em}h2{margin:0 0 9px;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#827b70}
-    p{margin:3px 0}.muted{color:#777166}.meta{text-align:right}.summary{display:grid;grid-template-columns:1fr 1fr;gap:36px;padding:30px 0}
-    .table{width:100%;border-collapse:collapse;margin:8px 0 18px}.table th,.table td{padding:13px 10px;border-bottom:1px solid #e9e6e0;text-align:left}
-    .table th:last-child,.table td:last-child{text-align:right}.total{display:flex;justify-content:flex-end;gap:32px;padding:14px 10px;font-size:17px;font-weight:700}
-    .paid{margin-top:24px;padding:14px;background:#f1f5ef;color:#466044;border-radius:6px}.actions{display:flex;justify-content:flex-end;margin-bottom:24px}
-    button{border:0;border-radius:6px;background:#8c795e;color:#fff;padding:11px 16px;font-weight:600;cursor:pointer}
-    @media(max-width:600px){main{margin:0;padding:24px 18px;min-height:100vh}header{flex-direction:column}.meta{text-align:left}.summary{grid-template-columns:1fr;gap:20px}}
-    @media print{body{background:#fff}main{max-width:none;margin:0;padding:20px;box-shadow:none}.no-print{display:none!important}}
+    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{margin:0;background:#f0f2f5;color:#262b33;font:13px/1.5 Arial,sans-serif}
+    main{max-width:820px;margin:32px auto;padding:36px;background:#fff;box-shadow:0 10px 36px #17203312}
+    .brand{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:24px 26px;background:#1f3a63;color:#fff}
+    .issuer{display:flex;align-items:center;gap:18px;min-width:0}
+    .logo-frame{position:relative;width:60px;height:60px;flex:0 0 auto;overflow:hidden}
+    .logo{position:absolute;left:50%;top:50%;width:250%;height:250%;max-width:none;object-fit:contain;transform:translate(-50%,-50%)}
+    .issuer-info{font-size:10px;line-height:1.55;color:#e3e9f1}.issuer-info strong{display:block;margin-bottom:3px;color:#fff;font-size:13px;letter-spacing:.03em}
+    .invoice-meta{min-width:190px;text-align:right}.invoice-meta h1{margin:0;font-size:23px;letter-spacing:.12em}
+    .invoice-number{margin:3px 0 9px;font-size:11px;color:#e3e9f1;overflow-wrap:anywhere}
+    .badge{display:inline-block;padding:4px 11px;border:1px solid #9ed5bd;border-radius:3px;color:#c5f1dc;font-size:10px;font-weight:700;letter-spacing:.08em}
+    .dates{margin:22px 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+    .date{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;background:#eef2f7;font-size:10px}
+    .date span{color:#586273}.date strong{text-align:right}
+    .parties{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin:24px 0 28px}
+    h2{margin:0 0 10px;color:#2365a8;font-size:10px;text-transform:uppercase;letter-spacing:.09em}
+    .party-name{margin:0 0 5px;font-weight:700;font-size:13px}.party-details{margin:0;color:#59616d;font-size:10px;line-height:1.65}
+    table{width:100%;border-collapse:collapse;margin:0 0 14px}
+    thead{background:#1f3a63;color:#fff}th{padding:10px 12px;text-align:left;font-size:10px}
+    td{padding:13px 12px;border-bottom:1px solid #e6e9ee;font-size:11px;vertical-align:top}
+    tbody tr:nth-child(odd){background:#f7f8fa}.number{width:48px;color:#687384}.money{text-align:right;white-space:nowrap;font-weight:600}
+    .description{font-weight:600}.project-detail{display:block;margin-top:3px;color:#697485;font-size:9px;font-weight:400}
+    .totals{width:min(330px,100%);margin:0 0 25px auto}
+    .total-row{display:flex;justify-content:space-between;gap:16px;padding:6px 10px;font-size:11px}
+    .grand-total{margin-top:4px;padding:11px 10px;background:#1f3a63;color:#fff;font-size:14px;font-weight:700}
+    .transaction{margin-top:25px;padding-top:16px;border-top:1px solid #dfe4eb}
+    .transaction-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .transaction-item span{display:block;color:#697485;font-size:9px}.transaction-item strong{display:block;margin-top:3px;font-size:10px}
+    .confirmation{margin-top:17px;padding:10px 12px;border-left:3px solid #398565;background:#eff7f2;color:#35634e;font-size:10px}
+    footer{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-top:28px;padding-top:13px;border-top:1px solid #e2e6ec}
+    .thanks{font-weight:700;color:#1f3a63;font-size:11px}.generated{margin-top:4px;color:#78818d;font-size:9px}
+    .actions{display:flex;justify-content:flex-end;margin-bottom:12px}
+    button{border:0;border-radius:4px;background:#8c795e;color:#fff;padding:10px 15px;font-weight:600;cursor:pointer}
+    @media(max-width:620px){main{margin:0;padding:16px}.brand{align-items:flex-start;flex-direction:column;padding:19px}.invoice-meta{text-align:left}.dates{grid-template-columns:1fr}.date{padding:8px 10px}.parties{gap:16px}.transaction-grid{grid-template-columns:1fr 1fr}}
+    @media print{@page{size:A4;margin:12mm}body{background:#fff}main{max-width:none;margin:0;padding:0;box-shadow:none}.actions{display:none!important}}
   </style>
 </head>
 <body>
   <main>
     <div class="actions no-print"><button type="button" onclick="window.print()">${escapeHtml(labels.print)}</button></div>
-    <header>
-      <div><h1>${escapeHtml(invoice.issuer_name)}</h1><p>${issuerAddress}</p><p>${escapeHtml(invoice.issuer_email)}</p></div>
-      <div class="meta"><h2>${escapeHtml(labels.title)}</h2><p><strong>${escapeHtml(labels.invoiceNumber)}:</strong> ${escapeHtml(invoice.invoice_number)}</p><p><strong>${escapeHtml(labels.invoiceDate)}:</strong> ${escapeHtml(labels.issuedAt)}</p></div>
+    <header class="brand">
+      <div class="issuer">
+        <div class="logo-frame"><img class="logo" src="${escapeHtml(labels.logoUrl)}" alt="Linier Studio"></div>
+        <div class="issuer-info"><strong>${escapeHtml(invoice.issuer_name)}</strong>${issuerAddress}<br>${escapeHtml(invoice.issuer_email)}<br>${escapeHtml(invoice.issuer_phone)}</div>
+      </div>
+      <div class="invoice-meta"><h1>${escapeHtml(labels.title)}</h1><p class="invoice-number">${escapeHtml(labels.invoiceNumber)} #${escapeHtml(invoice.invoice_number)}</p><span class="badge">${escapeHtml(labels.paidStatus)}</span></div>
     </header>
-    <section class="summary">
-      <div><h2>${escapeHtml(labels.billedTo)}</h2><p><strong>${escapeHtml(invoice.client_name)}</strong></p><p>${escapeHtml(invoice.client_email ?? '')}</p><p>${escapeHtml(invoice.client_phone)}</p></div>
-      <div><h2>${escapeHtml(labels.project)}</h2><p><strong>${escapeHtml(invoice.project_name)}</strong></p><p>${escapeHtml(invoice.project_code)}</p><p>${escapeHtml(invoice.project_location)}</p></div>
+    <section class="dates" aria-label="${escapeHtml(labels.title)}">
+      <div class="date"><span>${escapeHtml(labels.invoiceDate)}</span><strong>${escapeHtml(labels.issuedAt)}</strong></div>
+      <div class="date"><span>${escapeHtml(labels.dueDate)}</span><strong>${escapeHtml(labels.dueAt)}</strong></div>
+      <div class="date"><span>${escapeHtml(labels.paidDate)}</span><strong>${escapeHtml(labels.paidAt)}</strong></div>
     </section>
-    <table class="table"><thead><tr><th>${escapeHtml(labels.description)}</th><th>${escapeHtml(labels.amount)}</th></tr></thead>
-      <tbody><tr><td>${escapeHtml(invoice.description)}</td><td>${escapeHtml(labels.formattedAmount)}</td></tr></tbody>
+    <section class="parties">
+      <div><h2>${escapeHtml(labels.billedTo)}</h2><p class="party-name">${escapeHtml(invoice.client_name)}</p><p class="party-details">${clientContact}</p></div>
+      <div><h2>${escapeHtml(labels.studio)}</h2><p class="party-name">${escapeHtml(invoice.issuer_name)}</p><p class="party-details">${issuerAddress}<br>${escapeHtml(invoice.issuer_email)}<br>${escapeHtml(invoice.issuer_phone)}</p></div>
+    </section>
+    <table><thead><tr><th class="number">${escapeHtml(labels.lineNumber)}</th><th>${escapeHtml(labels.description)}</th><th class="money">${escapeHtml(labels.amount)}</th></tr></thead>
+      <tbody><tr><td class="number">01</td><td><span class="description">${escapeHtml(invoice.description)}</span><span class="project-detail">${escapeHtml(invoice.project_name)}${projectDetails ? ` · ${projectDetails}` : ''}</span></td><td class="money">${escapeHtml(labels.formattedAmount)}</td></tr></tbody>
     </table>
-    <div class="total"><span>${escapeHtml(labels.total)}</span><span>${escapeHtml(labels.formattedAmount)}</span></div>
-    <p><strong>${escapeHtml(labels.paidDate)}:</strong> ${escapeHtml(labels.paidAt)}</p>
-    <p><strong>${escapeHtml(labels.paymentMethod)}:</strong> ${escapeHtml(paymentMethod)}</p>
-    <div class="paid">${escapeHtml(labels.paymentConfirmed)}</div>
+    <section class="totals">
+      <div class="total-row"><span>${escapeHtml(labels.subtotal)}</span><strong>${escapeHtml(labels.formattedAmount)}</strong></div>
+      <div class="total-row grand-total"><span>${escapeHtml(labels.total)}</span><span>${escapeHtml(labels.formattedAmount)}</span></div>
+    </section>
+    <section class="transaction">
+      <h2>${escapeHtml(labels.paymentMethod)}</h2>
+      <div class="transaction-grid"><div class="transaction-item"><span>${escapeHtml(labels.paidDate)}</span><strong>${escapeHtml(labels.paidAt)}</strong></div><div class="transaction-item"><span>${escapeHtml(labels.paymentMethod)}</span><strong>${escapeHtml(paymentMethod)}</strong></div><div class="transaction-item"><span>${escapeHtml(labels.total)}</span><strong>${escapeHtml(labels.formattedAmount)}</strong></div></div>
+      <div class="confirmation">${escapeHtml(labels.paymentConfirmed)}</div>
+    </section>
+    <footer><div><div class="thanks">${escapeHtml(labels.thankYou)}</div><div class="generated">${escapeHtml(labels.generatedAt)}: ${escapeHtml(labels.generatedAtValue)}</div></div><strong>${escapeHtml(invoice.issuer_email)}</strong></footer>
   </main>
 </body>
 </html>`;
@@ -1276,22 +1348,32 @@ const ClientPortal: React.FC = () => {
     printWindow.document.open();
     printWindow.document.write(buildInvoiceHtml(invoice, {
       htmlLanguage: language === 'EN' ? 'en' : language === 'CN' ? 'zh-CN' : 'id',
+      logoUrl: logoImage,
       title: t.invoiceTitle,
       invoiceNumber: t.invoiceNumber,
       invoiceDate: t.invoiceDate,
+      dueDate: t.invoiceDueDate,
       paidDate: t.invoicePaidDate,
+      paidStatus: t.invoicePaid,
       billedTo: t.invoiceBilledTo,
+      studio: t.invoiceStudio,
       project: t.invoiceProject,
+      lineNumber: t.invoiceLineNumber,
       description: t.invoiceDescription,
       amount: t.invoiceAmount,
+      subtotal: t.invoiceSubtotal,
       total: t.invoiceTotal,
       paymentMethod: t.invoicePaymentMethod,
       paymentConfirmed: t.invoicePaymentConfirmed,
       print: t.invoicePrint,
       bankUnavailable: t.invoiceBankUnavailable,
       issuedAt: formatDateTime(invoice.issued_at, language),
+      dueAt: formatDate(invoice.due_date, language),
       paidAt: formatDateTime(invoice.paid_at, language),
+      generatedAt: t.invoiceGeneratedAt,
+      generatedAtValue: formatDateTime(new Date().toISOString(), language),
       formattedAmount: formatCurrency(invoice.amount, language),
+      thankYou: t.invoiceThankYou,
     }));
     printWindow.document.close();
   };

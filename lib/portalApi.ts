@@ -137,10 +137,12 @@ export interface PortalInvoice {
   billing_item_id: string | null;
   project_id: string;
   issued_at: string;
+  due_date: string;
   paid_at: string;
   issuer_name: string;
   issuer_address: string;
   issuer_email: string;
+  issuer_phone: string;
   client_name: string;
   client_email: string | null;
   client_phone: string;

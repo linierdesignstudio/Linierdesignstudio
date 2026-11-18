@@ -8,10 +8,12 @@ interface PortalInvoiceRecord {
   billing_item_id: string | null;
   project_id: string;
   issued_at: string;
+  due_date: string;
   paid_at: string;
   issuer_name: string;
   issuer_address: string;
   issuer_email: string;
+  issuer_phone: string;
   client_name: string;
   client_email: string | null;
   client_phone: string;
@@ -23,7 +25,7 @@ interface PortalInvoiceRecord {
   payment_bank_code: string | null;
 }
 
-const INVOICE_FIELDS = 'id,invoice_number,billing_item_id,project_id,issued_at,paid_at,issuer_name,issuer_address,issuer_email,client_name,client_email,client_phone,project_name,project_code,project_location,description,amount,payment_bank_code';
+const INVOICE_FIELDS = 'id,invoice_number,billing_item_id,project_id,issued_at,due_date,paid_at,issuer_name,issuer_address,issuer_email,issuer_phone,client_name,client_email,client_phone,project_name,project_code,project_location,description,amount,payment_bank_code';
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {

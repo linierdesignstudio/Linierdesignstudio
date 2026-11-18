@@ -205,10 +205,12 @@ create table if not exists public.portal_invoices (
   billing_item_id uuid unique references public.project_billing_items(id) on delete set null,
   project_id uuid not null references public.client_projects(id) on delete cascade,
   issued_at timestamptz not null default now(),
+  due_date date not null,
   paid_at timestamptz not null,
   issuer_name text not null,
   issuer_address text not null,
   issuer_email text not null,
+  issuer_phone text not null default '+6281775030638',
   client_name text not null,
   client_email text,
   client_phone text not null default '',
@@ -219,6 +221,19 @@ create table if not exists public.portal_invoices (
   amount numeric(16, 0) not null check (amount > 0),
   payment_bank_code text
 );
+
+alter table public.portal_invoices
+  add column if not exists due_date date;
+
+update public.portal_invoices
+  set due_date = paid_at::date
+  where due_date is null;
+
+alter table public.portal_invoices
+  alter column due_date set not null;
+
+alter table public.portal_invoices
+  add column if not exists issuer_phone text not null default '+6281775030638';
 
 create index if not exists portal_invoices_project_issued_idx
   on public.portal_invoices (project_id, issued_at desc);
@@ -1112,10 +1127,12 @@ begin
     billing_item_id,
     project_id,
     issued_at,
+    due_date,
     paid_at,
     issuer_name,
     issuer_address,
     issuer_email,
+    issuer_phone,
     client_name,
     client_email,
     client_phone,
@@ -1131,10 +1148,12 @@ begin
     v_billing_item.id,
     v_project.id,
     v_paid_at,
+    v_billing_item.due_date,
     v_paid_at,
     'PT. LINIER NUSA KARYA PERSADA',
     'Perumahan Kendari Indah, Blok F/7, Kendari City, Southeast Sulawesi, Indonesia',
     'hello@linierstudio.com',
+    '+6281775030638',
     v_project.client_name,
     v_project.client_email,
     v_project.client_phone,
