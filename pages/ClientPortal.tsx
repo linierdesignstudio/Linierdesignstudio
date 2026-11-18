@@ -1510,7 +1510,7 @@ const ClientPortal: React.FC = () => {
                   <ChevronDown size={14} className={`shrink-0 text-neutral-400 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {profileOpen && (
-                  <div id="client-account-menu" className="absolute right-0 top-full z-50 mt-2 max-h-[min(80vh,36rem)] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-3 text-neutral-900 shadow-[0_20px_60px_rgba(27,25,20,0.2)] dark:border-white/10 dark:bg-[#181916] dark:text-white sm:p-4">
+                  <div id="client-account-menu" className="fixed inset-x-4 top-28 z-50 max-h-[min(80vh,36rem)] w-auto max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-3 text-neutral-900 shadow-[0_20px_60px_rgba(27,25,20,0.2)] dark:border-white/10 dark:bg-[#181916] dark:text-white sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 sm:p-4">
                     <div className="flex items-center gap-3 border-b border-neutral-100 px-1 pb-4 dark:border-white/10">
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#262722] font-mono text-xs font-medium uppercase text-white dark:bg-white dark:text-neutral-900">
                         {getClientInitials(profileName || project.client_name)}
