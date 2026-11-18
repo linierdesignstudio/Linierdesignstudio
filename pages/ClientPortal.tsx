@@ -1642,7 +1642,7 @@ const ClientPortal: React.FC = () => {
                 </header>
 
                 <div className="grid gap-5 md:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
-                  <nav aria-label={t.accountSettingsTitle} className="grid grid-cols-2 gap-1 self-start rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm md:flex md:flex-col dark:border-white/10 dark:bg-neutral-900">
+                  <nav aria-label={t.accountSettingsTitle} className="grid w-full min-w-0 grid-cols-[repeat(2,minmax(0,1fr))] gap-1 self-start rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm md:flex md:flex-col dark:border-white/10 dark:bg-neutral-900">
                     {accountSettingsNavigation.map((item) => (
                       <button
                         key={item.id}
@@ -1655,10 +1655,10 @@ const ClientPortal: React.FC = () => {
                           }
                         }}
                         aria-current={accountSettingsSection === item.id ? 'page' : undefined}
-                        className={`flex min-w-0 items-center gap-2 rounded-xl px-3 py-3 text-left text-[11px] transition-colors sm:text-xs ${accountSettingsSection === item.id ? 'bg-[#f4f1eb] font-medium text-[#746349] dark:bg-white/[0.08] dark:text-bronze-300' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]'}`}
+                        className={`flex min-w-0 items-center gap-1.5 rounded-xl px-2 py-2.5 text-left text-[10px] leading-tight transition-colors sm:gap-2 sm:px-3 sm:py-3 sm:text-xs ${item.id === 'apps' ? 'col-span-2 md:col-span-1' : ''} ${accountSettingsSection === item.id ? 'bg-[#f4f1eb] font-medium text-[#746349] dark:bg-white/[0.08] dark:text-bronze-300' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]'}`}
                       >
-                        {item.icon}
-                        <span className="min-w-0 truncate">{item.label}</span>
+                        <span className="shrink-0">{item.icon}</span>
+                        <span className="min-w-0 whitespace-normal break-words">{item.label}</span>
                       </button>
                     ))}
                   </nav>
