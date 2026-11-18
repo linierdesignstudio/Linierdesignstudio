@@ -7,6 +7,7 @@ import { NAV_ITEMS } from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Language } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import logoImage from '../LInier-logo-transparent.png';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -123,23 +124,23 @@ const Navbar: React.FC = () => {
         className="fixed top-0 left-0 w-full z-50 px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 lg:px-12 lg:py-10 flex justify-between items-center text-neutral-900 dark:text-white pointer-events-none"
       >
         
-        {/* 1. LEFT: LOGO ONLY */}
-        <div className="pointer-events-auto absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0">
-          <NavLink to="/" className="group flex items-center gap-3 md:gap-4">
-            <span className="relative block w-[64px] h-[64px] sm:w-[76px] sm:h-[76px] md:w-[108px] md:h-[108px] overflow-hidden group-hover:opacity-80 transition-opacity" aria-hidden="true">
+        {/* 1. LEFT: LOGO */}
+        <div className="pointer-events-auto">
+          <NavLink to="/" aria-label="Linier Studio — Home" className="group flex items-center">
+            <span className="relative block w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] md:w-[82px] md:h-[82px] overflow-hidden transition-opacity group-hover:opacity-80" aria-hidden="true">
               <span
-                className="absolute inset-0 bg-white"
+                className="absolute inset-0 bg-current"
                 style={{
-                  WebkitMaskImage: 'url("/LInier%20ds%20copy11.png")',
-                  maskImage: 'url("/LInier%20ds%20copy11.png")',
-                  WebkitMaskSize: '150% auto',
-                  maskSize: '150% auto',
-                  WebkitMaskPosition: '50% 35%',
-                  maskPosition: '50% 35%',
+                  WebkitMaskImage: `url("${logoImage}")`,
+                  maskImage: `url("${logoImage}")`,
+                  WebkitMaskSize: '250% 250%',
+                  maskSize: '250% 250%',
+                  WebkitMaskPosition: '50% 50%',
+                  maskPosition: '50% 50%',
                   WebkitMaskRepeat: 'no-repeat',
                   maskRepeat: 'no-repeat',
-                  WebkitMaskMode: 'luminance',
-                  maskMode: 'luminance',
+                  WebkitMaskMode: 'alpha',
+                  maskMode: 'alpha',
                 } as React.CSSProperties & { WebkitMaskMode: string; maskMode: string }}
               />
             </span>
