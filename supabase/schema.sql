@@ -197,6 +197,32 @@ alter table public.project_billing_items
 create index if not exists project_billing_items_project_due_idx
   on public.project_billing_items (project_id, due_date, created_at);
 
+create sequence if not exists public.portal_invoice_number_seq;
+
+create table if not exists public.portal_invoices (
+  id uuid primary key default gen_random_uuid(),
+  invoice_number text not null unique,
+  billing_item_id uuid unique references public.project_billing_items(id) on delete set null,
+  project_id uuid not null references public.client_projects(id) on delete cascade,
+  issued_at timestamptz not null default now(),
+  paid_at timestamptz not null,
+  issuer_name text not null,
+  issuer_address text not null,
+  issuer_email text not null,
+  client_name text not null,
+  client_email text,
+  client_phone text not null default '',
+  project_name text not null,
+  project_code text not null,
+  project_location text not null default '',
+  description text not null,
+  amount numeric(16, 0) not null check (amount > 0),
+  payment_bank_code text
+);
+
+create index if not exists portal_invoices_project_issued_idx
+  on public.portal_invoices (project_id, issued_at desc);
+
 create table if not exists public.portal_payment_settings (
   id text primary key default 'global' check (id = 'global'),
   bank_name text not null default '' check (length(bank_name) <= 80),
@@ -663,6 +689,7 @@ alter table public.project_change_orders enable row level security;
 alter table public.portal_notifications enable row level security;
 alter table public.portal_client_sessions enable row level security;
 alter table public.portal_project_documents enable row level security;
+alter table public.portal_invoices enable row level security;
 
 create or replace function public.portal_allow_login_attempt(
   p_project_id uuid,
@@ -1021,12 +1048,116 @@ begin
 end;
 $$;
 
+create or replace function public.portal_approve_billing_item(
+  p_item_id uuid
+)
+returns table (
+  billing_item jsonb,
+  invoice jsonb
+)
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_billing_item public.project_billing_items%rowtype;
+  v_project public.client_projects%rowtype;
+  v_invoice public.portal_invoices%rowtype;
+  v_paid_at timestamptz;
+begin
+  select *
+    into v_billing_item
+    from public.project_billing_items
+    where id = p_item_id
+    for update;
+
+  if not found then
+    raise exception 'Billing item not found';
+  end if;
+
+  if v_billing_item.status = 'paid' then
+    select *
+      into v_invoice
+      from public.portal_invoices
+      where billing_item_id = p_item_id;
+
+    if found then
+      return query select to_jsonb(v_billing_item), to_jsonb(v_invoice);
+      return;
+    end if;
+    v_paid_at := coalesce(v_billing_item.paid_at, now());
+  elsif v_billing_item.status = 'pending_review' then
+    v_paid_at := now();
+    update public.project_billing_items
+      set status = 'paid',
+          paid_at = v_paid_at,
+          payment_review_note = null
+      where id = p_item_id
+      returning * into v_billing_item;
+  else
+    raise exception 'Payment proof is no longer awaiting review';
+  end if;
+
+  select *
+    into v_project
+    from public.client_projects
+    where id = v_billing_item.project_id;
+
+  if not found then
+    raise exception 'Project not found';
+  end if;
+
+  insert into public.portal_invoices (
+    invoice_number,
+    billing_item_id,
+    project_id,
+    issued_at,
+    paid_at,
+    issuer_name,
+    issuer_address,
+    issuer_email,
+    client_name,
+    client_email,
+    client_phone,
+    project_name,
+    project_code,
+    project_location,
+    description,
+    amount,
+    payment_bank_code
+  )
+  values (
+    'INV-' || to_char(v_paid_at, 'YYYY') || '-' || lpad(nextval('public.portal_invoice_number_seq')::text, 6, '0'),
+    v_billing_item.id,
+    v_project.id,
+    v_paid_at,
+    v_paid_at,
+    'PT. LINIER NUSA KARYA PERSADA',
+    'Perumahan Kendari Indah, Blok F/7, Kendari City, Southeast Sulawesi, Indonesia',
+    'hello@linierstudio.com',
+    v_project.client_name,
+    v_project.client_email,
+    v_project.client_phone,
+    v_project.project_name,
+    v_project.project_code,
+    v_project.location,
+    v_billing_item.title,
+    v_billing_item.amount,
+    v_billing_item.selected_bank_code
+  )
+  returning * into v_invoice;
+
+  return query select to_jsonb(v_billing_item), to_jsonb(v_invoice);
+end;
+$$;
+
 revoke all on function public.portal_allow_login_attempt(uuid, boolean) from public, anon, authenticated;
 revoke all on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) from public, anon, authenticated;
 revoke all on function public.portal_update_project_update(uuid, text, text, integer, date, jsonb) from public, anon, authenticated;
 revoke all on function public.portal_delete_project_update(uuid) from public, anon, authenticated;
 revoke all on function public.portal_resolve_password_reset(uuid, text, text) from public, anon, authenticated;
 revoke all on function public.portal_change_client_password(uuid, text, text, text, text) from public, anon, authenticated;
+revoke all on function public.portal_approve_billing_item(uuid) from public, anon, authenticated;
 grant execute on function public.portal_allow_login_attempt(uuid, boolean) to service_role;
 grant execute on function public.portal_create_project_update(uuid, text, text, integer, date, jsonb) to service_role;
 grant execute on function public.portal_update_project_update(uuid, text, text, integer, date, jsonb) to service_role;
@@ -1034,8 +1165,9 @@ grant execute on function public.portal_delete_project_update(uuid) to service_r
 grant execute on function public.portal_delete_project(uuid) to service_role;
 grant execute on function public.portal_resolve_password_reset(uuid, text, text) to service_role;
 grant execute on function public.portal_change_client_password(uuid, text, text, text, text) to service_role;
+grant execute on function public.portal_approve_billing_item(uuid) to service_role;
 
-revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.portal_payment_settings, public.portal_payment_accounts, public.project_change_orders, public.portal_notifications, public.portal_client_sessions, public.portal_project_documents from anon, authenticated;
+revoke all on public.client_projects, public.project_updates, public.project_login_attempts, public.project_password_reset_requests, public.client_feedback, public.project_billing_items, public.portal_payment_settings, public.portal_payment_accounts, public.project_change_orders, public.portal_notifications, public.portal_client_sessions, public.portal_project_documents, public.portal_invoices from anon, authenticated;
 grant select, insert on public.client_projects to service_role;
 grant select, insert, update, delete on public.project_updates to service_role;
 grant select, insert, update, delete on public.project_login_attempts to service_role;
@@ -1048,6 +1180,8 @@ grant select, insert, update, delete on public.project_change_orders to service_
 grant select, insert, update, delete on public.portal_notifications to service_role;
 grant select, insert, update, delete on public.portal_client_sessions to service_role;
 grant select, insert, update, delete on public.portal_project_documents to service_role;
+grant select, insert, update, delete on public.portal_invoices to service_role;
+grant usage, select on sequence public.portal_invoice_number_seq to service_role;
 grant update on public.client_projects to service_role;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

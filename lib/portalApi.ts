@@ -131,6 +131,27 @@ export interface BillingItem {
   created_at: string;
 }
 
+export interface PortalInvoice {
+  id: string;
+  invoice_number: string;
+  billing_item_id: string | null;
+  project_id: string;
+  issued_at: string;
+  paid_at: string;
+  issuer_name: string;
+  issuer_address: string;
+  issuer_email: string;
+  client_name: string;
+  client_email: string | null;
+  client_phone: string;
+  project_name: string;
+  project_code: string;
+  project_location: string;
+  description: string;
+  amount: string;
+  payment_bank_code: string | null;
+}
+
 export interface PortalPaymentAccount {
   bank_code: string;
   account_number: string;

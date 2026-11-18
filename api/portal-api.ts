@@ -13,6 +13,7 @@ import paymentSettings from '../server/portal/payment-settings.js';
 import clientBilling from '../server/portal/client-billing.js';
 import clientChangeOrders from '../server/portal/client-change-orders.js';
 import clientChangePassword from '../server/portal/client-change-password.js';
+import clientInvoices from '../server/portal/client-invoices.js';
 import clientLogin from '../server/portal/client-login.js';
 import clientPasswordResetRequests from '../server/portal/client-password-reset-requests.js';
 import clientProfile from '../server/portal/client-profile.js';
@@ -38,6 +39,7 @@ const routes: Record<string, (request: ApiRequest, response: ApiResponse) => Pro
   'api/portal/client/billing': clientBilling,
   'api/portal/client/change-orders': clientChangeOrders,
   'api/portal/client/change-password': clientChangePassword,
+  'api/portal/client/invoices': clientInvoices,
   'api/portal/client/login': clientLogin,
   'api/portal/client/password-reset-requests': clientPasswordResetRequests,
   'api/portal/client/profile': clientProfile,

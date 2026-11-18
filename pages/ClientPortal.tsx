@@ -5,7 +5,7 @@ import PortalActivityPanel from '../components/PortalActivityPanel';
 import PortalFilePreview from '../components/PortalFilePreview';
 import PortalLanguageSwitcher from '../components/PortalLanguageSwitcher';
 import { useLanguage } from '../contexts/LanguageContext';
-import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalClientSession, type PortalNotification, type PortalPaymentAccount, type PortalProject, type PortalProjectDocument, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
+import { portalRequest, type BillingItem, type ClientFeedback, type PortalAttachment, type PortalClientSession, type PortalInvoice, type PortalNotification, type PortalPaymentAccount, type PortalProject, type PortalProjectDocument, type PortalUpdate, type ProjectChangeOrder } from '../lib/portalApi';
 import { findPortalBank } from '../lib/portalBanks';
 import { canPreviewPortalDocument, getPortalDocumentKind, type PortalDocumentKind } from '../lib/portalDocuments';
 
@@ -191,6 +191,22 @@ const copy = {
     billingPaid: 'Lunas',
     billingOverdue: 'Terlambat',
     billingProof: 'Bukti pembayaran',
+    invoice: 'Invoice',
+    invoiceTitle: 'Invoice pembayaran',
+    invoiceNumber: 'Nomor invoice',
+    invoiceDate: 'Tanggal invoice',
+    invoicePaidDate: 'Tanggal pembayaran',
+    invoiceBilledTo: 'Ditagihkan kepada',
+    invoiceProject: 'Proyek',
+    invoiceDescription: 'Deskripsi',
+    invoiceAmount: 'Jumlah',
+    invoiceTotal: 'Total dibayar',
+    invoicePaymentMethod: 'Metode pembayaran',
+    invoicePaymentConfirmed: 'Pembayaran telah diverifikasi oleh Linier Studio.',
+    invoicePrint: 'Cetak / Simpan PDF',
+    invoicePopupBlocked: 'Invoice tidak dapat dibuka. Izinkan pop-up lalu coba lagi.',
+    invoiceBankUnavailable: 'Informasi rekening tidak tersedia',
+    invoiceLoadFailed: 'Invoice belum dapat dimuat. Silakan muat ulang portal atau hubungi studio.',
     billingProofReceived: 'Bukti pembayaran sudah diunggah.',
     billingProofLinkUnavailable: 'Bukti sudah diterima, tetapi tautan pratinjau belum tersedia. Muat ulang portal atau hubungi studio.',
     billingSubmittedAt: 'Dikirim',
@@ -418,6 +434,22 @@ const copy = {
     billingPaid: 'Paid',
     billingOverdue: 'Overdue',
     billingProof: 'Payment proof',
+    invoice: 'Invoice',
+    invoiceTitle: 'Payment invoice',
+    invoiceNumber: 'Invoice number',
+    invoiceDate: 'Invoice date',
+    invoicePaidDate: 'Payment date',
+    invoiceBilledTo: 'Billed to',
+    invoiceProject: 'Project',
+    invoiceDescription: 'Description',
+    invoiceAmount: 'Amount',
+    invoiceTotal: 'Total paid',
+    invoicePaymentMethod: 'Payment method',
+    invoicePaymentConfirmed: 'Payment verified by Linier Studio.',
+    invoicePrint: 'Print / Save PDF',
+    invoicePopupBlocked: 'The invoice could not be opened. Allow pop-ups and try again.',
+    invoiceBankUnavailable: 'Bank account information unavailable',
+    invoiceLoadFailed: 'Invoices could not be loaded. Refresh the portal or contact the studio.',
     billingProofReceived: 'Payment proof uploaded.',
     billingProofLinkUnavailable: 'The proof was received, but its preview link is unavailable. Refresh the portal or contact the studio.',
     billingSubmittedAt: 'Submitted',
@@ -645,6 +677,22 @@ const copy = {
     billingPaid: '已付款',
     billingOverdue: '已逾期',
     billingProof: '付款凭证',
+    invoice: '发票',
+    invoiceTitle: '付款发票',
+    invoiceNumber: '发票编号',
+    invoiceDate: '发票日期',
+    invoicePaidDate: '付款日期',
+    invoiceBilledTo: '账单收件人',
+    invoiceProject: '项目',
+    invoiceDescription: '描述',
+    invoiceAmount: '金额',
+    invoiceTotal: '已付总额',
+    invoicePaymentMethod: '付款方式',
+    invoicePaymentConfirmed: 'Linier Studio 已核实付款。',
+    invoicePrint: '打印 / 保存为 PDF',
+    invoicePopupBlocked: '无法打开发票。请允许弹出窗口后重试。',
+    invoiceBankUnavailable: '银行账户信息不可用',
+    invoiceLoadFailed: '无法加载发票。请刷新门户或联系工作室。',
     billingProofReceived: '付款凭证已上传。',
     billingProofLinkUnavailable: '已收到凭证，但预览链接暂不可用。请刷新门户或联系工作室。',
     billingSubmittedAt: '提交时间',
@@ -734,6 +782,80 @@ const getSessionDeviceLabel = (userAgent: string, language: keyof typeof copy): 
   return `${browser}${connector}${platform}`;
 };
 
+interface InvoiceDocumentLabels {
+  htmlLanguage: string;
+  title: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  paidDate: string;
+  billedTo: string;
+  project: string;
+  description: string;
+  amount: string;
+  total: string;
+  paymentMethod: string;
+  paymentConfirmed: string;
+  print: string;
+  bankUnavailable: string;
+  issuedAt: string;
+  paidAt: string;
+  formattedAmount: string;
+}
+
+const escapeHtml = (value: string): string => value
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+const buildInvoiceHtml = (invoice: PortalInvoice, labels: InvoiceDocumentLabels): string => {
+  const bank = findPortalBank(invoice.payment_bank_code);
+  const paymentMethod = bank?.label ?? labels.bankUnavailable;
+  const issuerAddress = escapeHtml(invoice.issuer_address).replace(/,\s*/g, ',<br>');
+  return `<!doctype html>
+<html lang="${escapeHtml(labels.htmlLanguage)}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${escapeHtml(labels.title)} · ${escapeHtml(invoice.invoice_number)}</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f4f2ee;color:#27251f;font:14px/1.55 Arial,sans-serif}
+    main{max-width:820px;margin:36px auto;padding:48px;background:#fff;box-shadow:0 12px 40px #27251f12}
+    header{display:flex;justify-content:space-between;gap:24px;padding-bottom:28px;border-bottom:2px solid #8c795e}
+    h1{margin:0 0 6px;font-size:28px;letter-spacing:.03em}h2{margin:0 0 9px;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#827b70}
+    p{margin:3px 0}.muted{color:#777166}.meta{text-align:right}.summary{display:grid;grid-template-columns:1fr 1fr;gap:36px;padding:30px 0}
+    .table{width:100%;border-collapse:collapse;margin:8px 0 18px}.table th,.table td{padding:13px 10px;border-bottom:1px solid #e9e6e0;text-align:left}
+    .table th:last-child,.table td:last-child{text-align:right}.total{display:flex;justify-content:flex-end;gap:32px;padding:14px 10px;font-size:17px;font-weight:700}
+    .paid{margin-top:24px;padding:14px;background:#f1f5ef;color:#466044;border-radius:6px}.actions{display:flex;justify-content:flex-end;margin-bottom:24px}
+    button{border:0;border-radius:6px;background:#8c795e;color:#fff;padding:11px 16px;font-weight:600;cursor:pointer}
+    @media(max-width:600px){main{margin:0;padding:24px 18px;min-height:100vh}header{flex-direction:column}.meta{text-align:left}.summary{grid-template-columns:1fr;gap:20px}}
+    @media print{body{background:#fff}main{max-width:none;margin:0;padding:20px;box-shadow:none}.no-print{display:none!important}}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="actions no-print"><button type="button" onclick="window.print()">${escapeHtml(labels.print)}</button></div>
+    <header>
+      <div><h1>${escapeHtml(invoice.issuer_name)}</h1><p>${issuerAddress}</p><p>${escapeHtml(invoice.issuer_email)}</p></div>
+      <div class="meta"><h2>${escapeHtml(labels.title)}</h2><p><strong>${escapeHtml(labels.invoiceNumber)}:</strong> ${escapeHtml(invoice.invoice_number)}</p><p><strong>${escapeHtml(labels.invoiceDate)}:</strong> ${escapeHtml(labels.issuedAt)}</p></div>
+    </header>
+    <section class="summary">
+      <div><h2>${escapeHtml(labels.billedTo)}</h2><p><strong>${escapeHtml(invoice.client_name)}</strong></p><p>${escapeHtml(invoice.client_email ?? '')}</p><p>${escapeHtml(invoice.client_phone)}</p></div>
+      <div><h2>${escapeHtml(labels.project)}</h2><p><strong>${escapeHtml(invoice.project_name)}</strong></p><p>${escapeHtml(invoice.project_code)}</p><p>${escapeHtml(invoice.project_location)}</p></div>
+    </section>
+    <table class="table"><thead><tr><th>${escapeHtml(labels.description)}</th><th>${escapeHtml(labels.amount)}</th></tr></thead>
+      <tbody><tr><td>${escapeHtml(invoice.description)}</td><td>${escapeHtml(labels.formattedAmount)}</td></tr></tbody>
+    </table>
+    <div class="total"><span>${escapeHtml(labels.total)}</span><span>${escapeHtml(labels.formattedAmount)}</span></div>
+    <p><strong>${escapeHtml(labels.paidDate)}:</strong> ${escapeHtml(labels.paidAt)}</p>
+    <p><strong>${escapeHtml(labels.paymentMethod)}:</strong> ${escapeHtml(paymentMethod)}</p>
+    <div class="paid">${escapeHtml(labels.paymentConfirmed)}</div>
+  </main>
+</body>
+</html>`;
+};
+
 const ClientPortal: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -747,6 +869,8 @@ const ClientPortal: React.FC = () => {
   const [projectDocumentsError, setProjectDocumentsError] = useState('');
   const [feedbackItems, setFeedbackItems] = useState<ClientFeedback[]>([]);
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
+  const [portalInvoices, setPortalInvoices] = useState<PortalInvoice[]>([]);
+  const [invoiceError, setInvoiceError] = useState('');
   const [paymentAccounts, setPaymentAccounts] = useState<PortalPaymentAccount[]>([]);
   const availablePaymentAccounts = paymentAccounts.filter((account) => account.account_number.trim());
   const [paymentAccountsLoading, setPaymentAccountsLoading] = useState(false);
@@ -974,11 +1098,15 @@ const ClientPortal: React.FC = () => {
     let active = true;
     if (!project) {
       setBillingItems([]);
+      setPortalInvoices([]);
+      setInvoiceError('');
       setChangeOrders([]);
       return () => { active = false; };
     }
 
     setBillingItems([]);
+    setPortalInvoices([]);
+    setInvoiceError('');
     setChangeOrders([]);
     Promise.all([
       portalRequest<{ items: BillingItem[] }>(`/api/portal/client/billing?projectId=${encodeURIComponent(project.id)}`),
@@ -994,6 +1122,23 @@ const ClientPortal: React.FC = () => {
       });
     return () => { active = false; };
   }, [project?.id]);
+
+  useEffect(() => {
+    let active = true;
+    if (!project) return () => { active = false; };
+
+    portalRequest<{ invoices: PortalInvoice[] }>(`/api/portal/client/invoices?projectId=${encodeURIComponent(project.id)}`)
+      .then(({ invoices }) => {
+        if (active) {
+          setPortalInvoices(invoices);
+          setInvoiceError('');
+        }
+      })
+      .catch((cause: unknown) => {
+        if (active) setInvoiceError(cause instanceof Error ? cause.message : t.invoiceLoadFailed);
+      });
+    return () => { active = false; };
+  }, [project?.id, notifications, t.invoiceLoadFailed]);
 
   useEffect(() => {
     let active = true;
@@ -1117,6 +1262,38 @@ const ClientPortal: React.FC = () => {
     } finally {
       setFeedbackSubmitting(false);
     }
+  };
+
+  const openInvoice = (invoice: PortalInvoice) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      setInvoiceError(t.invoicePopupBlocked);
+      return;
+    }
+
+    setInvoiceError('');
+    printWindow.opener = null;
+    printWindow.document.open();
+    printWindow.document.write(buildInvoiceHtml(invoice, {
+      htmlLanguage: language === 'EN' ? 'en' : language === 'CN' ? 'zh-CN' : 'id',
+      title: t.invoiceTitle,
+      invoiceNumber: t.invoiceNumber,
+      invoiceDate: t.invoiceDate,
+      paidDate: t.invoicePaidDate,
+      billedTo: t.invoiceBilledTo,
+      project: t.invoiceProject,
+      description: t.invoiceDescription,
+      amount: t.invoiceAmount,
+      total: t.invoiceTotal,
+      paymentMethod: t.invoicePaymentMethod,
+      paymentConfirmed: t.invoicePaymentConfirmed,
+      print: t.invoicePrint,
+      bankUnavailable: t.invoiceBankUnavailable,
+      issuedAt: formatDateTime(invoice.issued_at, language),
+      paidAt: formatDateTime(invoice.paid_at, language),
+      formattedAmount: formatCurrency(invoice.amount, language),
+    }));
+    printWindow.document.close();
   };
 
   const uploadPaymentProof = async (event: React.ChangeEvent<HTMLInputElement>, item: BillingItem) => {
@@ -2173,9 +2350,27 @@ const ClientPortal: React.FC = () => {
                 <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.billingTitle}</h2></div>
               </div>
               {billingNotice && <p role="status" className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-xs text-emerald-700 dark:text-emerald-300">{billingNotice}</p>}
+              {invoiceError && <p role="alert" className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-800 dark:text-amber-200">{invoiceError}</p>}
+              {portalInvoices.length > 0 && (
+                <div className="mb-5 rounded-xl border border-[#8c795e]/20 bg-[#f8f6f1]/70 p-4 dark:bg-white/[0.02]">
+                  <h3 className="mb-3 text-sm font-medium">{t.invoiceTitle}</h3>
+                  <ul className="space-y-2">
+                    {portalInvoices.map((invoice) => (
+                      <li key={invoice.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white px-3 py-3 dark:bg-neutral-950">
+                        <div className="min-w-0">
+                          <p className="break-all text-xs font-medium">{invoice.invoice_number}</p>
+                          <p className="mt-1 text-[11px] text-neutral-500">{formatDateTime(invoice.issued_at, language)} · {formatCurrency(invoice.amount, language)}</p>
+                        </div>
+                        <button type="button" onClick={() => openInvoice(invoice)} className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[#8c795e]/30 px-3 py-2 text-xs font-medium text-[#746249] transition hover:border-[#8c795e] hover:bg-[#f8f6f1] dark:text-bronze-300 dark:hover:bg-white/[0.05]"><FileText size={14} />{t.invoicePrint}</button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {billingItems.length === 0 ? <p className="py-2 text-sm text-neutral-500">{t.billingEmpty}</p> : (
                 <ul className="grid gap-3 lg:grid-cols-2">
-                  {billingItems.map((item) => (
+                  {billingItems.map((item) => {
+                    return (
                     <li key={item.id} className="min-w-0 rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 sm:p-5 dark:border-white/[0.06] dark:bg-white/[0.02]">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0"><h3 className="break-words font-medium">{item.title}</h3><p className="mt-1 text-sm font-medium text-neutral-700 dark:text-neutral-200">{formatCurrency(item.amount, language)}</p><p className="mt-1 text-xs text-neutral-500">{t.billingDueDate}: {formatDate(item.due_date, language)}</p></div>
@@ -2252,7 +2447,8 @@ const ClientPortal: React.FC = () => {
                         </label>
                       )}
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               )}
             </section>}

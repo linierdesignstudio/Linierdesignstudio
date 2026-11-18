@@ -76,14 +76,27 @@ export default async function handler(request: ApiRequest, response: ApiResponse
         throw new HttpError(400, 'Catatan penolakan bukti harus terdiri dari 1 hingga 1000 karakter.');
       }
 
+      if (status === 'paid') {
+        const approval = await supabaseRequest<Array<{ billing_item: BillingRecord; invoice: { id: string; invoice_number: string } }>>(
+          'rpc/portal_approve_billing_item',
+          {
+            method: 'POST',
+            body: JSON.stringify({ p_item_id: itemId }),
+          }
+        );
+        if (!approval[0]?.billing_item || !approval[0].invoice) {
+          throw new HttpError(409, 'Bukti pembayaran sudah diproses atau tidak lagi menunggu pemeriksaan.');
+        }
+        sendJson(response, 200, { item: approval[0].billing_item, invoice: approval[0].invoice });
+        return;
+      }
+
       const updated = await supabaseRequest<BillingRecord[]>(
         `project_billing_items?id=eq.${encodeURIComponent(itemId)}&status=eq.pending_review&select=${BILLING_FIELDS}`,
         {
           method: 'PATCH',
           headers: { Prefer: 'return=representation' },
-          body: JSON.stringify(status === 'paid'
-            ? { status, paid_at: new Date().toISOString(), payment_review_note: null }
-            : { status, paid_at: null, payment_review_note: reviewNote }),
+          body: JSON.stringify({ status, paid_at: null, payment_review_note: reviewNote }),
         }
       );
       if (!updated[0]) throw new HttpError(409, 'Bukti pembayaran sudah diproses atau tidak lagi menunggu pemeriksaan.');
