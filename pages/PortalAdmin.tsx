@@ -2065,7 +2065,7 @@ const PortalAdmin: React.FC = () => {
   };
 
   return (
-    <div className={`portal-readable ${authenticated ? 'min-h-screen overflow-x-clip bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'portal-login-backdrop grid min-h-[100svh] place-items-center overflow-x-clip px-4 py-8 text-neutral-900 sm:px-6'}`}>
+    <div className={`portal-readable ${authenticated ? 'min-h-screen overflow-x-clip bg-[#f4f3ef] text-neutral-900 dark:bg-[#0b0c0b] dark:text-white' : 'portal-login-backdrop portal-admin-login-page grid min-h-[100svh] place-items-center overflow-x-clip px-4 py-8 text-neutral-900 sm:px-6'}`}>
       {authenticated && !checking && (
         <aside className="z-40 bg-[#20211d] text-white shadow-xl shadow-black/10 lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-64 lg:flex-col">
           <div className="border-b border-white/[0.08] px-4 py-4 sm:px-7 sm:py-5 lg:px-6 lg:py-7">
@@ -2164,8 +2164,8 @@ const PortalAdmin: React.FC = () => {
             <span className="font-mono text-[10px] uppercase tracking-[0.18em]">{language === 'ID' ? 'Memuat ruang kerja...' : language === 'CN' ? '正在加载工作区...' : 'Loading workspace...'}</span>
           </div>
         ) : !authenticated ? (
-          <form onSubmit={signIn} className="portal-login mx-auto grid w-full min-w-0 max-w-[1180px] overflow-hidden border border-neutral-300 bg-white shadow-[0_28px_80px_rgba(15,17,14,0.18)] lg:min-h-[640px] lg:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
-            <section className="relative flex min-h-[340px] flex-col justify-between overflow-hidden bg-[#191a16] p-6 text-white sm:min-h-[480px] sm:p-10 lg:min-h-[640px] lg:p-14">
+          <form onSubmit={signIn} className="portal-login mx-auto grid w-full min-w-0 max-w-[460px] overflow-hidden rounded-[1.75rem] border border-[#d9e0db] bg-white shadow-[0_24px_70px_rgba(20,37,38,0.12)] md:max-w-[1180px] md:rounded-none md:border-neutral-300 md:shadow-[0_28px_80px_rgba(15,17,14,0.18)] lg:min-h-[640px] lg:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
+            <section className="relative hidden min-h-[340px] flex-col justify-between overflow-hidden bg-[#191a16] p-6 text-white md:flex sm:min-h-[480px] sm:p-10 lg:min-h-[640px] lg:p-14">
               <img src={heroImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-55" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/35" />
               <div className="relative">
@@ -2185,31 +2185,38 @@ const PortalAdmin: React.FC = () => {
               </div>
             </section>
 
-            <div className="flex flex-col justify-center bg-[#f7f6f2] px-6 py-9 text-neutral-900 sm:px-10 sm:py-12 lg:px-12 lg:py-14">
+            <div className="relative flex flex-col justify-center bg-white px-5 py-7 text-neutral-900 sm:px-10 sm:py-12 md:bg-[#f7f6f2] lg:px-12 lg:py-14">
+              <span aria-hidden="true" className="absolute inset-x-7 top-0 h-1 rounded-b-full bg-[#142526] md:hidden" />
               <div className="mb-9 flex items-start justify-between gap-4 sm:mb-14">
                 <div>
                   <p className="font-display text-2xl font-bold uppercase leading-none tracking-[-0.075em]">LINIER</p>
                   <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{t.eyebrow}</p>
                 </div>
-                <PortalLanguageSwitcher language={language} onChange={setLanguage} />
+                <div className="flex items-center gap-2">
+                  <Link to="/portal" aria-label={t.back} title={t.back} className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 text-neutral-600 transition-colors hover:border-[#142526] hover:text-[#142526] md:hidden">
+                    <ArrowDownLeft size={15} />
+                  </Link>
+                  <PortalLanguageSwitcher language={language} onChange={setLanguage} />
+                </div>
               </div>
-              <h2 className="max-w-[13ch] font-display text-4xl font-bold leading-[0.96] tracking-[-0.06em] sm:text-[2.75rem]">{t.teamLoginWelcome}</h2>
-              <div className="mt-8">
+              <h2 className="max-w-[13ch] font-display text-3xl font-bold leading-[0.96] tracking-[-0.06em] sm:text-[2.75rem]">{t.teamLoginWelcome}</h2>
+              <p className="mt-3 text-sm leading-6 text-neutral-500 md:hidden">{t.subtitle}</p>
+              <div className="mt-6 md:mt-8">
                 <label className="mb-5 block">
                   <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-700">{t.email}</span>
-                  <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 text-sm outline-none transition placeholder:text-neutral-400 focus:ring-2 focus:ring-[#142526]/15" />
+                  <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full rounded-xl border border-neutral-200 bg-[#f5f7f6] px-4 py-3.5 text-sm outline-none transition placeholder:text-neutral-400 focus:border-[#142526]/40 focus:ring-2 focus:ring-[#142526]/10 md:rounded-full md:border-0 md:bg-[#f0f0ee] md:focus:border-transparent md:focus:ring-[#142526]/15" />
                 </label>
                 <div>
                   <label htmlFor="admin-login-password" className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-700">{t.password}</label>
                   <div className="relative">
-                    <input id="admin-login-password" name="password" type={adminPasswordVisible ? 'text' : 'password'} autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full rounded-full border-0 bg-[#f0f0ee] px-4 py-3.5 pr-12 text-sm outline-none transition focus:ring-2 focus:ring-[#142526]/15" />
+                    <input id="admin-login-password" name="password" type={adminPasswordVisible ? 'text' : 'password'} autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full rounded-xl border border-neutral-200 bg-[#f5f7f6] px-4 py-3.5 pr-12 text-sm outline-none transition focus:border-[#142526]/40 focus:ring-2 focus:ring-[#142526]/10 md:rounded-full md:border-0 md:bg-[#f0f0ee] md:focus:border-transparent md:focus:ring-[#142526]/15" />
                     <button
                       type="button"
                       onClick={() => setAdminPasswordVisible((visible) => !visible)}
                       aria-label={adminPasswordVisible ? t.hidePassword : t.showPassword}
                       aria-pressed={adminPasswordVisible}
                       title={adminPasswordVisible ? t.hidePassword : t.showPassword}
-                      className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-full text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#142526]"
+                      className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-xl text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#142526] md:rounded-r-full"
                     >
                       {adminPasswordVisible ? <EyeOff size={17} /> : <Eye size={17} />}
                     </button>
@@ -2217,16 +2224,16 @@ const PortalAdmin: React.FC = () => {
                 </div>
               </div>
               {error && <div className="mt-4"><ErrorBanner message={error} /></div>}
-              <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
-                <button disabled={busy} className="inline-flex items-center gap-3 rounded-full bg-[#142526] px-6 py-3 text-xs font-medium text-white transition-colors hover:bg-[#263b3c] disabled:cursor-wait disabled:opacity-60">
+              <div className="mt-6 grid gap-4 md:flex md:flex-wrap md:items-start md:justify-between md:gap-4">
+                <button disabled={busy} className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-[#142526] px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#263b3c] disabled:cursor-wait disabled:opacity-60 md:w-auto md:rounded-full md:py-3 md:text-xs">
                   {busy ? '...' : t.signIn} <ArrowUpRight size={14} />
                 </button>
-                <details className="max-w-[190px] pt-2 text-right text-[10px]">
+                <details className="max-w-none pt-0 text-left text-[10px] md:max-w-[190px] md:pt-2 md:text-right">
                   <summary className="cursor-pointer text-neutral-600 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-neutral-950">{t.forgotPassword}</summary>
                   <p className="mt-3 text-left leading-5 text-neutral-500">{t.forgotPasswordHint}</p>
                 </details>
               </div>
-              <p className="mt-10 border-t border-neutral-200 pt-4 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-400">{t.workspace}</p>
+              <p className="mt-8 border-t border-neutral-200 pt-4 font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-400 md:mt-10">{t.workspace}</p>
             </div>
           </form>
         ) : (
