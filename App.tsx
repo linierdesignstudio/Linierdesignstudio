@@ -80,7 +80,7 @@ const RouteAppShell: React.FC<{ scrollLocked: boolean }> = ({ scrollLocked }) =>
 
   return (
     <>
-      <CustomCursor />
+      {!isPortalRoute && <CustomCursor />}
       {!isPortalRoute && <Navbar />}
       <div
         className={`
