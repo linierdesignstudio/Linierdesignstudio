@@ -878,7 +878,12 @@ const buildInvoiceHtml = (invoice: PortalInvoice, labels: InvoiceDocumentLabels)
   const bank = findPortalBank(invoice.payment_bank_code);
   const paymentMethod = bank?.label ?? labels.bankUnavailable;
   const issuerAddress = escapeHtml(invoice.issuer_address).replace(/,\s*/g, ',<br>');
-  const clientContact = [invoice.client_email, invoice.client_phone].filter(Boolean).map(escapeHtml).join('<br>');
+  const clientContact = [
+    invoice.client_email,
+    invoice.client_phone,
+    invoice.client_address,
+    invoice.client_postal_code,
+  ].filter((value) => value?.trim()).map(escapeHtml).join('<br>');
   const projectDetails = [invoice.project_code, invoice.project_location].filter(Boolean).map(escapeHtml).join(' · ');
   return `<!doctype html>
 <html lang="${escapeHtml(labels.htmlLanguage)}">

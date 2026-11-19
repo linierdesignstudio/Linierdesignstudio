@@ -148,6 +148,8 @@ export interface PortalInvoice {
   client_name: string;
   client_email: string | null;
   client_phone: string;
+  client_address: string;
+  client_postal_code: string;
   project_name: string;
   project_code: string;
   project_location: string;

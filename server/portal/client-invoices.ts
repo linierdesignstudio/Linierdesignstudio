@@ -17,6 +17,8 @@ interface PortalInvoiceRecord {
   client_name: string;
   client_email: string | null;
   client_phone: string;
+  client_address: string;
+  client_postal_code: string;
   project_name: string;
   project_code: string;
   project_location: string;
@@ -25,7 +27,7 @@ interface PortalInvoiceRecord {
   payment_bank_code: string | null;
 }
 
-const INVOICE_FIELDS = 'id,invoice_number,billing_item_id,project_id,issued_at,due_date,paid_at,issuer_name,issuer_address,issuer_email,issuer_phone,client_name,client_email,client_phone,project_name,project_code,project_location,description,amount,payment_bank_code';
+const INVOICE_FIELDS = 'id,invoice_number,billing_item_id,project_id,issued_at,due_date,paid_at,issuer_name,issuer_address,issuer_email,issuer_phone,client_name,client_email,client_phone,client_address,client_postal_code,project_name,project_code,project_location,description,amount,payment_bank_code';
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   try {

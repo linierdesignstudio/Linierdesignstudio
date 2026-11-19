@@ -241,6 +241,8 @@ create table if not exists public.portal_invoices (
   client_name text not null,
   client_email text,
   client_phone text not null default '',
+  client_address text not null default '',
+  client_postal_code text not null default '',
   project_name text not null,
   project_code text not null,
   project_location text not null default '',
@@ -261,6 +263,19 @@ alter table public.portal_invoices
 
 alter table public.portal_invoices
   add column if not exists issuer_phone text not null default '+6281775030638';
+
+alter table public.portal_invoices
+  add column if not exists client_address text not null default '';
+
+alter table public.portal_invoices
+  add column if not exists client_postal_code text not null default '';
+
+update public.portal_invoices as invoice
+set
+  client_address = coalesce(nullif(invoice.client_address, ''), project.client_address),
+  client_postal_code = coalesce(nullif(invoice.client_postal_code, ''), project.client_postal_code)
+from public.client_projects as project
+where project.id = invoice.project_id;
 
 create index if not exists portal_invoices_project_issued_idx
   on public.portal_invoices (project_id, issued_at desc);
@@ -1361,6 +1376,8 @@ begin
     client_name,
     client_email,
     client_phone,
+    client_address,
+    client_postal_code,
     project_name,
     project_code,
     project_location,
@@ -1382,6 +1399,8 @@ begin
     v_project.client_name,
     v_project.client_email,
     v_project.client_phone,
+    v_project.client_address,
+    v_project.client_postal_code,
     v_project.project_name,
     v_project.project_code,
     v_project.location,
