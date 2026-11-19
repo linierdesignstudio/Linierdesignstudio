@@ -2201,8 +2201,6 @@ const ClientPortal: React.FC = () => {
             <div className="relative mb-5 min-w-0 overflow-hidden rounded-2xl bg-[#23241f] p-4 text-white shadow-[0_30px_90px_rgba(27,25,20,0.22)] sm:mb-6 sm:rounded-[2rem] sm:p-9 lg:p-12">
               <img src={clientPortalImage} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-25" />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#171814]/95 via-[#1d1e19]/80 to-[#25241f]/35" />
-              <div className="pointer-events-none absolute -right-24 -top-40 h-96 w-96 rounded-full border border-white/[0.09]" />
-              <div className="pointer-events-none absolute -right-12 -top-28 h-72 w-72 rounded-full border border-white/[0.09]" />
               <div className="relative grid gap-10">
                 <div className="min-w-0">
                   <p className="mb-5 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/70 sm:text-[11px]">
