@@ -15,8 +15,7 @@ View your app in AI Studio: https://ai.studio/apps/fc45b256-1696-4d4a-a7fa-adc6f
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Run the app:
    `npm run dev`
 
 ## Client progress portal
@@ -45,3 +44,9 @@ Portal API paths are routed through one shared Vercel Function, keeping the depl
 9. Share the deployed site's URL with `#/portal` appended and the client's project ID and account password through a separate secure channel. For projects created now, that one password works with either the project ID or client email. If an admin forgets their password, update `PORTAL_ADMIN_PASSWORD` in Vercel Environment Variables and redeploy.
 
 Client passwords are stored as salted scrypt hashes. API sessions use an HttpOnly, SameSite cookie; the Supabase service role key remains on the server. Client login attempts are limited to 10 per project per 15 minutes.
+
+## Pengamanan situs
+
+Konfigurasi Vercel dan Netlify mengirim header untuk mencegah MIME sniffing dan clickjacking, membatasi referrer, menonaktifkan izin browser yang tidak dipakai, serta mewajibkan HTTPS di browser. API portal juga mengirim header keamanan ini. Kebijakan CSP yang dipasang membatasi framing, plugin/object, dan perubahan base URL tanpa memblokir aset eksternal yang saat ini dipakai situs.
+
+Header ini mengurangi beberapa risiko browser, tetapi tidak dapat menjamin situs bebas dari peretas atau virus. Aktifkan MFA pada akun Git, Vercel/Netlify, Supabase, dan Resend; simpan semua secret hanya di environment server; segera rotasi secret jika pernah terungkap; dan pasang WAF/rate limiting dari penyedia hosting untuk perlindungan DDoS atau bot. File portal hanya divalidasi berdasarkan tipe dan ukuran, bukan dipindai malware, jadi pindai file sebelum dibuka dan gunakan layanan pemindaian malware jika portal perlu menjamin file aman.
