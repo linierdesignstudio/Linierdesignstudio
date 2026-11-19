@@ -2242,12 +2242,12 @@ const PortalAdmin: React.FC = () => {
             {activeSection === 'admin-dashboard' && (
               <>
             <div className="mb-7 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-              <Metric icon={<Layers size={17} />} label={t.projectCount} value={projects.length.toString().padStart(2, '0')} />
-              <Metric icon={<Send size={17} />} label={t.activeProjects} value={projects.filter((project) => project.progress_percent < 100).length.toString().padStart(2, '0')} />
-              <Metric icon={<CheckCircle2 size={17} />} label={t.completedProjects} value={completedProjectCount.toString().padStart(2, '0')} />
-              <Metric icon={<ClipboardList size={17} />} label={t.progress} value={`${averageProgress}%`} />
-              <Metric icon={<Users size={17} />} label={t.clientCount} value={clientDirectory.length.toString().padStart(2, '0')} />
-              <Metric icon={<MessageCircle size={17} />} label={t.pendingFeedback} value={unreadFeedbackCount.toString().padStart(2, '0')} />
+              <Metric label={t.projectCount} value={projects.length.toString().padStart(2, '0')} />
+              <Metric label={t.activeProjects} value={projects.filter((project) => project.progress_percent < 100).length.toString().padStart(2, '0')} />
+              <Metric label={t.completedProjects} value={completedProjectCount.toString().padStart(2, '0')} />
+              <Metric label={t.progress} value={`${averageProgress}%`} />
+              <Metric label={t.clientCount} value={clientDirectory.length.toString().padStart(2, '0')} />
+              <Metric label={t.pendingFeedback} value={unreadFeedbackCount.toString().padStart(2, '0')} />
             </div>
             <PortalActivityPanel
               {...activityPanelProps}
@@ -3303,13 +3303,10 @@ function Field({
   );
 }
 
-function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex min-h-28 flex-col justify-between rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow-sm sm:px-5 sm:py-5 dark:border-white/10 dark:bg-neutral-900">
-      <div className="flex items-center justify-between gap-2 text-neutral-500">
-        <p className="text-xs font-medium">{label}</p>
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]">{icon}</span>
-      </div>
+      <p className="text-xs font-medium text-neutral-500">{label}</p>
       <p className="mt-4 font-display text-3xl font-medium tracking-tight tabular-nums sm:text-4xl">{value}</p>
     </div>
   );
