@@ -2186,14 +2186,14 @@ const PortalAdmin: React.FC = () => {
             </section>
 
             <div className="relative flex flex-col justify-center bg-white px-5 py-7 text-neutral-900 sm:px-10 sm:py-12 md:bg-[#f7f6f2] lg:px-12 lg:py-14">
-              <span aria-hidden="true" className="absolute inset-x-7 top-0 h-1 rounded-b-full bg-[#142526] md:hidden" />
+              <span aria-hidden="true" className="absolute inset-x-7 top-0 h-1 rounded-b-full bg-bronze-500 md:hidden" />
               <div className="mb-9 flex items-start justify-between gap-4 sm:mb-14">
                 <div>
                   <p className="font-display text-2xl font-bold uppercase leading-none tracking-[-0.075em]">LINIER</p>
                   <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">{t.eyebrow}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Link to="/portal" aria-label={t.back} title={t.back} className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 text-neutral-600 transition-colors hover:border-[#142526] hover:text-[#142526] md:hidden">
+                  <Link to="/portal" aria-label={t.back} title={t.back} className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 text-neutral-600 transition-colors hover:border-bronze-600 hover:text-bronze-600 md:hidden">
                     <ArrowDownLeft size={15} />
                   </Link>
                   <PortalLanguageSwitcher language={language} onChange={setLanguage} />
@@ -2204,12 +2204,12 @@ const PortalAdmin: React.FC = () => {
               <div className="mt-6 md:mt-8">
                 <label className="mb-5 block">
                   <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-700">{t.email}</span>
-                  <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full rounded-xl border border-neutral-200 bg-[#f5f7f6] px-4 py-3.5 text-sm outline-none transition placeholder:text-neutral-400 focus:border-[#142526]/40 focus:ring-2 focus:ring-[#142526]/10 md:rounded-full md:border-0 md:bg-[#f0f0ee] md:focus:border-transparent md:focus:ring-[#142526]/15" />
+                  <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} required maxLength={254} className="w-full rounded-xl border border-neutral-200 bg-[#f5f7f6] px-4 py-3.5 text-sm outline-none transition placeholder:text-neutral-400 focus:border-bronze-600 focus:ring-2 focus:ring-bronze-500/20 md:rounded-full md:border-0 md:bg-[#f0f0ee] md:focus:border-transparent md:focus:ring-[#142526]/15" />
                 </label>
                 <div>
                   <label htmlFor="admin-login-password" className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-700">{t.password}</label>
                   <div className="relative">
-                    <input id="admin-login-password" name="password" type={adminPasswordVisible ? 'text' : 'password'} autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full rounded-xl border border-neutral-200 bg-[#f5f7f6] px-4 py-3.5 pr-12 text-sm outline-none transition focus:border-[#142526]/40 focus:ring-2 focus:ring-[#142526]/10 md:rounded-full md:border-0 md:bg-[#f0f0ee] md:focus:border-transparent md:focus:ring-[#142526]/15" />
+                    <input id="admin-login-password" name="password" type={adminPasswordVisible ? 'text' : 'password'} autoComplete="current-password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required maxLength={256} className="w-full rounded-xl border border-neutral-200 bg-[#f5f7f6] px-4 py-3.5 pr-12 text-sm outline-none transition focus:border-bronze-600 focus:ring-2 focus:ring-bronze-500/20 md:rounded-full md:border-0 md:bg-[#f0f0ee] md:focus:border-transparent md:focus:ring-[#142526]/15" />
                     <button
                       type="button"
                       onClick={() => setAdminPasswordVisible((visible) => !visible)}
@@ -2225,11 +2225,11 @@ const PortalAdmin: React.FC = () => {
               </div>
               {error && <div className="mt-4"><ErrorBanner message={error} /></div>}
               <div className="mt-6 grid gap-4 md:flex md:flex-wrap md:items-start md:justify-between md:gap-4">
-                <button disabled={busy} className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-[#142526] px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#263b3c] disabled:cursor-wait disabled:opacity-60 md:w-auto md:rounded-full md:py-3 md:text-xs">
+                <button disabled={busy} className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-bronze-500 px-6 py-3.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-bronze-600 disabled:cursor-wait disabled:opacity-60 md:w-auto md:rounded-full md:bg-[#142526] md:py-3 md:text-xs md:text-white md:hover:bg-[#263b3c]">
                   {busy ? '...' : t.signIn} <ArrowUpRight size={14} />
                 </button>
                 <details className="max-w-none pt-0 text-left text-[10px] md:max-w-[190px] md:pt-2 md:text-right">
-                  <summary className="cursor-pointer text-neutral-600 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-neutral-950">{t.forgotPassword}</summary>
+                  <summary className="cursor-pointer text-neutral-600 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-bronze-600 md:hover:text-neutral-950">{t.forgotPassword}</summary>
                   <p className="mt-3 text-left leading-5 text-neutral-500">{t.forgotPasswordHint}</p>
                 </details>
               </div>
