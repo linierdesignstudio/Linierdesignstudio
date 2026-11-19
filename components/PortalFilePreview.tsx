@@ -10,10 +10,16 @@ interface PortalFilePreviewProps {
     download: string;
     close: string;
   };
+  iconColorClassName?: string;
   onClose: () => void;
 }
 
-const PortalFilePreview: React.FC<PortalFilePreviewProps> = ({ attachment, labels, onClose }) => {
+const PortalFilePreview: React.FC<PortalFilePreviewProps> = ({
+  attachment,
+  labels,
+  iconColorClassName = 'text-[#8c795e] dark:text-bronze-400',
+  onClose,
+}) => {
   const previewUrl = attachment.url;
   const downloadUrl = attachment.downloadUrl ?? attachment.url;
   const kind = getPortalDocumentKind(attachment);
@@ -43,7 +49,7 @@ const PortalFilePreview: React.FC<PortalFilePreviewProps> = ({ attachment, label
         className="relative flex h-[min(94dvh,900px)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-white shadow-2xl dark:bg-neutral-950"
       >
         <header className="flex min-h-14 items-center gap-3 border-b border-neutral-200 px-3 py-2.5 dark:border-white/10 sm:px-5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400">
+          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f5f2ec] dark:bg-white/[0.06] ${iconColorClassName}`}>
             <FileText size={17} />
           </span>
           <div className="min-w-0 flex-1">

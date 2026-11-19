@@ -16,6 +16,7 @@ interface PortalActivityPanelProps {
     open: string;
     viewAll: string;
   };
+  iconColorClassName?: string;
   showAll?: boolean;
   error?: string;
   loading?: boolean;
@@ -29,6 +30,7 @@ interface PortalActivityPanelProps {
 const PortalActivityPanel: React.FC<PortalActivityPanelProps> = ({
   notifications,
   labels,
+  iconColorClassName = 'text-[#8c795e] dark:text-bronze-400',
   showAll = false,
   error = '',
   loading = false,
@@ -59,7 +61,7 @@ const PortalActivityPanel: React.FC<PortalActivityPanelProps> = ({
         onClick={() => onOpen(notification)}
         className="group flex w-full items-start gap-3 rounded-xl border border-neutral-100 bg-neutral-50/70 p-3.5 text-left transition-colors hover:border-bronze-500/40 hover:bg-bronze-500/[0.04] dark:border-white/[0.06] dark:bg-white/[0.02] dark:hover:border-bronze-400/30 dark:hover:bg-white/[0.04] sm:p-4"
       >
-        <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400">
+        <span className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white dark:bg-white/[0.06] ${iconColorClassName}`}>
           {!notification.read_at ? <span className="h-2 w-2 rounded-full bg-bronze-500" /> : <CheckCircle2 size={15} />}
         </span>
         <span className="min-w-0 flex-1">
@@ -86,7 +88,7 @@ const PortalActivityPanel: React.FC<PortalActivityPanelProps> = ({
       <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5 dark:border-white/10 dark:bg-neutral-900">
         <div className="mb-4 flex items-center justify-between gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><ClipboardList size={17} /></span>
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f5f2ec] dark:bg-white/[0.06] ${iconColorClassName}`}><ClipboardList size={17} /></span>
             <h2 className="truncate font-display text-lg font-medium">{labels.actions}</h2>
           </div>
           <span className="shrink-0 rounded-full bg-amber-500/10 px-2.5 py-1 font-mono text-[10px] tabular-nums text-amber-700 dark:text-amber-300">{actions.length}</span>
@@ -110,7 +112,7 @@ const PortalActivityPanel: React.FC<PortalActivityPanelProps> = ({
       <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5 dark:border-white/10 dark:bg-neutral-900">
         <div className="mb-4 flex items-center justify-between gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><Bell size={17} /></span>
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f5f2ec] dark:bg-white/[0.06] ${iconColorClassName}`}><Bell size={17} /></span>
             <h2 className="truncate font-display text-lg font-medium">{labels.activity}</h2>
           </div>
           <div className="flex shrink-0 items-center gap-2">

@@ -2173,6 +2173,7 @@ const ClientPortal: React.FC = () => {
             </header>
             <PortalActivityPanel
               notifications={notifications}
+              iconColorClassName="text-[#8FCC00] dark:text-[#B7FF00]"
               showAll
               labels={{
                 actions: t.actionCenter,
@@ -2288,6 +2289,7 @@ const ClientPortal: React.FC = () => {
 
             <PortalActivityPanel
               notifications={notifications}
+              iconColorClassName="text-[#8FCC00] dark:text-[#B7FF00]"
               labels={{
                 actions: t.actionCenter,
                 activity: t.activityCenter,
@@ -2498,7 +2500,7 @@ const ClientPortal: React.FC = () => {
                           <p className="break-all text-xs font-medium">{invoice.invoice_number}</p>
                           <p className="mt-1 text-[11px] text-neutral-500">{formatDateTime(invoice.issued_at, language)} · {formatCurrency(invoice.amount, language)}</p>
                         </div>
-                        <button type="button" onClick={() => openInvoice(invoice)} className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[#8c795e]/30 px-3 py-2 text-xs font-medium text-[#746249] transition hover:border-[#8c795e] hover:bg-[#f8f6f1] dark:text-bronze-300 dark:hover:bg-white/[0.05]"><FileText size={14} />{t.invoicePrint}</button>
+                        <button type="button" onClick={() => openInvoice(invoice)} className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[#8c795e]/30 px-3 py-2 text-xs font-medium text-[#746249] transition hover:border-[#8c795e] hover:bg-[#f8f6f1] dark:text-bronze-300 dark:hover:bg-white/[0.05]"><FileText size={14} className="text-[#8FCC00] dark:text-[#B7FF00]" />{t.invoicePrint}</button>
                       </li>
                     ))}
                   </ul>
@@ -2766,6 +2768,7 @@ const ClientPortal: React.FC = () => {
             {previewAttachment && (
               <PortalFilePreview
                 attachment={previewAttachment}
+                iconColorClassName="text-[#8FCC00] dark:text-[#B7FF00]"
                 labels={{ preview: t.previewFile, download: t.downloadFile, close: t.closePreview }}
                 onClose={() => setPreviewAttachment(null)}
               />
