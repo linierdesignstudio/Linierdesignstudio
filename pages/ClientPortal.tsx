@@ -1777,10 +1777,10 @@ const ClientPortal: React.FC = () => {
     </nav>
   );
   const dashboardCards = [
-    { id: 'project-updates', label: t.updated, count: updates.length, icon: <Clock3 size={18} /> },
-    { id: 'project-documents', label: t.documents, count: projectDocuments.length, icon: <FileText size={18} /> },
-    { id: 'project-billing', label: t.dashboardOpenBills, count: billingItems.filter((item) => item.status !== 'paid').length, icon: <FileCheck2 size={18} /> },
-    { id: 'project-changes', label: t.dashboardPendingChanges, count: changeOrders.filter((order) => order.status === 'requested' || order.status === 'pending_approval').length, icon: <ClipboardList size={18} /> },
+    { id: 'project-updates', label: t.updated, count: updates.length },
+    { id: 'project-documents', label: t.documents, count: projectDocuments.length },
+    { id: 'project-billing', label: t.dashboardOpenBills, count: billingItems.filter((item) => item.status !== 'paid').length },
+    { id: 'project-changes', label: t.dashboardPendingChanges, count: changeOrders.filter((order) => order.status === 'requested' || order.status === 'pending_approval').length },
   ];
   const accountSettingsNavigation: Array<{ id: AccountSettingsSection; label: string; icon: React.ReactNode }> = [
     { id: 'profile', label: t.accountProfileTab, icon: <UserRound size={16} /> },
@@ -2275,14 +2275,12 @@ const ClientPortal: React.FC = () => {
                     key={card.id}
                     type="button"
                     onClick={() => openProjectSection(card.id)}
-                    className="group flex min-w-0 items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-3 text-left shadow-sm transition hover:border-[#8c795e]/50 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8c795e] sm:gap-4 sm:p-4 dark:border-white/10 dark:bg-neutral-900 dark:hover:border-bronze-400/50"
+                    className="group flex min-w-0 flex-col items-start rounded-2xl border border-neutral-200 bg-white p-3 text-left shadow-sm transition hover:border-[#8c795e]/50 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8c795e] sm:p-4 dark:border-white/10 dark:bg-neutral-900 dark:hover:border-bronze-400/50"
                   >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400">{card.icon}</span>
-                    <span className="min-w-0 flex-1">
+                    <span className="w-full min-w-0">
                       <span className="block truncate text-[10px] font-medium text-neutral-500 dark:text-neutral-400 sm:text-xs">{card.label}</span>
                       <span className="mt-1 block font-display text-xl font-semibold tabular-nums text-neutral-900 dark:text-white">{card.count.toString().padStart(2, '0')}</span>
                     </span>
-                    <ArrowUpRight size={14} className="shrink-0 text-neutral-400 transition-colors group-hover:text-[#8c795e] dark:group-hover:text-bronze-400" />
                   </button>
                 ))}
               </div>
