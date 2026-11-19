@@ -1799,10 +1799,10 @@ const ClientPortal: React.FC = () => {
     : t.profileLastLoginNone;
 
   return (
-    <div className={`portal-readable min-h-screen overflow-x-clip ${project ? 'bg-[#f5f4f0] dark:bg-[#0b0c0b]' : 'portal-login-backdrop'} ${project ? 'pb-28 pt-16 sm:pb-20 sm:pt-24 md:pt-32' : 'pb-10 pt-8 sm:pt-10 md:pt-12'} text-neutral-900 dark:text-white`}>
+    <div className={`portal-readable min-h-screen overflow-x-clip ${project ? 'bg-[#f5f4f0] dark:bg-[#0b0c0b]' : 'portal-login-backdrop portal-client-login'} ${project ? 'pb-28 pt-16 sm:pb-20 sm:pt-24 md:pt-32' : 'pb-10 pt-8 sm:pt-10 md:pt-12'} text-neutral-900 dark:text-white`}>
       <div className="mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-8 lg:px-12">
         <div className="mb-5 flex items-center justify-between gap-3 sm:mb-7">
-          <Link to="/" className={`inline-flex items-center gap-2 transition-colors hover:text-neutral-950 dark:hover:text-white ${project ? 'rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300' : 'font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-500 dark:text-neutral-400'}`}>
+        <Link to="/" className={`inline-flex items-center gap-2 transition-colors hover:text-neutral-950 ${project ? 'rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:text-white' : 'portal-login-back-link rounded-full border border-neutral-300 bg-white/70 px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-600 md:dark:text-neutral-400 md:dark:hover:text-white'}`}>
             <ArrowDownLeft size={15} /> {t.back}
           </Link>
           <div className="flex items-center gap-2">
@@ -2774,8 +2774,8 @@ const ClientPortal: React.FC = () => {
             )}
           </section>
         ) : (
-          <div className="portal-login mx-auto grid min-w-0 max-w-[1240px] overflow-hidden border border-neutral-300 bg-[#090a08] shadow-[0_28px_80px_rgba(27,25,20,0.12)] dark:border-white/15 lg:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
-            <section className="relative flex min-h-[340px] flex-col justify-between overflow-hidden bg-[#252722] p-6 text-white sm:min-h-[480px] sm:p-10 lg:min-h-[640px] lg:p-14">
+          <div className="portal-login mx-auto grid min-w-0 max-w-[440px] overflow-hidden rounded-[2rem] border border-neutral-300 bg-[#090a08] shadow-[0_28px_80px_rgba(27,25,20,0.18)] md:max-w-[1240px] md:rounded-none md:dark:border-white/15 lg:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
+            <section className="relative hidden min-h-[340px] flex-col justify-between overflow-hidden bg-[#252722] p-6 text-white md:flex sm:min-h-[480px] sm:p-10 lg:min-h-[640px] lg:p-14">
               <img src={clientPortalImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-60" />
               <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/55 via-neutral-950/15 to-neutral-950/80" />
               <div className="relative">
@@ -2795,14 +2795,16 @@ const ClientPortal: React.FC = () => {
               </div>
             </section>
 
-            <form onSubmit={hasResetToken ? completePasswordReset : resetMode ? requestPasswordReset : signIn} className="relative flex flex-col justify-center bg-[#090a08] px-6 py-9 text-white sm:px-10 sm:py-12 lg:px-12 lg:py-14">
+            <form onSubmit={hasResetToken ? completePasswordReset : resetMode ? requestPasswordReset : signIn} className="relative flex flex-col justify-center bg-[#090a08] px-6 py-8 text-white sm:px-10 sm:py-12 lg:px-12 lg:py-14">
               <div className="mb-9 flex items-center justify-between gap-3 sm:mb-14">
                 <span className="flex h-10 w-10 items-center justify-center border border-white/15 text-[#c5d2b0]">
                   <LockKeyhole size={16} strokeWidth={1.5} />
                 </span>
                 <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">ACCESS / 01</span>
               </div>
-              <h2 className="mb-8 max-w-[12ch] font-display text-4xl font-bold leading-[0.92] tracking-[-0.06em] sm:text-[3.25rem]">{hasResetToken ? t.setNewPassword : resetMode ? t.resetTitle : t.signIn}</h2>
+              <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.18em] text-white/45 md:hidden">LINIER STUDIO <span className="text-white/25">/</span> CLIENT JOURNAL</p>
+              <h2 className="mb-4 max-w-[12ch] font-display text-4xl font-bold leading-[0.92] tracking-[-0.06em] sm:text-[3.25rem] md:mb-8">{hasResetToken ? t.setNewPassword : resetMode ? t.resetTitle : <><span className="md:hidden">{t.title}</span><span className="hidden md:inline">{t.signIn}</span></>}</h2>
+              {!resetMode && !hasResetToken && <p className="mb-7 max-w-sm text-xs leading-6 text-white/60 md:hidden">{t.subtitle}</p>}
               {!hasResetToken && <label className="mb-6 block">
                 <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{resetMode ? t.resetIdentifier : t.loginIdentifier}</span>
                 <input
@@ -2812,18 +2814,18 @@ const ClientPortal: React.FC = () => {
                   onChange={(event) => setProjectCode(event.target.value)}
                   required
                   maxLength={254}
-                  className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10"
+                  className="w-full rounded-full border border-white/10 bg-[#1d1e1b] px-5 py-3.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10 md:rounded-lg md:bg-[#111210] md:px-4"
                 />
               </label>}
               {hasResetToken ? (
                 <>
                   <label className="mb-5 block">
                     <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{t.password}</span>
-                    <input type="password" autoComplete="new-password" value={resetPassword} onChange={(event) => setResetPassword(event.target.value)} required minLength={8} maxLength={256} className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 text-sm text-white outline-none transition focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10" />
+                    <input type="password" autoComplete="new-password" value={resetPassword} onChange={(event) => setResetPassword(event.target.value)} required minLength={8} maxLength={256} className="w-full rounded-full border border-white/10 bg-[#1d1e1b] px-5 py-3.5 text-sm text-white outline-none transition focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10 md:rounded-lg md:bg-[#111210] md:px-4" />
                   </label>
                   <label className="mb-2 block">
                     <span className="mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white/70">{t.confirmNewPassword}</span>
-                    <input type="password" autoComplete="new-password" value={confirmResetPassword} onChange={(event) => setConfirmResetPassword(event.target.value)} required minLength={8} maxLength={256} className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 text-sm text-white outline-none transition focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10" />
+                    <input type="password" autoComplete="new-password" value={confirmResetPassword} onChange={(event) => setConfirmResetPassword(event.target.value)} required minLength={8} maxLength={256} className="w-full rounded-full border border-white/10 bg-[#1d1e1b] px-5 py-3.5 text-sm text-white outline-none transition focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10 md:rounded-lg md:bg-[#111210] md:px-4" />
                   </label>
                 </>
               ) : resetMode ? (
@@ -2840,7 +2842,7 @@ const ClientPortal: React.FC = () => {
                       onChange={(event) => setPassword(event.target.value)}
                       required
                       maxLength={256}
-                      className="w-full rounded-lg border border-white/15 bg-[#111210] px-4 py-3.5 pr-12 text-sm text-white outline-none transition focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10"
+                      className="w-full rounded-full border border-white/10 bg-[#1d1e1b] px-5 py-3.5 pr-12 text-sm text-white outline-none transition focus:border-[#b8c89f] focus:ring-4 focus:ring-[#b8c89f]/10 md:rounded-lg md:border-white/15 md:bg-[#111210] md:px-4"
                     />
                     <button
                       type="button"
@@ -2848,7 +2850,7 @@ const ClientPortal: React.FC = () => {
                       aria-label={passwordVisible ? t.hidePassword : t.showPassword}
                       aria-pressed={passwordVisible}
                       title={passwordVisible ? t.hidePassword : t.showPassword}
-                      className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-lg text-white/80 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#b8c89f]"
+                      className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-full text-white/80 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#b8c89f] md:rounded-r-lg"
                     >
                       {passwordVisible ? <EyeOff size={19} strokeWidth={2.2} /> : <Eye size={19} strokeWidth={2.2} />}
                     </button>
@@ -2857,8 +2859,8 @@ const ClientPortal: React.FC = () => {
               )}
               {error && <div className="mt-5"><ErrorBanner message={error} /></div>}
               {resetNotice && <p role="status" className="mt-5 border-l-2 border-emerald-700 bg-emerald-50 px-4 py-3 text-xs leading-5 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200">{resetNotice}</p>}
-              <button disabled={submitting} className="mt-7 flex w-full items-center justify-between rounded-lg bg-[#b8c89f] px-5 py-4 text-left text-sm font-semibold text-[#171914] shadow-sm transition-colors hover:bg-[#c7d4b3] disabled:cursor-wait disabled:opacity-60">
-                {submitting ? (hasResetToken ? t.savingResetPassword : resetMode ? t.sendingReset : t.signingIn) : hasResetToken ? t.saveResetPassword : resetMode ? t.sendReset : t.signIn} <ArrowUpRight size={17} />
+              <button disabled={submitting} className="mt-7 flex w-full items-center justify-center gap-2 rounded-full bg-bronze-500 px-5 py-4 text-sm font-semibold text-[#171914] shadow-sm transition-colors hover:bg-bronze-600 disabled:cursor-wait disabled:opacity-60 md:justify-between md:rounded-lg md:bg-[#b8c89f] md:text-left md:hover:bg-[#c7d4b3]">
+                {submitting ? (hasResetToken ? t.savingResetPassword : resetMode ? t.sendingReset : t.signingIn) : hasResetToken ? t.saveResetPassword : resetMode ? t.sendReset : t.signIn} <ArrowUpRight size={17} className="hidden md:block" />
               </button>
               <button
                 type="button"
@@ -2877,11 +2879,12 @@ const ClientPortal: React.FC = () => {
                   setError('');
                   setResetNotice('');
                 }}
-                className="mt-6 w-fit rounded-sm text-sm text-white/55 underline decoration-white/25 underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b8c89f]"
+                className="mt-6 w-fit self-end rounded-sm text-right text-sm text-white/55 underline decoration-white/25 underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b8c89f] md:self-auto md:text-left"
               >
                 {resetMode || hasResetToken ? t.backToSignIn : t.forgotPassword}
               </button>
               {!resetMode && !hasResetToken && <p className="mt-8 border-t border-white/10 pt-5 text-xs leading-6 text-white/45"><ShieldCheck size={15} className="mr-2 inline text-white/50" />{t.secure}</p>}
+              <Link to="/portal/admin" className="mt-5 self-center font-mono text-[9px] uppercase tracking-[0.12em] text-white/45 underline decoration-white/20 underline-offset-4 transition-colors hover:text-white md:hidden">{t.admin}</Link>
             </form>
           </div>
         )}
