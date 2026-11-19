@@ -50,6 +50,8 @@ export interface ProjectRecord {
   client_email?: string | null;
   client_profile_name?: string | null;
   client_last_login_at?: string | null;
+  client_address?: string | null;
+  client_postal_code?: string | null;
   project_type: string | null;
   client_phone: string;
   location: string;
@@ -283,7 +285,7 @@ function absoluteStorageUrl(path: string | undefined): string {
 
 export async function getProjectById(id: string): Promise<ProjectRecord | null> {
   const projects = await supabaseRequest<ProjectRecord[]>(
-    `client_projects?select=id,project_code,project_name,client_name,client_email,client_profile_name,client_last_login_at,project_type,client_phone,location,status,progress_percent,start_date&id=eq.${encodeURIComponent(id)}&limit=1`
+    `client_projects?select=id,project_code,project_name,client_name,client_email,client_profile_name,client_last_login_at,client_address,client_postal_code,project_type,client_phone,location,status,progress_percent,start_date&id=eq.${encodeURIComponent(id)}&limit=1`
   );
   return projects[0] ?? null;
 }

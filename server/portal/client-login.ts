@@ -40,8 +40,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
     const projects = await supabaseRequest<LoginProject[]>(
       isProjectCode
-        ? `client_projects?select=id,project_code,project_name,client_name,project_type,client_phone,location,status,progress_percent,start_date,client_email,client_profile_name,client_last_login_at,client_login_salt,client_login_hash,password_salt,password_hash&project_code=eq.${encodeURIComponent(identifier.toUpperCase())}&limit=1`
-        : `client_projects?select=id,project_code,project_name,client_name,project_type,client_phone,location,status,progress_percent,start_date,client_email,client_profile_name,client_last_login_at,client_login_salt,client_login_hash,password_salt,password_hash&client_email=eq.${encodeURIComponent(email)}&order=created_at.asc`
+        ? `client_projects?select=id,project_code,project_name,client_name,project_type,client_phone,client_address,client_postal_code,location,status,progress_percent,start_date,client_email,client_profile_name,client_last_login_at,client_login_salt,client_login_hash,password_salt,password_hash&project_code=eq.${encodeURIComponent(identifier.toUpperCase())}&limit=1`
+        : `client_projects?select=id,project_code,project_name,client_name,project_type,client_phone,client_address,client_postal_code,location,status,progress_percent,start_date,client_email,client_profile_name,client_last_login_at,client_login_salt,client_login_hash,password_salt,password_hash&client_email=eq.${encodeURIComponent(email)}&order=created_at.asc`
     );
     const project = projects[0];
     if (!project) {
@@ -115,7 +115,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       { id: sessionId, account: accountKey }
     ));
     sendJson(response, 200, {
-      projects: projects.map(({ id, project_code, project_name, client_name, client_email, client_profile_name, project_type, client_phone, location, status, progress_percent, start_date }) => ({
+      projects: projects.map(({ id, project_code, project_name, client_name, client_email, client_profile_name, client_address, client_postal_code, project_type, client_phone, location, status, progress_percent, start_date }) => ({
         id,
         project_code,
         project_name,
@@ -123,6 +123,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
         client_email,
         client_profile_name: client_profile_name || client_name,
         client_last_login_at: lastLoginAt,
+        client_address: client_address || '',
+        client_postal_code: client_postal_code || '',
         project_type,
         client_phone,
         location,

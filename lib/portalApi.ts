@@ -8,6 +8,8 @@ export interface PortalProject {
   client_email?: string | null;
   client_profile_name?: string | null;
   client_last_login_at?: string | null;
+  client_address?: string | null;
+  client_postal_code?: string | null;
   location: string;
   status: string;
   progress_percent: number;

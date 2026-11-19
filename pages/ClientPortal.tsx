@@ -118,6 +118,11 @@ const copy = {
     saveChanges: 'Simpan perubahan',
     profileSaving: 'Menyimpan...',
     accountBillingDescription: 'Informasi akun dan kontak penagihan untuk proyek Anda.',
+    clientAddress: 'Alamat lengkap',
+    clientAddressPlaceholder: 'Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan, kota/kabupaten, provinsi',
+    clientAddressRequired: 'Alamat lengkap harus diisi.',
+    clientPostalCode: 'Kode pos',
+    clientPostalCodeRequired: 'Kode pos harus terdiri dari 5 digit.',
     invoiceContact: 'Nama kontak invoice',
     accountProject: 'Proyek',
     accountLocation: 'Lokasi proyek',
@@ -374,6 +379,11 @@ const copy = {
     saveChanges: 'Save changes',
     profileSaving: 'Saving...',
     accountBillingDescription: 'Account and billing contact information for your project.',
+    clientAddress: 'Full address',
+    clientAddressPlaceholder: 'Street, house number, village, district, city/regency, province',
+    clientAddressRequired: 'A complete address is required.',
+    clientPostalCode: 'Postal code',
+    clientPostalCodeRequired: 'Postal code must contain 5 digits.',
     invoiceContact: 'Invoice contact name',
     accountProject: 'Project',
     accountLocation: 'Project location',
@@ -630,6 +640,11 @@ const copy = {
     saveChanges: '保存更改',
     profileSaving: '正在保存...',
     accountBillingDescription: '项目的账号与账单联系人信息。',
+    clientAddress: '完整地址',
+    clientAddressPlaceholder: '街道、门牌号、村/区、县/市、省',
+    clientAddressRequired: '请填写完整地址。',
+    clientPostalCode: '邮政编码',
+    clientPostalCodeRequired: '邮政编码必须为 5 位数字。',
     invoiceContact: '账单联系人姓名',
     accountProject: '项目',
     accountLocation: '项目地点',
@@ -1002,6 +1017,8 @@ const ClientPortal: React.FC = () => {
   const [accountSettingsSection, setAccountSettingsSection] = useState<AccountSettingsSection>('profile');
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileName, setProfileName] = useState('');
+  const [clientAddress, setClientAddress] = useState('');
+  const [clientPostalCode, setClientPostalCode] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState('');
   const [profileNotice, setProfileNotice] = useState('');
@@ -1046,10 +1063,14 @@ const ClientPortal: React.FC = () => {
   useEffect(() => {
     if (!project) {
       setProfileName('');
+      setClientAddress('');
+      setClientPostalCode('');
       return;
     }
     setProfileName(project.client_profile_name?.trim() || project.client_name);
-  }, [project?.id, project?.client_profile_name, project?.client_name]);
+    setClientAddress(project.client_address?.trim() || '');
+    setClientPostalCode(project.client_postal_code?.trim() || '');
+  }, [project?.id, project?.client_profile_name, project?.client_name, project?.client_address, project?.client_postal_code]);
 
   useEffect(() => {
     if (!project || activeSection !== 'client-account' || accountSettingsSection !== 'sessions') return;
@@ -1629,8 +1650,18 @@ const ClientPortal: React.FC = () => {
     event.preventDefault();
     if (!project) return;
     const nextProfileName = profileName.trim();
+    const nextClientAddress = clientAddress.trim();
+    const nextClientPostalCode = clientPostalCode.trim();
     if (!nextProfileName || nextProfileName.length > 120) {
       setProfileError(t.profileNameRequired);
+      return;
+    }
+    if (nextClientAddress.length < 10 || nextClientAddress.length > 500) {
+      setProfileError(t.clientAddressRequired);
+      return;
+    }
+    if (!/^[0-9]{5}$/.test(nextClientPostalCode)) {
+      setProfileError(t.clientPostalCodeRequired);
       return;
     }
 
@@ -1638,13 +1669,19 @@ const ClientPortal: React.FC = () => {
     setProfileError('');
     setProfileNotice('');
     try {
-      const { profileName: savedProfileName } = await portalRequest<{ profileName: string }>('/api/portal/client/profile', {
+      const { profileName: savedProfileName, clientAddress: savedClientAddress, clientPostalCode: savedClientPostalCode } = await portalRequest<{ profileName: string; clientAddress: string; clientPostalCode: string }>('/api/portal/client/profile', {
         method: 'PATCH',
-        body: JSON.stringify({ profileName: nextProfileName }),
+        body: JSON.stringify({
+          profileName: nextProfileName,
+          clientAddress: nextClientAddress,
+          clientPostalCode: nextClientPostalCode,
+        }),
       });
       setProfileName(savedProfileName);
-      setProjects((current) => current.map((item) => ({ ...item, client_profile_name: savedProfileName })));
-      setProject((current) => current ? { ...current, client_profile_name: savedProfileName } : current);
+      setClientAddress(savedClientAddress);
+      setClientPostalCode(savedClientPostalCode);
+      setProjects((current) => current.map((item) => ({ ...item, client_profile_name: savedProfileName, client_address: savedClientAddress, client_postal_code: savedClientPostalCode })));
+      setProject((current) => current ? { ...current, client_profile_name: savedProfileName, client_address: savedClientAddress, client_postal_code: savedClientPostalCode } : current);
       setProfileNotice(t.profileSaved);
     } catch (cause) {
       setProfileError(cause instanceof Error ? cause.message : 'Profil tidak dapat disimpan.');
@@ -1789,7 +1826,11 @@ const ClientPortal: React.FC = () => {
     { id: 'sessions', label: t.accountSessionsTab, icon: <Monitor size={16} /> },
     { id: 'apps', label: t.accountAppsTab, icon: <Link2 size={16} /> },
   ];
-  const profileHasChanges = Boolean(project) && profileName.trim() !== (project?.client_profile_name?.trim() || project?.client_name);
+  const profileHasChanges = Boolean(project) && (
+    profileName.trim() !== (project?.client_profile_name?.trim() || project?.client_name)
+    || clientAddress.trim() !== (project?.client_address?.trim() || '')
+    || clientPostalCode.trim() !== (project?.client_postal_code?.trim() || '')
+  );
   const openBillingCount = billingItems.filter((item) => item.status !== 'paid').length;
   const lastLoginText = project?.client_last_login_at
     ? new Intl.DateTimeFormat(language === 'EN' ? 'en-US' : language === 'CN' ? 'zh-CN' : 'id-ID', {
@@ -2001,6 +2042,42 @@ const ClientPortal: React.FC = () => {
                               className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm outline-none transition-colors focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950"
                             />
                           </label>
+                          <label className="block">
+                            <span className="mb-2 block text-xs font-medium">{t.clientAddress}<span className="ml-1 text-red-500">*</span></span>
+                            <textarea
+                              required
+                              minLength={10}
+                              maxLength={500}
+                              rows={4}
+                              value={clientAddress}
+                              placeholder={t.clientAddressPlaceholder}
+                              onChange={(event) => {
+                                setClientAddress(event.target.value);
+                                setProfileError('');
+                                setProfileNotice('');
+                              }}
+                              className="w-full resize-y rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm leading-6 outline-none transition-colors focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950"
+                            />
+                          </label>
+                          <label className="block">
+                            <span className="mb-2 block text-xs font-medium">{t.clientPostalCode}<span className="ml-1 text-red-500">*</span></span>
+                            <input
+                              required
+                              inputMode="numeric"
+                              autoComplete="postal-code"
+                              pattern="[0-9]{5}"
+                              minLength={5}
+                              maxLength={5}
+                              value={clientPostalCode}
+                              placeholder="92311"
+                              onChange={(event) => {
+                                setClientPostalCode(event.target.value.replace(/\D/g, '').slice(0, 5));
+                                setProfileError('');
+                                setProfileNotice('');
+                              }}
+                              className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm outline-none transition-colors focus:border-[#8c795e] dark:border-white/15 dark:bg-neutral-950"
+                            />
+                          </label>
                           <div>
                             <label className="mb-2 block text-xs font-medium" htmlFor="client-profile-email">{t.profileLoginEmail}</label>
                             <input id="client-profile-email" readOnly value={project.client_email || ''} placeholder={t.accountEmailMissing} className="w-full rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-3 font-mono text-xs text-neutral-600 outline-none dark:border-white/15 dark:bg-white/[0.03] dark:text-neutral-300" />
@@ -2030,6 +2107,8 @@ const ClientPortal: React.FC = () => {
                           <div><dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{t.clientPhone}</dt><dd className="mt-1 text-sm">{project.client_phone || '—'}</dd></div>
                           <div><dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{t.accountProject}</dt><dd className="mt-1 text-sm">{project.project_name} <span className="text-neutral-500">· {project.project_code}</span></dd></div>
                           <div><dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{t.accountLocation}</dt><dd className="mt-1 text-sm">{project.location || '—'}</dd></div>
+                          <div className="sm:col-span-2"><dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{t.clientAddress}</dt><dd className="mt-1 whitespace-pre-line text-sm">{project.client_address?.trim() || '—'}</dd></div>
+                          <div><dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{t.clientPostalCode}</dt><dd className="mt-1 text-sm">{project.client_postal_code?.trim() || '—'}</dd></div>
                           <div><dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{t.accountOpenBills}</dt><dd className="mt-1 text-sm">{openBillingCount}</dd></div>
                         </dl>
                         <div className="border-t border-neutral-200 px-5 py-4 sm:px-6 dark:border-white/10">

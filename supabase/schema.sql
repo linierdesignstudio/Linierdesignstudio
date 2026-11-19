@@ -5,6 +5,8 @@ create table if not exists public.client_projects (
   client_name text not null,
   project_type text,
   client_phone text not null default '',
+  client_address text not null default '',
+  client_postal_code text not null default '',
   location text not null default '',
   start_date date,
   status text not null default 'Berjalan',
@@ -28,6 +30,12 @@ alter table public.client_projects
 
 alter table public.client_projects
   add column if not exists client_phone text not null default '';
+
+alter table public.client_projects
+  add column if not exists client_address text not null default '';
+
+alter table public.client_projects
+  add column if not exists client_postal_code text not null default '';
 
 alter table public.client_projects
   add column if not exists client_email text;

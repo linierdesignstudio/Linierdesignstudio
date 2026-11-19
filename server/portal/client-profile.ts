@@ -12,8 +12,16 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
     const body = await readJson(request);
     const profileName = typeof body.profileName === 'string' ? body.profileName.trim() : '';
+    const clientAddress = typeof body.clientAddress === 'string' ? body.clientAddress.trim() : '';
+    const clientPostalCode = typeof body.clientPostalCode === 'string' ? body.clientPostalCode.trim() : '';
     if (!profileName || profileName.length > 120) {
       throw new HttpError(400, 'Nama profil harus diisi dan maksimal 120 karakter.');
+    }
+    if (clientAddress.length < 10 || clientAddress.length > 500) {
+      throw new HttpError(400, 'Alamat lengkap harus terdiri dari 10 hingga 500 karakter.');
+    }
+    if (!/^[0-9]{5}$/.test(clientPostalCode)) {
+      throw new HttpError(400, 'Kode pos harus terdiri dari 5 digit.');
     }
 
     const projectSession = isProjectId(session.sub);
@@ -42,14 +50,18 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       {
         method: 'PATCH',
         headers: { Prefer: 'return=representation' },
-        body: JSON.stringify({ client_profile_name: profileName }),
+        body: JSON.stringify({
+          client_profile_name: profileName,
+          client_address: clientAddress,
+          client_postal_code: clientPostalCode,
+        }),
       }
     );
     if (updatedProjects.length !== targetProjects.length) {
       throw new HttpError(409, 'Profil tidak berhasil diperbarui. Silakan coba kembali.');
     }
 
-    sendJson(response, 200, { profileName });
+    sendJson(response, 200, { profileName, clientAddress, clientPostalCode });
   } catch (error) {
     sendError(response, error);
   }
