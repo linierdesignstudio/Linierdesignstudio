@@ -1770,7 +1770,7 @@ const ClientPortal: React.FC = () => {
           aria-current={activeSection === item.id ? 'page' : undefined}
           className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-[8px] font-medium transition-colors ${activeSection === item.id ? 'text-bronze-700 dark:text-bronze-300' : 'text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-white/[0.06]'}`}
         >
-          <span>{item.icon}</span>
+          <span className="text-[#8FCC00] dark:text-[#B7FF00]">{item.icon}</span>
           <span className="w-full truncate text-center">{item.label}</span>
         </button>
       ))}
@@ -1845,7 +1845,7 @@ const ClientPortal: React.FC = () => {
                           aria-current={activeSection === item.id ? 'page' : undefined}
                           className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs transition-colors ${activeSection === item.id ? 'bg-[#f4f1eb] font-medium text-[#746349] dark:bg-white/[0.08] dark:text-bronze-300' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]'}`}
                         >
-                          <span className="text-[#8c795e] dark:text-bronze-400">{item.icon}</span>
+                          <span className="text-[#8FCC00] dark:text-[#B7FF00]">{item.icon}</span>
                           <span className="min-w-0 flex-1 truncate">{item.label}</span>
                         </button>
                       ))}
@@ -1856,7 +1856,7 @@ const ClientPortal: React.FC = () => {
                         onClick={() => openAccountSettings('billing')}
                         className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
                       >
-                        <FileCheck2 size={16} className="text-[#8c795e] dark:text-bronze-400" />
+                        <FileCheck2 size={16} className="text-[#8FCC00] dark:text-[#B7FF00]" />
                         {t.accountBillingTab}
                       </button>
                       <button
@@ -1866,7 +1866,7 @@ const ClientPortal: React.FC = () => {
                         className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
                       >
                         <span className="flex items-center gap-3">
-                          {isDark ? <Sun size={16} className="text-[#8c795e] dark:text-bronze-400" /> : <Moon size={16} className="text-[#8c795e] dark:text-bronze-400" />}
+                          {isDark ? <Sun size={16} className="text-[#8FCC00] dark:text-[#B7FF00]" /> : <Moon size={16} className="text-[#8FCC00] dark:text-[#B7FF00]" />}
                           {t.darkMode}
                         </span>
                         <span className={`relative h-5 w-9 rounded-full transition-colors ${isDark ? 'bg-[#8c795e]' : 'bg-neutral-300 dark:bg-white/20'}`}>
@@ -1878,7 +1878,7 @@ const ClientPortal: React.FC = () => {
                         onClick={() => openAccountSettings('profile')}
                         className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
                       >
-                        <UserRound size={16} className="text-[#8c795e] dark:text-bronze-400" />
+                        <UserRound size={16} className="text-[#8FCC00] dark:text-[#B7FF00]" />
                         {t.menuProfilePreferences}
                       </button>
                       <Link
@@ -1886,7 +1886,7 @@ const ClientPortal: React.FC = () => {
                         onClick={() => setProfileOpen(false)}
                         className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
                       >
-                        <MessageCircle size={16} className="text-[#8c795e] dark:text-bronze-400" />
+                        <MessageCircle size={16} className="text-[#8FCC00] dark:text-[#B7FF00]" />
                         {t.studioHelp}
                       </Link>
                     </div>
@@ -1930,7 +1930,7 @@ const ClientPortal: React.FC = () => {
                 aria-current={activeSection === item.id ? 'page' : undefined}
                 className={`flex min-w-0 items-center justify-center gap-2 rounded-xl border px-3 py-3 text-xs font-medium transition-colors ${activeSection === item.id ? 'border-[#8c795e]/30 bg-[#f4f1eb] text-[#746349] dark:border-bronze-400/20 dark:bg-white/[0.07] dark:text-bronze-300' : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-400 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:border-white/25'}`}
               >
-                <span className="shrink-0">{item.icon}</span>
+                <span className="shrink-0 text-[#8FCC00] dark:text-[#B7FF00]">{item.icon}</span>
                 <span className="truncate">{item.label}</span>
               </button>
             ))}
