@@ -2108,7 +2108,7 @@ const ClientPortal: React.FC = () => {
                                   <tr key={session.id}>
                                     <td className="px-5 py-4 sm:px-6">
                                       <div className="flex items-center gap-2.5">
-                                        <Monitor size={16} className="shrink-0 text-[#8c795e] dark:text-bronze-400" />
+                                        <Monitor size={16} className="shrink-0 text-[#8FCC00] dark:text-[#B7FF00]" />
                                         <div className="min-w-0">
                                           <p className="font-medium text-neutral-800 dark:text-neutral-100">{getSessionDeviceLabel(session.user_agent, language)}</p>
                                           {session.current && <span className="mt-1 inline-flex rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-medium text-emerald-700 dark:text-emerald-300">{t.sessionsCurrentDevice} · {t.currentSessionActive}</span>}
@@ -2332,7 +2332,7 @@ const ClientPortal: React.FC = () => {
                   <div className="h-full rounded-full bg-gradient-to-r from-[#756248] to-[#b39b74] transition-[width] duration-700 dark:from-bronze-500 dark:to-bronze-300" style={{ width: `${project.progress_percent}%` }} />
                 </div>
                 <div className="mt-5 flex items-center gap-2 text-xs text-neutral-500">
-                  {project.progress_percent === 100 ? <CheckCircle2 size={15} className="text-[#8c795e] dark:text-bronze-400" /> : <Clock3 size={15} className="text-[#8c795e] dark:text-bronze-400" />}
+                  {project.progress_percent === 100 ? <CheckCircle2 size={15} className="text-[#8FCC00] dark:text-[#B7FF00]" /> : <Clock3 size={15} className="text-[#8FCC00] dark:text-[#B7FF00]" />}
                   <span>{t.status}: {project.progress_percent === 100 ? t.complete : t.inProgress}</span>
                 </div>
               </div>
@@ -2341,7 +2341,7 @@ const ClientPortal: React.FC = () => {
                 <div>
                   <p className="mb-5 text-xs font-medium text-neutral-500 dark:text-neutral-400">{t.duration}</p>
                   <div className="flex items-start gap-3 text-lg font-medium leading-snug tracking-tight">
-                    <CalendarDays size={18} className="mt-1 shrink-0 text-[#8c795e] dark:text-bronze-400" />
+                    <CalendarDays size={18} className="mt-1 shrink-0 text-[#8FCC00] dark:text-[#B7FF00]" />
                     <span>{project.start_date ? formatDuration(project.start_date, language) : t.durationNotSet}</span>
                   </div>
                 </div>
@@ -2355,7 +2355,7 @@ const ClientPortal: React.FC = () => {
               <>
                 <section id="project-documents" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
                   <div className="mb-4 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]"><FileText size={18} /></span>
                     <div>
                       <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p>
                       <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.documents}</h2>
@@ -2483,7 +2483,7 @@ const ClientPortal: React.FC = () => {
 
             {activeSection === 'project-billing' && <section id="project-billing" className="scroll-mt-24 mt-8 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:mt-10 sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileCheck2 size={18} /></span>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]"><FileCheck2 size={18} /></span>
                 <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.billingTitle}</h2></div>
               </div>
               {billingNotice && <p role="status" className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-xs text-emerald-700 dark:text-emerald-300">{billingNotice}</p>}
@@ -2592,7 +2592,7 @@ const ClientPortal: React.FC = () => {
 
             {activeSection === 'project-changes' && <section id="project-changes" className="scroll-mt-24 mt-5 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><ClipboardList size={18} /></span>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]"><ClipboardList size={18} /></span>
                 <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.changeTitle}</h2></div>
               </div>
               <p className="mb-5 text-sm leading-6 text-neutral-500">{t.changeDescription}</p>
@@ -2648,7 +2648,7 @@ const ClientPortal: React.FC = () => {
               </div>
               {updates.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-neutral-300 bg-white/70 px-6 py-14 text-center dark:border-white/15 dark:bg-white/[0.02]">
-                  <span className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-[#f0ede6] text-[#8c795e] dark:bg-white/[0.07] dark:text-bronze-400"><FileText size={18} /></span>
+                  <span className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-[#f0ede6] text-[#8FCC00] dark:bg-white/[0.07] dark:text-[#B7FF00]"><FileText size={18} /></span>
                   <p className="font-display text-xl font-medium">{t.noUpdates}</p>
                   <p className="mt-2 text-sm text-neutral-500">{t.noUpdatesHint}</p>
                 </div>
@@ -2713,7 +2713,7 @@ const ClientPortal: React.FC = () => {
                 <div className="flex-1 space-y-4 overflow-y-auto bg-[#f7f6f2] px-4 py-5 dark:bg-[#111210]" aria-live="polite">
                   {feedbackItems.length === 0 ? (
                     <div className="flex h-full flex-col items-center justify-center px-5 text-center">
-                      <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#ece8df] text-[#8c795e] dark:bg-white/[0.07] dark:text-bronze-400"><MessageCircle size={20} /></span>
+                      <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#ece8df] text-[#8FCC00] dark:bg-white/[0.07] dark:text-[#B7FF00]"><MessageCircle size={20} /></span>
                       <p className="text-sm font-medium">{t.feedbackTitle}</p>
                       <p className="mt-2 text-xs leading-5 text-neutral-500">{t.feedbackDescription}</p>
                     </div>
