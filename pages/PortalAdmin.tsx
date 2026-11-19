@@ -2044,6 +2044,7 @@ const PortalAdmin: React.FC = () => {
     : navigation.find((item) => item.id === activeSection)?.label ?? t.adminDashboard;
   const activityPanelProps = {
     notifications,
+    iconColorClassName: 'text-[#8FCC00] dark:text-[#B7FF00]',
     labels: {
       actions: t.actionCenter,
       activity: t.activityCenter,
@@ -2256,7 +2257,7 @@ const PortalAdmin: React.FC = () => {
               <section className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-5 flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-white/10">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><CalendarDays size={17} /></span>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]"><CalendarDays size={17} /></span>
                     <div>
                       <p className="text-xs text-neutral-500">{t.overview}</p>
                       <h2 className="mt-1 font-display text-xl font-medium">{t.timeline}</h2>
@@ -2303,7 +2304,7 @@ const PortalAdmin: React.FC = () => {
               <section className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-5 flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-white/10">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><ImagePlus size={17} /></span>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]"><ImagePlus size={17} /></span>
                     <div>
                       <p className="text-xs text-neutral-500">{selectedProject?.project_name ?? t.chooseProject}</p>
                       <h2 className="mt-1 font-display text-xl font-medium">{t.photoPreview}</h2>
@@ -2347,7 +2348,7 @@ const PortalAdmin: React.FC = () => {
             {activeSection === 'admin-clients' && (
               <section id="admin-clients" className="min-w-0 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><Users size={18} /></span>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]"><Users size={18} /></span>
                   <div>
                     <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">CLIENT RELATIONS</p>
                     <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.clientDirectory}</h2>
@@ -2390,7 +2391,7 @@ const PortalAdmin: React.FC = () => {
             {activeSection === 'admin-feedback' && (
               <section id="admin-feedback" className="min-w-0 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><MessageCircle size={18} /></span>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]"><MessageCircle size={18} /></span>
                   <div>
                     <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">CLIENT RELATIONS</p>
                     <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.feedbackInbox}</h2>
@@ -2448,7 +2449,7 @@ const PortalAdmin: React.FC = () => {
               <section id="admin-billing" className="scroll-mt-24 space-y-5">
                 <form onSubmit={savePaymentSettings} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                   <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><Landmark size={18} /></span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]"><Landmark size={18} /></span>
                     <div className="min-w-0">
                       <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{t.bankSettingsTitle}</p>
                       <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.bankSettingsTitle}</h2>
@@ -2496,7 +2497,7 @@ const PortalAdmin: React.FC = () => {
                 </form>
                 <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                   <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileCheck2 size={18} /></span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]"><FileCheck2 size={18} /></span>
                     <div className="min-w-0">
                       <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{selectedProject?.project_code}</p>
                       <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.billingTitle}</h2>
@@ -2597,7 +2598,7 @@ const PortalAdmin: React.FC = () => {
               <section id="admin-changes" className="scroll-mt-24 space-y-5">
                 <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                   <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 pb-5 dark:border-white/10">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><ClipboardList size={18} /></span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]"><ClipboardList size={18} /></span>
                     <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{selectedProject?.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.changeOrdersTitle}</h2></div>
                     <button type="button" disabled={busy || !selectedProjectId} onClick={() => {
                       setBusy(true);
@@ -2654,7 +2655,7 @@ const PortalAdmin: React.FC = () => {
             {activeSection === 'admin-documents' && (
               <section id="admin-documents" className="min-w-0 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
                 <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><FileText size={18} /></span>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]"><FileText size={18} /></span>
                   <div>
                     <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{selectedProject?.project_code ?? t.documents}</p>
                     <h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.projectDocumentsTitle}</h2>
@@ -2870,7 +2871,7 @@ const PortalAdmin: React.FC = () => {
               <>
             <section id="admin-resets" className="mb-5 min-w-0 scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8 dark:border-white/10 dark:bg-neutral-900">
               <div className="mb-5 flex items-center gap-3 border-b border-neutral-100 pb-4 dark:border-white/10">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400"><KeyRound size={17} /></span>
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]"><KeyRound size={17} /></span>
                 <div>
                   <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">SECURITY / ACCESS</p>
                   <h2 className="mt-1 font-mono text-xs uppercase tracking-widest">{t.resetRequests}</h2>
@@ -3280,6 +3281,7 @@ const PortalAdmin: React.FC = () => {
       {authenticated && !checking && previewAttachment && (
         <PortalFilePreview
           attachment={previewAttachment}
+          iconColorClassName="text-[#8FCC00] dark:text-[#B7FF00]"
           labels={{ preview: t.previewFile, download: t.downloadFile, close: t.closePreview }}
           onClose={() => setPreviewAttachment(null)}
         />
@@ -3306,7 +3308,7 @@ function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; 
     <div className="flex min-h-28 flex-col justify-between rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow-sm sm:px-5 sm:py-5 dark:border-white/10 dark:bg-neutral-900">
       <div className="flex items-center justify-between gap-2 text-neutral-500">
         <p className="text-xs font-medium">{label}</p>
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8c795e] dark:bg-white/[0.06] dark:text-bronze-400">{icon}</span>
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f2ec] text-[#8FCC00] dark:bg-white/[0.06] dark:text-[#B7FF00]">{icon}</span>
       </div>
       <p className="mt-4 font-display text-3xl font-medium tracking-tight tabular-nums sm:text-4xl">{value}</p>
     </div>
