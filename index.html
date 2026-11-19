@@ -112,6 +112,61 @@
             radial-gradient(ellipse at 84% 12%, rgba(183, 255, 0, 0.12), transparent 34%),
             radial-gradient(ellipse at 12% 88%, rgba(183, 255, 0, 0.08), transparent 38%);
           color: #171914 !important;
+          min-height: 100svh;
+          padding: 0;
+        }
+
+        .portal-client-login > div {
+          display: flex;
+          width: 100%;
+          max-width: none;
+          min-height: 100svh;
+          flex-direction: column;
+          padding: 0;
+        }
+
+        .portal-client-login > div > div:first-child {
+          flex: 0 0 auto;
+          margin: 0;
+          padding: 12px 16px;
+        }
+
+        .portal-client-login-header {
+          background-color: #090a08;
+          color: #fff;
+        }
+
+        .portal-client-login-header .portal-login-back-link {
+          border: 0;
+          border-radius: 0;
+          background-color: transparent;
+          color: rgba(255, 255, 255, 0.75);
+        }
+
+        .portal-client-login-header .portal-login-back-link:hover {
+          color: #b7ff00;
+        }
+
+        .portal-client-login-header .relative.inline-flex {
+          border: 0;
+          border-radius: 0;
+          background-color: transparent;
+          color: rgba(255, 255, 255, 0.75);
+          box-shadow: none;
+        }
+
+        .portal-client-login-header .relative.inline-flex:hover,
+        .portal-client-login-header .relative.inline-flex:focus-within {
+          color: #b7ff00;
+        }
+
+        .portal-client-login .portal-login {
+          width: 100%;
+          max-width: none;
+          flex: 1 0 auto;
+          border: 0;
+          border-radius: 0;
+          box-shadow: none;
         }
 
         .portal-login-backdrop.portal-admin-login-page {
@@ -121,6 +176,23 @@
             linear-gradient(90deg, rgba(20, 37, 38, 0.035) 1px, transparent 1px),
             radial-gradient(ellipse at 50% 5%, rgba(255, 255, 255, 0.9), transparent 55%);
           background-size: 32px 32px, 32px 32px, auto;
+          display: block;
+          min-height: 100svh;
+          padding: 0;
+        }
+
+        .portal-admin-login-page > div {
+          width: 100%;
+          min-height: 100svh;
+        }
+
+        .portal-admin-login-page .portal-login {
+          width: 100%;
+          max-width: none;
+          min-height: 100svh;
+          border: 0;
+          border-radius: 0;
+          box-shadow: none;
         }
       }
 

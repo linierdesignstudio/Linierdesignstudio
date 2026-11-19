@@ -1801,7 +1801,7 @@ const ClientPortal: React.FC = () => {
   return (
     <div className={`portal-readable min-h-screen overflow-x-clip ${project ? 'bg-[#f5f4f0] dark:bg-[#0b0c0b]' : 'portal-login-backdrop portal-client-login'} ${project ? 'pb-28 pt-16 sm:pb-20 sm:pt-24 md:pt-32' : 'pb-10 pt-8 sm:pt-10 md:pt-12'} text-neutral-900 dark:text-white`}>
       <div className="mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-8 lg:px-12">
-        <div className="mb-5 flex items-center justify-between gap-3 sm:mb-7">
+        <div className={`mb-5 flex items-center justify-between gap-3 sm:mb-7 ${!project ? 'portal-client-login-header' : ''}`}>
         <Link to="/" className={`inline-flex items-center gap-2 transition-colors hover:text-neutral-950 ${project ? 'rounded-full border border-neutral-200 bg-white/70 px-4 py-2.5 text-xs font-medium text-neutral-600 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:text-white' : 'portal-login-back-link rounded-full border border-neutral-300 bg-white/70 px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-600 md:dark:text-neutral-400 md:dark:hover:text-white'}`}>
             <ArrowDownLeft size={15} /> {t.back}
           </Link>
