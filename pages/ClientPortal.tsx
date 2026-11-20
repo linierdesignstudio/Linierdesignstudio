@@ -239,6 +239,7 @@ const copy = {
     changeTitle: 'Perubahan pekerjaan',
     changeDescription: 'Catat kebutuhan perubahan ruang lingkup. Tim studio akan meninjau dan mengirimkan estimasi untuk persetujuan.',
     changeEmpty: 'Belum ada permintaan atau usulan perubahan.',
+    changeLoading: 'Memuat perubahan pekerjaan...',
     changeRequestTitle: 'Judul perubahan',
     changeRequestDetails: 'Jelaskan perubahan yang dibutuhkan',
     changeSend: 'Kirim permintaan perubahan',
@@ -500,6 +501,7 @@ const copy = {
     changeTitle: 'Project changes',
     changeDescription: 'Describe a change to the project scope. The studio will review it and send an estimate for your approval.',
     changeEmpty: 'There are no change requests or proposals yet.',
+    changeLoading: 'Loading project changes...',
     changeRequestTitle: 'Change title',
     changeRequestDetails: 'Describe the requested change',
     changeSend: 'Send change request',
@@ -761,6 +763,7 @@ const copy = {
     changeTitle: '工程变更',
     changeDescription: '描述项目范围的变更需求。工作室审核后会发送估价供您确认。',
     changeEmpty: '暂无变更申请或提案。',
+    changeLoading: '正在加载工程变更...',
     changeRequestTitle: '变更标题',
     changeRequestDetails: '请描述所需的变更',
     changeSend: '发送变更申请',
@@ -989,6 +992,8 @@ const ClientPortal: React.FC = () => {
   const [paymentAccountsLoading, setPaymentAccountsLoading] = useState(false);
   const [paymentAccountsError, setPaymentAccountsError] = useState('');
   const [changeOrders, setChangeOrders] = useState<ProjectChangeOrder[]>([]);
+  const [changeOrdersLoading, setChangeOrdersLoading] = useState(false);
+  const [changeOrdersError, setChangeOrdersError] = useState('');
   const [notifications, setNotifications] = useState<PortalNotification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState('');
@@ -1221,6 +1226,8 @@ const ClientPortal: React.FC = () => {
       setPortalInvoices([]);
       setInvoiceError('');
       setChangeOrders([]);
+      setChangeOrdersError('');
+      setChangeOrdersLoading(false);
       return () => { active = false; };
     }
 
@@ -1228,17 +1235,24 @@ const ClientPortal: React.FC = () => {
     setPortalInvoices([]);
     setInvoiceError('');
     setChangeOrders([]);
-    Promise.all([
-      portalRequest<{ items: BillingItem[] }>(`/api/portal/client/billing?projectId=${encodeURIComponent(project.id)}`),
-      portalRequest<{ orders: ProjectChangeOrder[] }>(`/api/portal/client/change-orders?projectId=${encodeURIComponent(project.id)}`),
-    ])
-      .then(([billing, changes]) => {
-        if (!active) return;
-        setBillingItems(billing.items);
-        setChangeOrders(changes.orders);
+    setChangeOrdersError('');
+    setChangeOrdersLoading(true);
+    portalRequest<{ items: BillingItem[] }>(`/api/portal/client/billing?projectId=${encodeURIComponent(project.id)}`)
+      .then(({ items }) => {
+        if (active) setBillingItems(items);
       })
       .catch((cause: unknown) => {
         if (active) setError(cause instanceof Error ? cause.message : 'Tagihan dan perubahan pekerjaan tidak dapat dimuat.');
+      });
+    portalRequest<{ orders: ProjectChangeOrder[] }>(`/api/portal/client/change-orders?projectId=${encodeURIComponent(project.id)}`)
+      .then(({ orders }) => {
+        if (active) setChangeOrders(orders);
+      })
+      .catch((cause: unknown) => {
+        if (active) setChangeOrdersError(cause instanceof Error ? cause.message : 'Perubahan pekerjaan tidak dapat dimuat.');
+      })
+      .finally(() => {
+        if (active) setChangeOrdersLoading(false);
       });
     return () => { active = false; };
   }, [project?.id]);
@@ -1526,7 +1540,7 @@ const ClientPortal: React.FC = () => {
     const form = event.currentTarget;
     const values = new FormData(form);
     setChangeSubmitting(true);
-    setError('');
+    setChangeOrdersError('');
     setChangeNotice('');
     try {
       const { order } = await portalRequest<{ order: ProjectChangeOrder }>(`/api/portal/client/change-orders?projectId=${encodeURIComponent(project.id)}`, {
@@ -1537,7 +1551,7 @@ const ClientPortal: React.FC = () => {
       form.reset();
       setChangeNotice(t.changeRequestSent);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Permintaan perubahan tidak dapat dikirim.');
+      setChangeOrdersError(cause instanceof Error ? cause.message : 'Permintaan perubahan tidak dapat dikirim.');
     } finally {
       setChangeSubmitting(false);
     }
@@ -1547,7 +1561,7 @@ const ClientPortal: React.FC = () => {
     if (!project) return;
     if (!window.confirm(decision === 'approved' ? t.changeConfirmApprove : t.changeConfirmReject)) return;
     setChangeSubmitting(true);
-    setError('');
+    setChangeOrdersError('');
     setChangeNotice('');
     try {
       const { order: updatedOrder } = await portalRequest<{ order: ProjectChangeOrder }>(`/api/portal/client/change-orders?projectId=${encodeURIComponent(project?.id ?? '')}`, {
@@ -1557,7 +1571,7 @@ const ClientPortal: React.FC = () => {
       setChangeOrders((current) => current.map((entry) => entry.id === order.id ? updatedOrder : entry));
       setChangeNotice(t.changeDecisionSaved);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Tanggapan perubahan tidak dapat disimpan.');
+      setChangeOrdersError(cause instanceof Error ? cause.message : 'Tanggapan perubahan tidak dapat disimpan.');
     } finally {
       setChangeSubmitting(false);
     }
@@ -2680,8 +2694,9 @@ const ClientPortal: React.FC = () => {
                 <div><p className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">{project.project_code}</p><h2 className="mt-1 font-display text-xl font-medium tracking-tight">{t.changeTitle}</h2></div>
               </div>
               <p className="mb-5 text-sm leading-6 text-neutral-500">{t.changeDescription}</p>
+              {changeOrdersError && <p role="alert" className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-700 dark:text-red-300">{changeOrdersError}</p>}
               {changeNotice && <p role="status" className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-xs text-emerald-700 dark:text-emerald-300">{changeNotice}</p>}
-              {changeOrders.length === 0 ? <p className="mb-5 text-sm text-neutral-500">{t.changeEmpty}</p> : (
+              {changeOrdersLoading ? <p role="status" className="mb-5 text-sm text-neutral-500">{t.changeLoading}</p> : changeOrders.length === 0 ? changeOrdersError ? null : <p className="mb-5 text-sm text-neutral-500">{t.changeEmpty}</p> : (
                 <ul className="mb-5 space-y-3">
                   {changeOrders.map((order) => (
                     <li key={order.id} className="rounded-xl border border-neutral-100 bg-neutral-50/70 p-4 sm:p-5 dark:border-white/[0.06] dark:bg-white/[0.02]">
