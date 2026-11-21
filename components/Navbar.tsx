@@ -12,8 +12,6 @@ import logoImage from '../LInier-logo-transparent.png';
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const isHomePage = location.pathname === '/';
-  const navTextClass = isHomePage && !isOpen ? 'text-white' : 'text-neutral-900 dark:text-white';
 
   // State for Language and Theme
   const { language, setLanguage, t } = useLanguage();
@@ -123,7 +121,7 @@ const Navbar: React.FC = () => {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className={`fixed top-0 left-0 w-full z-50 px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 lg:px-12 lg:py-10 flex justify-between items-center ${navTextClass} pointer-events-none`}
+        className="fixed top-0 left-0 w-full z-50 px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 lg:px-12 lg:py-10 flex justify-between items-center text-neutral-900 dark:text-white pointer-events-none"
       >
         
         {/* 1. LEFT: LOGO */}
@@ -154,7 +152,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center gap-12 pointer-events-auto">
             
             {/* Desktop Nav Links (Hidden on Mobile & Tablet) */}
-            <div className={`hidden ${isHomePage ? '' : 'lg:flex'} gap-10 ${navTextClass}`}>
+            <div className="hidden lg:flex gap-10 text-neutral-900 dark:text-white">
                 {NAV_ITEMS.map((item) => (
                     <NavLink 
                         key={item.path} 
@@ -170,10 +168,10 @@ const Navbar: React.FC = () => {
             </div>
 
             {/* Divider (Hidden on Mobile & Tablet) */}
-            <div className={`hidden ${isHomePage ? '' : 'lg:block'} w-[1px] h-6 bg-neutral-900/40 dark:bg-white/40`}></div>
+            <div className="hidden lg:block w-[1px] h-6 bg-neutral-900/40 dark:bg-white/40"></div>
 
             {/* Controls: Language & Theme (Desktop Only) */}
-            <div className={`hidden ${isHomePage ? '' : 'lg:flex'} items-center gap-6 ${navTextClass}`}>
+            <div className="hidden lg:flex items-center gap-6 text-neutral-900 dark:text-white">
                 <div className="flex items-center gap-3">
                     <Globe size={16} className="opacity-40" />
                     {(["ID", "EN", "CN"] as Language[]).map((l) => (
@@ -201,10 +199,10 @@ const Navbar: React.FC = () => {
                 Visible on Mobile & Tablet.
                 High Z-Index (70).
             */}
-            <div className={isHomePage ? 'block' : 'lg:hidden'}>
+            <div className="lg:hidden">
                  <button 
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`relative z-[70] flex items-center gap-2 text-base font-bold font-mono uppercase tracking-widest transition-colors duration-300 ${navTextClass}`}
+                    className={`relative z-[70] flex items-center gap-2 text-base font-bold font-mono uppercase tracking-widest transition-colors duration-300 ${isOpen ? 'text-neutral-900 dark:text-white' : 'text-neutral-900 dark:text-white'}`}
                  >
                     <span className="hidden sm:inline">{isOpen ? 'Close' : 'Menu'}</span>
                     

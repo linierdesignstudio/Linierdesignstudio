@@ -67,12 +67,12 @@ const Home: React.FC = () => {
       {/* 1. HERO */}
       <section className="sticky top-0 h-[100svh] md:h-[100vh] w-full overflow-hidden bg-black text-white px-4 sm:px-6 md:px-12 z-0">
         <div className="mx-auto flex h-full w-full max-w-[1800px] flex-col">
-          <div className="mt-[18vh] overflow-hidden">
+          <div className="mt-[18vh] flex justify-center overflow-hidden">
             <motion.h1
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="whitespace-nowrap font-display text-[clamp(2.5rem,12.4vw,14rem)] font-bold uppercase leading-[0.82] tracking-[-0.09em]"
+              className="w-full whitespace-nowrap text-center font-display text-[clamp(2rem,14.5vw,18rem)] font-bold uppercase leading-[0.82] tracking-[-0.09em]"
             >
               LINIER STUDIO
             </motion.h1>
