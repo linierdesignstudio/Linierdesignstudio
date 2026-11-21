@@ -3,10 +3,9 @@ import React, { useRef, useState, useEffect } from 'react';
 import heroImage from '../1.jpeg';
 import textureMaterialBoard from '../Modern Tropical Material Board.png';
 import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, AnimatePresence } from 'framer-motion';
-import { ArrowUpRight, Plus, ArrowRight, Music } from 'lucide-react';
+import { ArrowUpRight, Plus, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import TextReveal from '../components/TextReveal';
-import SplitTextReveal from '../components/SplitTextReveal';
 import CyclingSlideText from '../components/CyclingSlideText';
 import PhilosophySection from '../components/PhilosophySection';
 import HorizontalScroll from '../components/HorizontalScroll';
@@ -29,18 +28,7 @@ const NEXT_STEP_SECTION_STAGE_COUNT = NEXT_STEP_CLOSING_STEP + 1;
 const NEXT_STEP_PAUSE_PROGRESS = 0.14;
 
 const Home: React.FC = () => {
-  const containerRef = useRef(null);
   const { t, language } = useLanguage();
-  
-  // -- Parallax Logic for Hero --
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
-  
-  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 1.1]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0.3]);
-  const textY = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
 
   const nextStepsRef = useRef<HTMLElement | null>(null);
   const { scrollYProgress: nextStepsProgress } = useScroll({
@@ -73,172 +61,71 @@ const Home: React.FC = () => {
   const [activeProject, setActiveProject] = useState<string | null>(null);
   const [activeEssentialElementId, setActiveEssentialElementId] = useState<number | null>(null);
 
-  // -- Audio Player Visibility Sync --
-  const [isAudioVisible, setIsAudioVisible] = useState(() => {
-    const saved = localStorage.getItem('linier_audio_player_visible');
-    return saved !== 'false';
-  });
-
-  useEffect(() => {
-    const handleShow = () => setIsAudioVisible(true);
-    const handleHide = () => setIsAudioVisible(false);
-
-    window.addEventListener('show-audio-player', handleShow);
-    window.addEventListener('hide-audio-player', handleHide);
-
-    return () => {
-      window.removeEventListener('show-audio-player', handleShow);
-      window.removeEventListener('hide-audio-player', handleHide);
-    };
-  }, []);
-
   return (
-    <div ref={containerRef} className="w-full bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white selection:bg-bronze-500 selection:text-white relative">
+    <div className="w-full bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white selection:bg-bronze-500 selection:text-white relative">
       
-      {/* 1. HERO - THE BASE (Fixed/Sticky at back) */}
-    <section className="sticky top-0 min-h-[100svh] h-[100svh] md:h-[100vh] w-full overflow-hidden flex flex-col justify-center md:justify-end pb-8 sm:pb-12 md:pb-24 px-4 sm:px-6 md:px-12 z-0">
-        <motion.div style={{ scale: heroScale, opacity: heroOpacity }} className="absolute inset-0 z-0">
-            <img
-                src={heroImage}
-                alt="Linier Studio architecture hero"
-                className="w-full h-full object-cover brightness-110"
-            />
-        </motion.div>
-
-        <div className="absolute inset-0 z-10 bg-black/20 pointer-events-none" />
-        <div className="absolute inset-x-0 bottom-0 z-10 h-2/3 bg-gradient-to-t from-black/55 to-transparent pointer-events-none" />
-
-        <div className="absolute top-24 sm:top-28 md:top-32 left-4 sm:left-6 md:left-12 right-4 sm:right-6 md:right-12 z-20 flex items-start justify-between text-white mix-blend-difference pointer-events-none">
-            <motion.div
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.35, duration: 0.7 }}
-                className="flex items-center gap-3 text-[10px] sm:text-xs font-mono uppercase tracking-[0.25em]"
+      {/* 1. HERO */}
+      <section className="sticky top-0 h-[100svh] md:h-[100vh] w-full overflow-hidden bg-black text-white px-4 sm:px-6 md:px-12 z-0">
+        <div className="mx-auto flex h-full w-full max-w-[1800px] flex-col">
+          <div className="mt-[18vh] overflow-hidden">
+            <motion.h1
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="whitespace-nowrap font-display text-[clamp(2.5rem,12.4vw,14rem)] font-bold uppercase leading-[0.82] tracking-[-0.09em]"
             >
-                <span className="w-7 sm:w-10 h-px bg-current" />
-                <span>Linier Studio / 01</span>
-            </motion.div>
+              LINIER STUDIO
+            </motion.h1>
+          </div>
+
+          <div className="mt-[7vh] grid grid-cols-[1fr_auto_1fr] items-start gap-2 font-mono text-[7px] uppercase tracking-[0.12em] text-neutral-400 sm:text-[8px] sm:tracking-[0.18em] md:text-[9px]">
+            <span className="max-w-[9rem] leading-relaxed">{t.hero.disciplines}</span>
+            <nav aria-label="Hero navigation" className="flex justify-self-center gap-2.5 text-white sm:gap-4">
+              <Link to="/" className="transition-opacity hover:opacity-50">{t.nav.home}</Link>
+              <Link to="/portfolio" className="transition-opacity hover:opacity-50">{t.nav.portfolio}</Link>
+              <Link to="/about" className="transition-opacity hover:opacity-50">{t.nav.about}</Link>
+            </nav>
+            <span className="justify-self-end">© {new Date().getFullYear()}</span>
+          </div>
+
+          <div className="mt-auto grid grid-cols-[1fr_auto_1fr] items-end gap-3 pb-20">
+            <div className="max-w-[10rem] pb-14 font-mono text-[8px] uppercase leading-relaxed tracking-[0.12em] text-neutral-400 sm:text-[9px]">
+              <span className="text-neutral-500">01 / KENDARI</span>
+              <p className="mt-2 font-display text-[10px] font-bold leading-[1.1] tracking-[0.08em] text-white sm:text-xs">
+                {t.hero.title1}<br />{t.hero.title2}
+              </p>
+            </div>
+
             <motion.div
-                initial={{ opacity: 0, x: 16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5, duration: 0.7 }}
-                className="hidden sm:flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.25em]"
+              initial={{ opacity: 0, y: 20, scale: 0.94 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.65, ease: 'easeOut' }}
+              className="flex flex-col items-center"
             >
-                <span className="w-1.5 h-1.5 rounded-full bg-bronze-500 animate-pulse" />
-                <span>Kendari / Indonesia</span>
+              <Link to="/portfolio" aria-label={t.home.view_all} className="group flex flex-col items-center">
+                <span className="block overflow-hidden">
+                  <img
+                    src={heroImage}
+                    alt="Linier Studio architecture"
+                    className="h-[120px] w-[90px] object-cover grayscale brightness-90 contrast-125 transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0 sm:h-[150px] sm:w-[112px] md:h-[220px] md:w-[176px] lg:h-[238px] lg:w-[190px]"
+                  />
+                </span>
+                <span className="mt-2 flex w-full items-center justify-between gap-3 font-mono text-[7px] uppercase tracking-[0.14em] text-neutral-500 transition-colors group-hover:text-white sm:text-[8px]">
+                  <span>01 / {t.hero.title1}</span>
+                  <ArrowUpRight size={10} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </span>
+              </Link>
             </motion.div>
+
+            <div className="flex max-w-[10rem] flex-col items-end gap-2 pb-1 text-right font-mono text-[8px] uppercase leading-relaxed tracking-[0.12em] text-neutral-400 sm:text-[9px]">
+              <span>Kendari / Indonesia</span>
+              <Link to="/portfolio" className="flex items-center gap-1.5 text-white transition-colors hover:text-bronze-400">
+                {t.home.view_all}
+                <ArrowUpRight size={12} />
+              </Link>
+            </div>
+          </div>
         </div>
-
-        <motion.div style={{ y: textY }} className="relative z-20 text-white pointer-events-none w-full flex flex-col items-center md:items-start pt-12 sm:pt-16 md:pt-0">
-            
-            {/* DISCIPLINES MOVED ABOVE TITLE */}
-            <div className="w-full mb-5 sm:mb-6 text-center md:text-left">
-                <motion.div 
-                    key={`disc-${language}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6, duration: 0.8 }}
-                    className="text-[10px] sm:text-xs md:text-sm font-sans font-medium uppercase tracking-[0.2em] text-neutral-300 block"
-                >
-                     {t.hero.disciplines}
-                </motion.div>
-            </div>
-
-            {/* Split text into 2 lines/blocks with Text Reveal + Split effect */}
-            <h1 className="text-[11vw] sm:text-[12vw] md:text-[8vw] lg:text-[7vw] leading-[0.92] font-display font-semibold uppercase tracking-tight text-center md:text-left w-full flex flex-col items-center md:items-start drop-shadow-[0_2px_14px_rgba(0,0,0,0.55)]">
-                <SplitTextReveal 
-                    key={`line1-${language}`}
-                    text={t.hero.title1 || "Architecture"} 
-                    delay={0.15}
-                    className="block text-white" 
-                />
-                <div className="flex justify-center md:justify-start items-baseline">
-                    <SplitTextReveal 
-                        key={`line2-${language}`}
-                        text={t.hero.title2 || "With Purpose"} 
-                        delay={0.45}
-                        className="block text-white/90"
-                    />
-                    <motion.span 
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 1.0, duration: 0.5, type: "spring" }}
-                        className="text-bronze-500 font-bold ml-1 text-[13vw] md:text-[8vw] lg:text-[7vw]"
-                    >
-                        .
-                    </motion.span>
-                </div>
-            </h1>
-            
-            <div className="w-full mt-8 sm:mt-10 md:mt-12">
-                
-                <div className="flex flex-col md:flex-row justify-between items-center md:items-end w-full gap-6 sm:gap-8 md:gap-0">
-                    <div className="text-[10px] sm:text-xs md:text-base lg:text-lg font-mono uppercase tracking-[0.18em] sm:tracking-widest max-w-md overflow-hidden text-neutral-300 text-center md:text-left">
-                        <motion.p
-                           key={language}
-                           initial={{ opacity: 0, x: -20 }}
-                           animate={{ opacity: 1, x: 0 }}
-                           transition={{ delay: 0.8, duration: 1 }}
-                           className="whitespace-pre-line"
-                        >
-                          {t.hero.tagline}
-                        </motion.p>
-                    </div>
-
-                                        <div className="flex items-center gap-4 sm:gap-6 pointer-events-auto">
-                                                <Link
-                                                    to="/portfolio"
-                                                    className="group flex items-center gap-2 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-[0.18em] text-white hover:text-bronze-500 transition-colors"
-                                                >
-                                                    <span>{t.home.view_all}</span>
-                                                    <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
-                                                </Link>
-                        <AnimatePresence>
-                          {!isAudioVisible && (
-                            <motion.button
-                              initial={{ opacity: 0, scale: 0.8, x: 20 }}
-                              animate={{ opacity: 1, scale: 1, x: 0 }}
-                              exit={{ opacity: 0, scale: 0.8, x: 20 }}
-                              transition={{ duration: 0.4 }}
-                              onClick={() => {
-                                window.dispatchEvent(new CustomEvent('show-audio-player'));
-                              }}
-                              className="pointer-events-auto flex items-center gap-2 px-3 sm:px-4 py-2 bg-neutral-900/90 hover:bg-neutral-800/90 active:bg-black/80 backdrop-blur-md border border-neutral-300 dark:border-white/10 rounded-full text-white text-[10px] sm:text-[11px] font-mono tracking-widest uppercase transition-all duration-300 shadow-xl hover:border-bronze-500/50 group cursor-pointer"
-                            >
-                              <Music size={12} className="text-bronze-500 group-hover:scale-110 transition-transform" />
-                              <span>{t.hero.music_btn}</span>
-                            </motion.button>
-                          )}
-                        </AnimatePresence>
-
-                        <div className="hidden md:block animate-spin-slow opacity-80">
-                            <svg width="100" height="100" viewBox="0 0 100 100">
-                                <path id="curve" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="transparent" />
-                                <text className="text-[10px] font-bold uppercase tracking-widest fill-white">
-                                    <textPath href="#curve">
-                                        {t.hero.scroll}
-                                    </textPath>
-                                </text>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </motion.div>
-
-                <motion.aside
-                    initial={{ opacity: 0, x: 24 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8, delay: 0.8 }}
-                    className="hidden md:flex absolute right-8 lg:right-12 top-1/2 -translate-y-1/2 z-20 flex-col items-center gap-5 text-white mix-blend-difference pointer-events-none"
-                    aria-label="Design disciplines"
-                >
-                    <span className="w-px h-16 bg-current opacity-60" />
-                    <span className="text-[10px] font-mono uppercase tracking-[0.35em] [writing-mode:vertical-rl]">
-                        Space / Form / Light
-                    </span>
-                    <span className="w-px h-16 bg-current opacity-60" />
-                </motion.aside>
       </section>
 
       {/* 2. THE LONG CARD (THE MONOLITH) */}
